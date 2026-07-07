@@ -42,7 +42,7 @@ Treat the cookie like a password; only paste it into `/link add` or
 | Subcommand | Options | What it does |
 |---|---|---|
 | `/config schedule` | `cron` | Sets this server's **check-in** schedule as a **cron expression**, run in this server's timezone. Run with no `cron` to see the current schedule and next run. Example: `0 30 0 * * *` (00:30 daily). |
-| `/config channel` | `type` (required: `check-in` or `redeem`), `channel` | Sets which channel a notification type posts to. Run with no `channel` to see the current one. |
+| `/config channel` | `type` (required: `default` \| `check-in` \| `redeem` \| `reminder`), `channel` | Sets which channel a notification type posts to. Run with no `channel` to see the current one. `default` is the fallback channel every notification type uses when its own channel isn't set. |
 | `/config timezone` | `tz` | Sets this server's IANA timezone (e.g. `Asia/Manila`), which governs the check-in time and the daily boundary. Run with no `tz` to see the current one. Defaults to `UTC`. |
 
 Times shown by `/config` render as Discord timestamps, so they appear in each

@@ -25,7 +25,12 @@ module.exports = {
 			.setName("channel")
 			.setDescription("Show or set a notification channel.")
 			.addStringOption(opt => opt.setName("type").setDescription("Which notifications").setRequired(true)
-				.addChoices({ name: "check-in", value: "checkin" }, { name: "redeem", value: "redeem" }))
+				.addChoices(
+					{ name: "default (fallback for all)", value: "default" },
+					{ name: "check-in", value: "checkin" },
+					{ name: "redeem", value: "redeem" },
+					{ name: "reminder", value: "reminder" }
+				))
 			.addChannelOption(opt => opt.setName("channel").setDescription("Target channel").addChannelTypes(ChannelType.GuildText)))
 		.addSubcommand(sub => sub
 			.setName("timezone")

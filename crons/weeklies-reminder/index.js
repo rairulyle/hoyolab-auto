@@ -1,3 +1,5 @@
+const { notifyAccount } = require("../../core/notify.js");
+
 const RegionalTaskManager = new app.RegionalTaskManager();
 
 RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
@@ -15,163 +17,110 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 	const { data } = notes;
 	const weeklies = data.weeklies;
 
-	const platforms = app.Platform.getForAccount(account);
-	const webhooks = platforms.filter(p => p.name === "webhook");
-	const telegrams = platforms.filter(p => p.name === "telegram");
-	if (webhooks.length > 0) {
-		const embed = {
-			color: data.assets.color,
-			title: "Weeklies Reminder",
-			author: {
-				name: data.assets.author,
-				icon_url: data.assets.logo
-			},
-			description: "Don't forget to complete your weeklies!",
-			fields: [
-				{ name: "UID", value: account.uid, inline: true },
-				{ name: "Username", value: account.nickname, inline: true },
-				{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true }
-			],
-			timestamp: new Date(),
-			footer: {
-				text: "Weeklies Reminder",
-				icon_url: data.assets.logo
-			}
-		};
-
-		if (platform.type === "genshin") {
-			const resin = weeklies.resinDiscount;
-			const limit = weeklies.resinDiscountLimit;
-
-			if (resin !== 0) {
-				embed.fields.push({
-					name: "Resin Discount",
-					value: `${resin}/${limit} Available`,
-					inline: true
-				});
-			}
+	const embed = {
+		color: data.assets.color,
+		title: "Weeklies Reminder",
+		author: {
+			name: data.assets.author,
+			icon_url: data.assets.logo
+		},
+		description: "Don't forget to complete your weeklies!",
+		fields: [
+			{ name: "UID", value: account.uid, inline: true },
+			{ name: "Username", value: account.nickname, inline: true },
+			{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true }
+		],
+		timestamp: new Date(),
+		footer: {
+			text: "Weeklies Reminder",
+			icon_url: data.assets.logo
 		}
-		if (platform.type === "starrail") {
-			const bossCompleted = (weeklies.weeklyBoss === 0);
-			const simCompleted = (weeklies.rogueScore === weeklies.maxScore);
-			const divergent = (weeklies.tournScore === weeklies.tournMaxScore && weeklies.tournUnlocked);
-			if (bossCompleted && simCompleted && divergent) {
-				return;
-			}
+	};
 
-			if (!bossCompleted) {
-				embed.fields.push({
-					name: "Weekly Boss",
-					value: `${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`,
-					inline: true
-				});
-			}
-			if (!simCompleted) {
-				embed.fields.push({
-					name: "Simulated Universe",
-					value: `${weeklies.rogueScore}/${weeklies.maxScore}`,
-					inline: true
-				});
-			}
-			if (!divergent) {
-				embed.fields.push({
-					name: "Divergent Universe",
-					value: `${weeklies.tournScore}/${weeklies.tournMaxScore}`,
-					inline: true
-				});
-			}
-		}
-		if (platform.type === "nap") {
-			const bountiesCompleted = (weeklies.bounty === weeklies.bountyTotal);
-			const surveyCompleted = (weeklies.surveyPoints === weeklies.surveyPointsTotal);
-			if (bountiesCompleted && surveyCompleted) {
-				return;
-			}
+	const message = [
+		"📅 **Weeklies Reminder**",
+		"",
+		"👤 **Account**",
+		`- **UID**: ${account.uid}`,
+		`- **Username**: ${account.nickname}`,
+		`- **Region**: ${app.HoyoLab.getRegion(account.region)}`,
+		"",
+		"📊 **Progress**"
+	];
 
-			if (!bountiesCompleted) {
-				embed.fields.push({
-					name: "Bounty Commission",
-					value: `${weeklies.bounty}/${weeklies.bountyTotal}`,
-					inline: true
-				});
-			}
-			if (!surveyCompleted) {
-				embed.fields.push({
-					name: "Survey Points",
-					value: `${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`,
-					inline: true
-				});
-			}
-		}
+	if (platform.type === "genshin") {
+		const resin = weeklies.resinDiscount;
+		const limit = weeklies.resinDiscountLimit;
 
-		for (const webhook of webhooks) {
-			const userId = webhook.createUserMention(account.discord);
-			await webhook.send(embed, {
-				content: userId,
-				author: data.assets.author,
-				icon: data.assets.logo
+		if (resin !== 0) {
+			embed.fields.push({
+				name: "Resin Discount",
+				value: `${resin}/${limit} Available`,
+				inline: true
 			});
+			message.push(`- **Resin Discount**: ${resin}/${limit} Available`);
+		}
+	}
+	if (platform.type === "starrail") {
+		const bossCompleted = (weeklies.weeklyBoss === 0);
+		const simCompleted = (weeklies.rogueScore === weeklies.maxScore);
+		const divergent = (weeklies.tournScore === weeklies.tournMaxScore && weeklies.tournUnlocked);
+		if (bossCompleted && simCompleted && divergent) {
+			return;
+		}
+
+		if (!bossCompleted) {
+			embed.fields.push({
+				name: "Weekly Boss",
+				value: `${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`,
+				inline: true
+			});
+			message.push(`- **Weekly Boss**: ${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`);
+		}
+		if (!simCompleted) {
+			embed.fields.push({
+				name: "Simulated Universe",
+				value: `${weeklies.rogueScore}/${weeklies.maxScore}`,
+				inline: true
+			});
+			message.push(`- **Simulated Universe**: ${weeklies.rogueScore}/${weeklies.maxScore}`);
+		}
+		if (!divergent) {
+			embed.fields.push({
+				name: "Divergent Universe",
+				value: `${weeklies.tournScore}/${weeklies.tournMaxScore}`,
+				inline: true
+			});
+			message.push(`- **Divergent Universe**: ${weeklies.tournScore}/${weeklies.tournMaxScore}`);
+		}
+	}
+	if (platform.type === "nap") {
+		const bountiesCompleted = (weeklies.bounty === weeklies.bountyTotal);
+		const surveyCompleted = (weeklies.surveyPoints === weeklies.surveyPointsTotal);
+		if (bountiesCompleted && surveyCompleted) {
+			return;
+		}
+
+		if (!bountiesCompleted) {
+			embed.fields.push({
+				name: "Bounty Commission",
+				value: `${weeklies.bounty}/${weeklies.bountyTotal}`,
+				inline: true
+			});
+			message.push(`- **Bounty Commission**: ${weeklies.bounty}/${weeklies.bountyTotal}`);
+		}
+		if (!surveyCompleted) {
+			embed.fields.push({
+				name: "Survey Points",
+				value: `${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`,
+				inline: true
+			});
+			message.push(`- **Survey Points**: ${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`);
 		}
 	}
 
-	if (telegrams.length > 0) {
-		const message = [
-			"📅 **Weeklies Reminder**",
-			"",
-			"👤 **Account**",
-			`- **UID**: ${account.uid}`,
-			`- **Username**: ${account.nickname}`,
-			`- **Region**: ${app.HoyoLab.getRegion(account.region)}`,
-			"",
-			"📊 **Progress**"
-		];
-
-		if (platform.type === "genshin") {
-			const resin = weeklies.resinDiscount;
-			const limit = weeklies.resinDiscountLimit;
-
-			if (resin !== 0) {
-				message.push(`- **Resin Discount**: ${resin}/${limit} Available`);
-			}
-		}
-		if (platform.type === "starrail") {
-			const bossCompleted = (weeklies.weeklyBoss === 0);
-			const simCompleted = (weeklies.rogueScore === weeklies.maxScore);
-			const divergent = (weeklies.tournScore === weeklies.tournMaxScore && weeklies.tournUnlocked);
-			if (bossCompleted && simCompleted && divergent) {
-				return;
-			}
-
-			if (!bossCompleted) {
-				message.push(`- **Weekly Boss**: ${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`);
-			}
-			if (!simCompleted) {
-				message.push(`- **Simulated Universe**: ${weeklies.rogueScore}/${weeklies.maxScore}`);
-			}
-			if (!divergent) {
-				message.push(`- **Divergent Universe**: ${weeklies.tournScore}/${weeklies.tournMaxScore}`);
-			}
-		}
-		if (platform.type === "nap") {
-			const bountiesCompleted = (weeklies.bounty === weeklies.bountyTotal);
-			const surveyCompleted = (weeklies.surveyPoints === weeklies.surveyPointsTotal);
-			if (bountiesCompleted && surveyCompleted) {
-				return;
-			}
-
-			if (!bountiesCompleted) {
-				message.push(`- **Bounty Commission**: ${weeklies.bounty}/${weeklies.bountyTotal}`);
-			}
-			if (!surveyCompleted) {
-				message.push(`- **Survey Points**: ${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`);
-			}
-		}
-
-		const escapedMessage = app.Utils.escapeCharacters(message.join("\n"));
-		for (const telegram of telegrams) {
-			await telegram.send(escapedMessage);
-		}
-	}
+	const telegramText = app.Utils.escapeCharacters(message.join("\n"));
+	await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 });
 
 module.exports = {

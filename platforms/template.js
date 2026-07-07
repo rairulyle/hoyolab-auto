@@ -1,8 +1,5 @@
-const WEBHOOK_REGEX = /https:\/\/discord.com\/api\/webhooks\/\d+\/[\w-]+/;
-
 module.exports = class Platform {
 	#id;
-	#url;
 	#name;
 	#botId;
 	#token;
@@ -30,16 +27,6 @@ module.exports = class Platform {
 			});
 		}
 
-		this.#url = config.url ?? null;
-		if (this.#url && !WEBHOOK_REGEX.test(this.#url)) {
-			throw new app.Error({
-				message: "Invalid URL provided for Webhook Platform.",
-				args: {
-					url: this.#url
-				}
-			});
-		}
-
 		this.#botId = config.botId ?? null;
 		this.#token = config.token ?? null;
 		this.#prefix = config.prefix ?? null;
@@ -55,8 +42,6 @@ module.exports = class Platform {
 	get id () { return this.#id; }
 	get Name () { return this.#name; }
 	get name () { return this.#name; }
-	get URL () { return this.#url; }
-	get url () { return this.#url; }
 	get botId () { return this.#botId; }
 	get Token () { return this.#token; }
 	get token () { return this.#token; }
@@ -79,7 +64,7 @@ module.exports = class Platform {
 	prepareMessage (messageData, options = {}) {
 		if (!options.type) {
 			throw new app.Error({
-				message: "No type provided for webhook message preparation",
+				message: "No type provided for message preparation",
 				args: {
 					type: options.type
 				}
@@ -114,13 +99,6 @@ module.exports = class Platform {
 		}
 
 		return messageData;
-	}
-
-	// eslint-disable-next-line no-unused-vars
-	createUserMention (userData) {
-		throw new app.Error({
-			message: "This method must be implemented at the derived platofrm"
-		});
 	}
 
 	restart () {}
@@ -167,9 +145,6 @@ module.exports = class Platform {
 	static create (type, config) {
 		let InstancePlatform;
 		switch (type) {
-			case "webhook":
-				InstancePlatform = require("./webhook.js");
-				break;
 			case "discord":
 				InstancePlatform = require("./discord.js");
 				break;

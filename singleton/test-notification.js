@@ -48,7 +48,6 @@ async function sendTestNotifications (platforms) {
  */
 async function sendPlatformTestNotification (platform) {
 	try {
-		const timestamp = new Date().toISOString();
 		const localTime = new Date().toLocaleString();
 
 		const platformName = platform.name?.toLowerCase() || "unknown";
@@ -58,44 +57,6 @@ async function sendPlatformTestNotification (platform) {
 				// Note: Discord bots need proper channel access to send messages
 				app.Logger.info("TestNotification", `Discord bot (ID: ${platform.id}) is connected and ready`);
 				break;
-
-			case "webhook": {
-				// Send a test embed to Discord webhook
-				const testEmbed = {
-					title: "🔥 HoyoLab Auto - Test Notification",
-					description: "This is a test notification to confirm that the webhook is working properly.",
-					color: 3447003,
-					fields: [
-						{
-							name: "Status",
-							value: "✅ Connected",
-							inline: true
-						},
-						{
-							name: "Local Time",
-							value: localTime,
-							inline: true
-						},
-						{
-							name: "Platform",
-							value: "Discord Webhook",
-							inline: true
-						}
-					],
-					footer: {
-						text: "HoyoLab Auto Test System",
-						icon_url: "https://i.ibb.co/nRqTkXv/image.png"
-					},
-					timestamp
-				};
-
-				await platform.send(testEmbed, {
-					content: "🚀 **HoyoLab Auto Started Successfully!**",
-					author: "HoyoLab Auto",
-					icon: "https://i.ibb.co/nRqTkXv/image.png"
-				});
-				break;
-			}
 
 			case "telegram": {
 				// Send a test message to Telegram
@@ -133,48 +94,10 @@ async function sendManualTestNotification (platform, options = {}) {
 	const customMessage = options.message || "Manual test notification triggered";
 
 	try {
-		const timestamp = new Date().toISOString();
 		const localTime = new Date().toLocaleString();
 
 		const platformName = platform.name?.toLowerCase() || "unknown";
 		switch (platformName) {
-			case "webhook": {
-				const testEmbed = {
-					title: "🧪 HoyoLab Auto - Manual Test",
-					description: customMessage,
-					color: 16776960, // Yellow color for manual tests
-					fields: [
-						{
-							name: "Test Type",
-							value: "Manual",
-							inline: true
-						},
-						{
-							name: "Triggered At",
-							value: localTime,
-							inline: true
-						},
-						{
-							name: "Platform",
-							value: "Discord Webhook",
-							inline: true
-						}
-					],
-					footer: {
-						text: "HoyoLab Auto Manual Test",
-						icon_url: "https://i.ibb.co/nRqTkXv/image.png"
-					},
-					timestamp
-				};
-
-				await platform.send(testEmbed, {
-					content: "🧪 **Manual Test Notification**",
-					author: "HoyoLab Auto",
-					icon: "https://i.ibb.co/nRqTkXv/image.png"
-				});
-				break;
-			}
-
 			case "telegram": {
 				const escapeMarkdown = (text) => text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
 				const testMessage = `🧪 *HoyoLab Auto \\- Manual Test*\n\n`

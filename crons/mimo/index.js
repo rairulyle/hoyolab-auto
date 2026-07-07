@@ -1,4 +1,5 @@
 const { setTimeout: sleep } = require("node:timers/promises");
+const { notifyAccount } = require("../../core/notify.js");
 
 module.exports = {
 	name: "mimo",
@@ -47,7 +48,6 @@ module.exports = {
 
 						if (isCriticalError) {
 							const region = app.HoyoLab.getRegion(account.region);
-							const platforms = app.Platform.getForAccount(account);
 							const embed = {
 								color: 0xFF0000,
 								title: `🐾 Traveling Mimo Failure - ${account.game.name}`,
@@ -63,25 +63,14 @@ module.exports = {
 								}
 							};
 
-							for (const webhook of platforms.filter(p => p.name === "webhook")) {
-								await webhook.send(embed, {
-									content: webhook.createUserMention(account.discord),
-									author: account.assets?.author,
-									icon: account.assets?.logo
-								});
-							}
-
-							const failureText = [
+							const telegramText = app.Utils.escapeCharacters([
 								`🐾 *Traveling Mimo Failure* - ${account.game.name}`,
 								`Region: ${region} | UID: ${account.uid}`,
 								`Player: ${account.nickname}`,
 								"",
 								`❌ *Error:* ${result.message}`
-							].join("\n");
-							const escapedFailureText = app.Utils.escapeCharacters(failureText);
-							for (const telegram of platforms.filter(p => p.name === "telegram")) {
-								await telegram.send(escapedFailureText);
-							}
+							].join("\n"));
+							await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 						}
 						continue;
 					}
@@ -101,165 +90,145 @@ module.exports = {
 					}
 
 					const region = app.HoyoLab.getRegion(account.region);
-					const platforms = app.Platform.getForAccount(account);
-					const webhooks = platforms.filter(p => p.name === "webhook");
-					const telegrams = platforms.filter(p => p.name === "telegram");
-					if (webhooks.length > 0) {
-						const fields = [];
+					const fields = [];
 
-						if (data.tasksClaimed.length > 0) {
-							const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-							fields.push({
-								name: "🎯 Tasks Claimed",
-								value: data.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024),
-								inline: false
-							}, {
-								name: "💰 Points Earned",
-								value: `+${totalPoints} pts`,
-								inline: true
-							});
-						}
-
-						if (data.itemsExchanged.length > 0) {
-							fields.push({
-								name: "🎁 Items Exchanged",
-								value: data.itemsExchanged.map(i => `• ${i.name} (-${i.cost} pts)`).join("\n").slice(0, 1024),
-								inline: false
-							});
-						}
-
-						if (data.codesRedeemed.length > 0) {
-							fields.push({
-								name: "✅ Codes Redeemed",
-								value: data.codesRedeemed.join(", ").slice(0, 1024),
-								inline: false
-							});
-						}
-
-						if (data.codesObtained?.length > 0) {
-							fields.push({
-								name: "🎫 Codes Obtained (Not Auto-Redeemed)",
-								value: data.codesObtained.map(c => `\`${c}\``).join("\n").slice(0, 1024),
-								inline: false
-							});
-						}
-
-						if (data.lotteryDraws?.length > 0) {
-							fields.push({
-								name: "🎰 Lottery Draws",
-								value: data.lotteryDraws.map(d => `• ${d.name}`).join("\n").slice(0, 1024),
-								inline: false
-							});
-						}
-
-						if (data.errors?.length > 0) {
-							fields.push({
-								name: "❌ Errors",
-								value: data.errors.map(e => `• ${e}`).join("\n").slice(0, 1024),
-								inline: false
-							});
-						}
-
+					if (data.tasksClaimed.length > 0) {
+						const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
 						fields.push({
-							name: "💎 Current Points",
-							value: `${data.points} pts`,
+							name: "🎯 Tasks Claimed",
+							value: data.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024),
+							inline: false
+						}, {
+							name: "💰 Points Earned",
+							value: `+${totalPoints} pts`,
 							inline: true
 						});
+					}
 
-						const currencyItem = data.shopStatus.find(i => {
-							const name = i.name.toLowerCase();
-							return name.includes("primogem")
-								|| name.includes("stellar jade")
-								|| name.includes("polychrome");
+					if (data.itemsExchanged.length > 0) {
+						fields.push({
+							name: "🎁 Items Exchanged",
+							value: data.itemsExchanged.map(i => `• ${i.name} (-${i.cost} pts)`).join("\n").slice(0, 1024),
+							inline: false
 						});
+					}
 
-						if (currencyItem && currencyItem.nextRefreshTime > 0) {
-							const restockDate = new Date(Date.now() + (currencyItem.nextRefreshTime * 1000));
-							fields.push({
-								name: "⏰ Next Currency Restock",
-								value: `<t:${Math.floor(restockDate.getTime() / 1000)}:R>`,
-								inline: true
-							});
+					if (data.codesRedeemed.length > 0) {
+						fields.push({
+							name: "✅ Codes Redeemed",
+							value: data.codesRedeemed.join(", ").slice(0, 1024),
+							inline: false
+						});
+					}
+
+					if (data.codesObtained?.length > 0) {
+						fields.push({
+							name: "🎫 Codes Obtained (Not Auto-Redeemed)",
+							value: data.codesObtained.map(c => `\`${c}\``).join("\n").slice(0, 1024),
+							inline: false
+						});
+					}
+
+					if (data.lotteryDraws?.length > 0) {
+						fields.push({
+							name: "🎰 Lottery Draws",
+							value: data.lotteryDraws.map(d => `• ${d.name}`).join("\n").slice(0, 1024),
+							inline: false
+						});
+					}
+
+					if (data.errors?.length > 0) {
+						fields.push({
+							name: "❌ Errors",
+							value: data.errors.map(e => `• ${e}`).join("\n").slice(0, 1024),
+							inline: false
+						});
+					}
+
+					fields.push({
+						name: "💎 Current Points",
+						value: `${data.points} pts`,
+						inline: true
+					});
+
+					const currencyItem = data.shopStatus.find(i => {
+						const name = i.name.toLowerCase();
+						return name.includes("primogem")
+							|| name.includes("stellar jade")
+							|| name.includes("polychrome");
+					});
+
+					if (currencyItem && currencyItem.nextRefreshTime > 0) {
+						const restockDate = new Date(Date.now() + (currencyItem.nextRefreshTime * 1000));
+						fields.push({
+							name: "⏰ Next Currency Restock",
+							value: `<t:${Math.floor(restockDate.getTime() / 1000)}:R>`,
+							inline: true
+						});
+					}
+
+					const embed = {
+						color: data.assets.color,
+						title: `🐾 Traveling Mimo - ${account.game.name}`,
+						author: {
+							name: `${region} Server - ${account.nickname}`,
+							icon_url: data.assets.logo
+						},
+						fields,
+						thumbnail: {
+							url: data.assets.logo
+						},
+						timestamp: new Date(),
+						footer: {
+							text: "Traveling Mimo Automation",
+							icon_url: data.assets.logo
 						}
+					};
 
-						const embed = {
-							color: data.assets.color,
-							title: `🐾 Traveling Mimo - ${account.game.name}`,
-							author: {
-								name: `${region} Server - ${account.nickname}`,
-								icon_url: data.assets.logo
-							},
-							fields,
-							thumbnail: {
-								url: data.assets.logo
-							},
-							timestamp: new Date(),
-							footer: {
-								text: "Traveling Mimo Automation",
-								icon_url: data.assets.logo
-							}
-						};
+					const lines = [
+						`🐾 *Traveling Mimo* - ${account.game.name}`,
+						`Region: ${region} | UID: ${account.uid}`,
+						`Player: ${account.nickname}`,
+						""
+					];
 
-						const hasSignificantActivity = data.itemsExchanged.length > 0
-							|| data.codesRedeemed.length > 0
-							|| data.codesObtained?.length > 0;
+					if (data.tasksClaimed.length > 0) {
+						const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
+						lines.push(`🎯 Tasks Claimed: ${data.tasksClaimed.length} (+${totalPoints} pts)`);
+					}
 
-						for (const webhook of webhooks) {
-							const userId = hasSignificantActivity
-								? webhook.createUserMention(account.discord)
-								: null;
+					if (data.itemsExchanged.length > 0) {
+						lines.push(`🎁 Items Exchanged: ${data.itemsExchanged.map(i => i.name).join(", ")}`);
+					}
 
-							await webhook.send(embed, {
-								...(userId && { content: userId }),
-								author: data.assets.author,
-								icon: data.assets.logo
-							});
+					if (data.codesRedeemed.length > 0) {
+						lines.push(`✅ Codes Redeemed: ${data.codesRedeemed.join(", ")}`);
+					}
+
+					if (data.codesObtained?.length > 0) {
+						lines.push(`🎫 Codes Obtained (Not Auto-Redeemed):`);
+						for (const c of data.codesObtained) {
+							lines.push(`  \`${c}\``);
 						}
 					}
 
-					if (telegrams.length > 0) {
-						const lines = [
-							`🐾 *Traveling Mimo* - ${account.game.name}`,
-							`Region: ${region} | UID: ${account.uid}`,
-							`Player: ${account.nickname}`,
-							""
-						];
+					if (data.lotteryDraws?.length > 0) {
+						lines.push(`🎰 Lottery Draws: ${data.lotteryDraws.map(d => d.name).join(", ")}`);
+					}
 
-						if (data.tasksClaimed.length > 0) {
-							const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-							lines.push(`🎯 Tasks Claimed: ${data.tasksClaimed.length} (+${totalPoints} pts)`);
-						}
-
-						if (data.itemsExchanged.length > 0) {
-							lines.push(`🎁 Items Exchanged: ${data.itemsExchanged.map(i => i.name).join(", ")}`);
-						}
-
-						if (data.codesRedeemed.length > 0) {
-							lines.push(`✅ Codes Redeemed: ${data.codesRedeemed.join(", ")}`);
-						}
-
-						if (data.codesObtained?.length > 0) {
-							lines.push(`🎫 Codes Obtained (Not Auto-Redeemed):`);
-							for (const c of data.codesObtained) {
-								lines.push(`  \`${c}\``);
-							}
-						}
-
-						if (data.lotteryDraws?.length > 0) { lines.push(`🎰 Lottery Draws: ${data.lotteryDraws.map(d => d.name).join(", ")}`); }
-
-						if (data.errors?.length > 0) {
-							lines.push(`❌ Errors:`);
-							for (const err of data.errors) {
-								lines.push(`  • ${err}`);
-							}
-						}
-						lines.push(`💎 Current Points: ${data.points}`);
-
-						const escapedMessage = app.Utils.escapeCharacters(lines.join("\n"));
-						for (const telegram of telegrams) {
-							await telegram.send(escapedMessage);
+					if (data.errors?.length > 0) {
+						lines.push(`❌ Errors:`);
+						for (const err of data.errors) {
+							lines.push(`  • ${err}`);
 						}
 					}
+					lines.push(`💎 Current Points: ${data.points}`);
+
+					const telegramText = app.Utils.escapeCharacters(lines.join("\n"));
+					const hasSignificantActivity = data.itemsExchanged.length > 0
+						|| data.codesRedeemed.length > 0
+						|| data.codesObtained?.length > 0;
+					await notifyAccount(account, { embeds: [embed], telegramText, ping: hasSignificantActivity, kind: "reminder" });
 
 					app.Logger.info("Cron:Mimo", `(${account.uid}) ${account.game.short}: Mimo automation completed.`);
 				}

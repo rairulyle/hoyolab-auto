@@ -1,3 +1,5 @@
+const { notifyAccount } = require("../../core/notify.js");
+
 module.exports = {
 	name: "expedition",
 	expression: "0 */30 * * * *",
@@ -42,7 +44,6 @@ module.exports = {
 					continue;
 				}
 
-				const platforms = app.Platform.getForAccount(account);
 				const embed = {
 					color: data.assets.color,
 					title: "Expedition Reminder",
@@ -63,25 +64,12 @@ module.exports = {
 					}
 				};
 
-				for (const webhook of platforms.filter(p => p.name === "webhook")) {
-					const userId = webhook.createUserMention(account.discord);
-					await webhook.send(embed, {
-						content: userId,
-						author: data.assets.author,
-						icon: data.assets.logo
-					});
-				}
-
-				const messageText = [
+				const telegramText = app.Utils.escapeCharacters([
 					`📢 Expedition Reminder, All Expeditions are Completed!`,
 					`🎮 **Game**: ${data.assets.game}`,
 					`🆔 **UID**: ${account.uid} ${account.nickname}`
-				].join("\n");
-
-				const escapedMessage = app.Utils.escapeCharacters(messageText);
-				for (const telegram of platforms.filter(p => p.name === "telegram")) {
-					await telegram.send(escapedMessage);
-				}
+				].join("\n"));
+				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 			}
 		}
 	})

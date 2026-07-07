@@ -8,4 +8,6 @@ const GAMES = {
 
 const gameKeyFromRecordCardId = (id) => Object.keys(GAMES).find(key => GAMES[key].recordCardGameId === id) ?? null;
 
-module.exports = { GAMES, gameKeyFromRecordCardId };
+const gameKeyFromEngineName = (engineName) => Object.keys(GAMES).find(key => GAMES[key].engineName === engineName) ?? null;
+
+module.exports = { GAMES, gameKeyFromRecordCardId, gameKeyFromEngineName };

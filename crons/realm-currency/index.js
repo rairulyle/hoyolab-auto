@@ -1,3 +1,5 @@
+const { notifyAccount } = require("../../core/notify.js");
+
 module.exports = {
 	name: "realm-currency",
 	expression: "0 */1 * * *",
@@ -37,7 +39,6 @@ module.exports = {
 				realm.fired = true;
 				platform.update(account);
 
-				const platforms = app.Platform.getForAccount(account);
 				const region = app.HoyoLab.getRegion(account.region);
 				const embed = {
 					color: data.assets.color,
@@ -64,25 +65,12 @@ module.exports = {
 					}
 				};
 
-				for (const webhook of platforms.filter(p => p.name === "webhook")) {
-					const userId = webhook.createUserMention(account.discord);
-					await webhook.send(embed, {
-						content: userId,
-						author: data.assets.author,
-						icon: data.assets.logo
-					});
-				}
-
-				const messageText = [
+				const telegramText = app.Utils.escapeCharacters([
 					`💰 Realm Currency`,
 					`UID: ${account.uid} ${account.nickname}`,
 					`Your realm currency is full!`
-				].join("\n");
-
-				const escapedMessage = app.Utils.escapeCharacters(messageText);
-				for (const telegram of platforms.filter(p => p.name === "telegram")) {
-					await telegram.send(escapedMessage);
-				}
+				].join("\n"));
+				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 			}
 		}
 	})

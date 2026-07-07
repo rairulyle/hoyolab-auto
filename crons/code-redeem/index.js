@@ -3,10 +3,11 @@ const {
 	checkAndRedeem,
 	buildMessage
 } = require("./utils");
-const { sendToGuildChannel } = require("../../core/notify.js");
+const { notifyAccount, notifyGuildsForGame } = require("../../core/notify.js");
+const { gameKeyFromEngineName } = require("../../config/games.js");
 
 const recordAndNotify = async (data, message, status) => {
-	const gameKey = data.account.platform === "nap" ? "zenless" : (data.account.platform === "tot" ? "termis" : data.account.platform);
+	const gameKey = gameKeyFromEngineName(data.account.platform);
 	const profiles = await app.db.findProfilesByGameUid(gameKey, data.account.uid);
 	for (const profile of profiles) {
 		await app.db.recordRedeem({
@@ -18,8 +19,8 @@ const recordAndNotify = async (data, message, status) => {
 			status,
 			message: status === "ok" ? "" : (data.reason ?? "")
 		});
-		await sendToGuildChannel(profile.guildId, "redeem", { embeds: [message.embed]});
 	}
+	await notifyAccount(data.account, { embeds: [message.embed], telegramText: app.Utils.escapeCharacters(message.telegram), kind: "redeem" });
 };
 
 module.exports = {
@@ -62,45 +63,18 @@ module.exports = {
 
 		for (const data of success) {
 			const message = buildMessage("success", data);
-			const platforms = app.Platform.getForAccount(data.account);
-			const escapedMessage = app.Utils.escapeCharacters(message.telegram);
-
-			for (const telegram of platforms.filter(p => p.name === "telegram")) {
-				await telegram.send(escapedMessage);
-			}
-			for (const webhook of platforms.filter(p => p.name === "webhook")) {
-				await webhook.send(message.embed);
-			}
-
 			await recordAndNotify(data, message, "ok");
 		}
 
 		for (const data of failed) {
 			const message = buildMessage("failed", data);
-			const platforms = app.Platform.getForAccount(data.account);
-			const escapedMessage = app.Utils.escapeCharacters(message.telegram);
-
-			for (const telegram of platforms.filter(p => p.name === "telegram")) {
-				await telegram.send(escapedMessage);
-			}
-			for (const webhook of platforms.filter(p => p.name === "webhook")) {
-				await webhook.send(message.embed);
-			}
-
 			await recordAndNotify(data, message, "error");
 		}
 
-		// manual entries are game-level (no account), so send to all platforms
 		for (const data of manual) {
 			const message = buildMessage("manual", data);
-			const escapedMessage = app.Utils.escapeCharacters(message.telegram);
-
-			for (const telegram of app.Platform.list.filter(p => p.name === "telegram")) {
-				await telegram.send(escapedMessage);
-			}
-			for (const webhook of app.Platform.list.filter(p => p.name === "webhook")) {
-				await webhook.send(message.embed);
-			}
+			const gameKey = gameKeyFromEngineName(data.gameKey) ?? data.gameKey;
+			await notifyGuildsForGame(gameKey, { embeds: [message.embed], telegramText: app.Utils.escapeCharacters(message.telegram), kind: "redeem" });
 		}
 	}
 };

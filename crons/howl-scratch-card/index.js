@@ -1,3 +1,5 @@
+const { notifyAccount } = require("../../core/notify.js");
+
 const RegionalTaskManager = new app.RegionalTaskManager();
 
 RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
@@ -13,7 +15,6 @@ RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 		return;
 	}
 
-	const platforms = app.Platform.getForAccount(account);
 	const region = app.HoyoLab.getRegion(account.region);
 	const embed = {
 		color: data.assets.color,
@@ -33,25 +34,12 @@ RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 		}
 	};
 
-	for (const webhook of platforms.filter(p => p.name === "webhook")) {
-		const userId = webhook.createUserMention(account.discord);
-		await webhook.send(embed, {
-			content: userId,
-			author: data.assets.author,
-			icon: data.assets.logo
-		});
-	}
-
-	const messageText = [
+	const telegramText = app.Utils.escapeCharacters([
 		`${region} Server - ${account.nickname}`,
 		`📰 Howl's News Stand`,
 		`You haven't scratched the card at Howl's News Stand yet!`
-	].join("\n");
-
-	const escapedMessage = app.Utils.escapeCharacters(messageText);
-	for (const telegram of platforms.filter(p => p.name === "telegram")) {
-		await telegram.send(escapedMessage);
-	}
+	].join("\n"));
+	await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 });
 
 module.exports = {

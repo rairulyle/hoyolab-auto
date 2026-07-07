@@ -38,7 +38,7 @@ module.exports = {
 				};
 			}
 			else {
-				// For other platforms (webhook, telegram), use the test notification system
+				// For other platforms (telegram), use the test notification system
 				await TestNotification.sendManualTestNotification(platform, {
 					message: customMessage
 				});
