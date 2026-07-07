@@ -66,7 +66,7 @@
 - Test: `config/__tests__/defaults.test.js`
 
 **Interfaces:**
-- Produces: `GAMES` map + `gameKeyFromRecordCardId(id)` + `ENGINE_ACCOUNT_IDS` (config/games.js); `defaults` object with `loglevel, userAgent, retry, crons, guild, gameSettings` + `mergeSettings(base, override)` (config/defaults.js).
+- Produces: `GAMES` map (each entry carries `engineAccountId`) + `gameKeyFromRecordCardId(id)` (config/games.js); `defaults` object with `loglevel, userAgent, retry, crons, guild, gameSettings` + `mergeSettings(base, override)` (config/defaults.js).
 
 - [ ] **Step 1: Install dependencies and add test script**
 
