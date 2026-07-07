@@ -386,7 +386,7 @@ const isValidHhmm = (value) => HHMM_REGEX.test(value);
 
 const isValidTimezone = (tz) => {
 	try {
-		new Intl.DateTimeFormat("en", { timeZone: tz });
+		Intl.DateTimeFormat("en", { timeZone: tz });
 		return true;
 	}
 	catch {
