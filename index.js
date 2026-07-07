@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const Command = require("./classes/command.js");
 const Config = require("./classes/config.js");
 const Got = require("./classes/got.js");
@@ -14,15 +16,22 @@ const Date = require("./object/date.js");
 const Error = require("./object/error.js");
 const RegionalTaskManager = require("./object/regional-task-manager.js");
 
-const config = require("./config.js");
+const Database = require("./db/index.js");
+const { assemble } = require("./core/assembler.js");
 
 (async () => {
 	const start = process.hrtime.bigint();
 
-	const platformsConfig = config.platforms;
-	if (!platformsConfig || platformsConfig.length === 0) {
-		console.warn("No platforms configured! Exiting.");
-		process.exit(0);
+	const db = new Database();
+	await db.init();
+
+	let config;
+	try {
+		config = await assemble(db);
+	}
+	catch (e) {
+		console.error(e.message);
+		process.exit(1);
 	}
 
 	globalThis.app = {
@@ -33,6 +42,7 @@ const config = require("./config.js");
 		Config,
 		Command,
 
+		db,
 		Got: await Got.initialize(),
 		Cache: new Cache(),
 		Logger: new Logger(config.loglevel),
@@ -40,32 +50,11 @@ const config = require("./config.js");
 		TestNotification
 	};
 
-	app.Logger.info("Client", "Loading configuration data");
 	Config.load(config);
-	app.Logger.info("Client", `Loaded ${Config.data.size} configuration entries`);
 
 	const { loadCommands } = require("./commands/index.js");
 	const commands = await loadCommands();
 	await Command.importData(commands.definitions);
-
-	const { initCrons } = require("./crons/index.js");
-	initCrons();
-
-	const accountsConfig = config.accounts;
-	if (!accountsConfig || accountsConfig.length === 0) {
-		app.Logger.warn("Client", "No accounts configured! Exiting.");
-		process.exit(0);
-	}
-
-	const accounts = new Set();
-	for (const definition of accountsConfig) {
-		if (!definition.active) {
-			app.Logger.warn("Client", `Skipping ${definition.type} account (inactive)`);
-			continue;
-		}
-
-		accounts.add(HoyoLab.create(definition.type, definition));
-	}
 
 	const definitions = require("./gots/index.js");
 	await app.Got.importData(definitions);
@@ -76,33 +65,13 @@ const config = require("./config.js");
 		HoyoLab
 	};
 
-	const hoyoPromises = [];
-	for (const account of accounts) {
-		hoyoPromises.push(account.login());
-	}
+	const platforms = config.platforms.map(definition => Platform.create(definition.type, definition));
+	await Promise.all(platforms.map(platform => platform.connect()));
 
-	await Promise.all(hoyoPromises);
-
-	const platforms = new Set();
-	for (const definition of platformsConfig) {
-		if (!definition.active) {
-			app.Logger.warn("Client", `Skipping ${definition.type} platform (inactive)`);
-			continue;
-		}
-
-		platforms.add(Platform.create(definition.type, definition));
-	}
-
-	const promises = [];
-	for (const platform of platforms) {
-		promises.push(platform.connect());
-	}
-
-	await Promise.all(promises);
-
-	// Send test notifications to confirm platform functionality
-	if (config.testNotification?.enabled !== false) {
-		await TestNotification.sendTestNotifications(platforms);
+	const { reload } = require("./core/reload.js");
+	const result = await reload();
+	if (result.accountCount === 0) {
+		app.Logger.warn("Client", "No profiles linked yet — use /link add in your server to get started");
 	}
 
 	const end = process.hrtime.bigint();

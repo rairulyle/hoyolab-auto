@@ -5,12 +5,9 @@
   "scripts": {
     "start": "node index.js",
     "watch": "nodemon index.js",
-    "migrate": "node convert.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "node --test \"**/__tests__/**/*.test.js\"",
-    "setup:windows": "start setup/config/index.html",
-    "setup:linux": "xdg-open setup/config/index.html"
+    "test": "node --test \"**/__tests__/**/*.test.js\""
   },
   "engines": {
     "node": ">=20.0"

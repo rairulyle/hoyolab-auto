@@ -3,6 +3,24 @@ const {
 	checkAndRedeem,
 	buildMessage
 } = require("./utils");
+const { sendToGuildChannel } = require("../../core/notify.js");
+
+const recordAndNotify = async (data, message, status) => {
+	const gameKey = data.account.platform === "nap" ? "zenless" : (data.account.platform === "tot" ? "termis" : data.account.platform);
+	const profiles = await app.db.findProfilesByGameUid(gameKey, data.account.uid);
+	for (const profile of profiles) {
+		await app.db.recordRedeem({
+			profileId: profile._id,
+			guildId: profile.guildId,
+			game: gameKey,
+			code: data.code.code ?? String(data.code),
+			source: "auto",
+			status,
+			message: status === "ok" ? "" : (data.reason ?? "")
+		});
+		await sendToGuildChannel(profile.guildId, "redeem", { embeds: [message.embed]});
+	}
+};
 
 module.exports = {
 	name: "code-redeem",
@@ -53,6 +71,8 @@ module.exports = {
 			for (const webhook of platforms.filter(p => p.name === "webhook")) {
 				await webhook.send(message.embed);
 			}
+
+			await recordAndNotify(data, message, "ok");
 		}
 
 		for (const data of failed) {
@@ -66,6 +86,8 @@ module.exports = {
 			for (const webhook of platforms.filter(p => p.name === "webhook")) {
 				await webhook.send(message.embed);
 			}
+
+			await recordAndNotify(data, message, "error");
 		}
 
 		// manual entries are game-level (no account), so send to all platforms
