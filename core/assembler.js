@@ -23,7 +23,6 @@ const assemble = async (db, env = process.env) => {
 	}
 
 	const profiles = (await db.listAllProfiles()).filter(p => p.tokenStatus !== "expired");
-	const redeemCron = (await db.getSetting("redeemCron")) ?? defaults.redeemCron;
 
 	const warnings = [];
 	const seen = new Set();
@@ -65,7 +64,7 @@ const assemble = async (db, env = process.env) => {
 		retry: defaults.retry,
 		testNotification: { enabled: false },
 		platforms: [{ id: 1, active: true, type: "discord", botId, token }],
-		crons: { ...defaults.crons, codeRedeem: redeemCron },
+		crons: { ...defaults.crons, codeRedeem: defaults.redeemCron },
 		accounts,
 		warnings
 	};

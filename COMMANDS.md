@@ -41,7 +41,7 @@ Treat the cookie like a password; only paste it into `/link add` or
 
 | Subcommand | Options | What it does |
 |---|---|---|
-| `/config schedule` | `type` (required: `check-in` or `redeem`), `cron` | Sets a job's schedule as a **cron expression**. `type:check-in` is **per-server** and runs in this server's timezone; `type:redeem` is **server-wide** (one shared poll — see note below). Run with no `cron` to see the current schedule and next run. Example: `0 30 0 * * *` (00:30 daily), `*/5 * * * *` (every 5 min). |
+| `/config schedule` | `cron` | Sets this server's **check-in** schedule as a **cron expression**, run in this server's timezone. Run with no `cron` to see the current schedule and next run. Example: `0 30 0 * * *` (00:30 daily). |
 | `/config channel` | `type` (required: `check-in` or `redeem`), `channel` | Sets which channel a notification type posts to. Run with no `channel` to see the current one. |
 | `/config timezone` | `tz` | Sets this server's IANA timezone (e.g. `Asia/Manila`), which governs the check-in time and the daily boundary. Run with no `tz` to see the current one. Defaults to `UTC`. |
 
@@ -85,9 +85,9 @@ where applicable; `account` is a specific in-game UID (offered as choices).
   `/config schedule type:check-in` cron, in that server's timezone; results post
   to the server's `check-in` channel. **Code redemption is a single server-wide
   poll** (codes and their already-redeemed state are shared, so it can't be
-  per-server) — `/config schedule type:redeem` sets that one shared cron
-  (default every 15 minutes; it only actually redeems when a *new* code appears),
-  and results still post to each server's own `redeem` channel.
+  per-server) — it runs every 15 minutes and is not configurable via command;
+  it only actually redeems when a *new* code appears, and results still post to
+  each server's own `redeem` channel.
 - **Timezone default:** a server with no `/config timezone` set uses `UTC`.
 - **Dead cookies:** if HoYoLAB rejects a profile's cookie, it's marked 🔴
   expired (visible in `/link list`) and skipped until you `/link refresh` it.

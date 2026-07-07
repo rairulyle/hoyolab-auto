@@ -97,14 +97,6 @@ test("addGameEntry appends a game once, idempotent on the key", async () => {
 	assert.equal(termis[0].active, true);
 });
 
-test("getSetting/setSetting round-trips a global value, upserting on the key", async () => {
-	assert.equal(await db.getSetting("redeemCron"), null);
-	await db.setSetting("redeemCron", "* * * * *");
-	assert.equal(await db.getSetting("redeemCron"), "* * * * *");
-	await db.setSetting("redeemCron", "0 */5 * * * *");
-	assert.equal(await db.getSetting("redeemCron"), "0 */5 * * * *");
-});
-
 test("guild settings upsert", async () => {
 	await db.setGuildField("g1", "timezone", "Asia/Manila");
 	await db.setGuildField("g1", "checkinChannelId", "c1");

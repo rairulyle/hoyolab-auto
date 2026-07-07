@@ -23,26 +23,11 @@ module.exports = class Database {
 
 		this.collections.profiles = await open("profiles");
 		this.collections.guilds = await open("guilds");
-		this.collections.settings = await open("settings");
 		this.collections.checkinResults = await open("checkin-results");
 		this.collections.redeemResults = await open("redeem-results");
 
 		await this.collections.profiles.ensureIndexAsync({ fieldName: "key", unique: true });
 		await this.collections.profiles.ensureIndexAsync({ fieldName: "guildId" });
-		await this.collections.settings.ensureIndexAsync({ fieldName: "key", unique: true });
-	}
-
-	async getSetting (key) {
-		const doc = await this.collections.settings.findOneAsync({ key });
-		return doc?.value ?? null;
-	}
-
-	async setSetting (key, value) {
-		await this.collections.settings.updateAsync(
-			{ key },
-			{ key, value },
-			{ upsert: true }
-		);
 	}
 
 	async upsertProfile (profile) {

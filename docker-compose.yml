@@ -7,7 +7,6 @@ services:
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
-      TZ: ${TZ}
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

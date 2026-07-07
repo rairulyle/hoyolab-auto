@@ -19,9 +19,7 @@ module.exports = {
 		.setDMPermission(false)
 		.addSubcommand(sub => sub
 			.setName("schedule")
-			.setDescription("Show or set the cron schedule for check-in (per server) or redeem (server-wide).")
-			.addStringOption(opt => opt.setName("type").setDescription("Which job to schedule").setRequired(true)
-				.addChoices({ name: "check-in", value: "checkin" }, { name: "redeem", value: "redeem" }))
+			.setDescription("Show or set this server's check-in cron schedule.")
 			.addStringOption(opt => opt.setName("cron").setDescription("Cron expression, e.g. 0 30 0 * * * (leave empty to view current)")))
 		.addSubcommand(sub => sub
 			.setName("channel")

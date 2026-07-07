@@ -3,10 +3,7 @@ const assert = require("node:assert/strict");
 
 const { assemble } = require("../assembler.js");
 
-const fakeDb = (profiles, settings = {}) => ({
-	listAllProfiles: async () => profiles,
-	getSetting: async (key) => settings[key] ?? null
-});
+const fakeDb = (profiles) => ({ listAllProfiles: async () => profiles });
 const ENV = { DISCORD_TOKEN: "token.abc.def", DISCORD_BOT_ID: "999" };
 
 const profile = (over = {}) => ({
@@ -66,12 +63,9 @@ test("builds discord platform from env", async () => {
 	assert.equal(cfg.testNotification.enabled, false);
 });
 
-test("injects the redeem cron into config.crons.codeRedeem (stored override wins over default)", async () => {
-	const dflt = await assemble(fakeDb([]), ENV);
-	assert.equal(dflt.crons.codeRedeem, "*/15 * * * *");
-
-	const overridden = await assemble(fakeDb([], { redeemCron: "0 */5 * * * *" }), ENV);
-	assert.equal(overridden.crons.codeRedeem, "0 */5 * * * *");
+test("sets config.crons.codeRedeem to the default redeem cron", async () => {
+	const cfg = await assemble(fakeDb([]), ENV);
+	assert.equal(cfg.crons.codeRedeem, "*/15 * * * *");
 });
 
 test("derives botId from token when DISCORD_BOT_ID absent", async () => {
