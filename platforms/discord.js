@@ -94,6 +94,31 @@ module.exports = class DiscordController extends require("./template.js") {
 		});
 
 		client.on("interactionCreate", async (interaction) => {
+			const isComponent = interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit();
+			if (isComponent && interaction.customId?.startsWith("hle:")) {
+				const { handleComponent } = require("../commands/link/editor.js");
+				try {
+					await handleComponent(interaction);
+				}
+				catch (e) {
+					app.Logger.error("Discord", { message: "Editor interaction failed", error: e.message });
+				}
+				return;
+			}
+
+			if (interaction.isAutocomplete()) {
+				const command = app.Command.get(interaction.commandName);
+				if (command?.autocomplete) {
+					try {
+						await command.autocomplete(interaction);
+					}
+					catch (e) {
+						app.Logger.error("Discord", { message: "Autocomplete failed", error: e.message });
+					}
+				}
+				return;
+			}
+
 			if (!interaction.isChatInputCommand()) {
 				return;
 			}
@@ -168,6 +193,18 @@ module.exports = class DiscordController extends require("./template.js") {
 				});
 			}
 		}
+	}
+
+	async sendToChannel (channelId, options = {}) {
+		const channelData = await this.client.channels.fetch(channelId);
+		if (!channelData) {
+			throw new app.Error({ message: "Discord channel not found", args: { channelId } });
+		}
+
+		await channelData.send({
+			content: options.content ?? undefined,
+			embeds: options.embeds ?? []
+		});
 	}
 
 	async handleCommand (data) {

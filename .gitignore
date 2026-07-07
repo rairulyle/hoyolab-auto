@@ -190,6 +190,9 @@ bun.lockb
 # Cache Path
 cache.json
 
+# Database
+data/db/
+
 # Cookie
 generated-cookie.txt
 diff.sh

@@ -76,35 +76,25 @@ If you don't have a server to run this script and simply just want to use it for
 ## Prerequisites
 - [Git](https://git-scm.com/downloads)
 - [Node.js](https://nodejs.org/en/)
+- A Discord bot application ([create one here](https://discord.com/developers/applications)), invited to your server with the `bot` and `applications.commands` scopes.
 
 ## Installation
 1. Clone the repository.
 2. Run `npm install` to install the dependencies.
-3. You can configure your config using one of the following methods:
-
-    1. **Using the Setup Script:**
-      - For Windows, run the following npm script from the project root:
-        ```bash
-        npm run setup:windows
-        ```
-      - For Linux, use this command:
-        ```bash
-        npm run setup:linux
-        ```
-      - These commands will automatically open your default web browser to help you configure your settings through a web-based interface.
-
-    2. **Manual Configuration:**
-      - Copy the `default.config.json5` file to create a `config.json5` file:
-        ```bash
-        cp default.config.json5 config.json5
-        ```
-      - Open `config.json5` and update it with your application's configuration settings.
-
-4. Follow the instructions in the `default.config.json5` or `config.json5` file.
-5. Run the application:
+3. Copy `.env.example` to `.env` and set `DISCORD_TOKEN` to your bot's token:
+   ```bash
+   cp .env.example .env
+   ```
+4. Run the application:
    ```bash
    npm start
    ```
+5. Finish setup with slash commands in your Discord server:
+   - `/link add cookie:<your HoYoLAB cookie>` — link an account (see [Usage](#usage) below for how to grab your cookie).
+   - `/config channel` — set the notification channel(s).
+   - `/config timezone` — set your guild's timezone.
+   - `/config schedule` — set check-in/redeem schedule times.
+   - Coming from an old `config.json5`? Run `/migrate file:<config.json5>` to import your existing accounts instead of relinking them by hand.
 
 ### Cache File Location
 
@@ -113,14 +103,15 @@ After running the application for the first time, a cache file will be automatic
 ./data/cache.json
 ```
 
-This file stores temporary data to improve performance and reduce API calls. The `data/` directory structure will look like this:
+This file stores temporary data to improve performance and reduce API calls. The application's database (profiles, guild settings, check-in/redeem history) lives under `data/db/`. The `data/` directory structure will look like this:
 ```
 project-root/
 ├── data/
 │   ├── cache.json    # Auto-generated cache file
+│   ├── db/           # Auto-generated database files
 │   └── README.md     # Cache documentation
 ├── logs/             # Application logs (if logging is enabled)
-├── config.json5      # Your configuration file
+├── .env              # Your Discord token
 └── ...
 ```
 
@@ -134,23 +125,19 @@ project-root/
 ## Migration
 
 > [!NOTE]
-> If you're using this project since the `config.js` file or `config.jsonc` and you're updating to the latest version, please run the following command to migrate your configuration to the new format.
+> If you have an existing `config.json5` from before this fork moved to a database-backed configuration, use the `/migrate` slash command instead of editing files by hand.
 
-```bash
-npm run migrate
+```
+/migrate file:<your config.json5>
 ```
 
-or
-
-```bash
-node convert.js
-```
+This imports your existing accounts and settings as linked profiles. Once migrated, all further configuration happens through slash commands (`/link`, `/config`) — `config.json5` is no longer read by the application.
 
 ## Usage
-For a detailed usage guide, refer to this gist: [Cookie Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd).
+For a detailed guide on grabbing your HoYoLAB cookie, refer to this gist: [Cookie Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd).
 
 ## Notifications Setup
-For setting up Discord or Telegram notifications, refer to the [setup folder](https://github.com/torikushiii/hoyolab-auto/tree/main/setup).
+Notifications are sent to the Discord channel(s) configured with `/config channel` in your server — no separate webhook or Telegram setup is required.
 
 ## Running with Docker
 
@@ -164,26 +151,11 @@ for convenience, but you can also use Docker commands directly.
 
 **2. Configuration**
 
-You can configure your config using one of the following methods:
-
-1. **Using the Setup Script:**
-   - For Windows, run the following npm script from the project root:
-     ```bash
-     npm run setup:windows
-     ```
-   - For Linux, use this command:
-     ```bash
-     npm run setup:linux
-     ```
-   - These commands will automatically open your default web browser to help you configure your settings through a web-based interface.
-
-2. **Manual Configuration:**
-   - Copy the `default.config.json5` file to create a `config.json5` file:
-     ```bash
-     cp default.config.json5 config.json5
-     ```
-   - Open `config.json5` and update it with your application's configuration settings.
-   - Set environment variable `CONFIG_PATH` to alter the configuration file path (default to `./config.json5`).
+1. Copy `.env.example` to `.env` and set `DISCORD_TOKEN`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Start the container (see below), then finish setup through Discord slash commands: `/link add`, `/config channel`, `/config timezone`, `/config schedule` (or `/migrate file:<config.json5>` if you're bringing accounts over from an old install).
 
 **Important for Docker Users:**
 > [!NOTE]

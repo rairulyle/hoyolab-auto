@@ -1,12 +1,11 @@
 const { setTimeout: sleep } = require("node:timers/promises");
-const config = require("../../config.js");
 
 module.exports = {
 	name: "mimo",
 	expression: "0 0 */6 * * *",
 	description: "This will run the Traveling Mimo automation for supported games (Star Rail, ZZZ) - completing tasks, claiming rewards, and exchanging for premium currency.",
 	code: (async function mimo () {
-		const jitterSeconds = config.crons?.mimoJitter ?? 0;
+		const jitterSeconds = app.Config.get("crons")?.mimoJitter ?? 0;
 		if (jitterSeconds > 0) {
 			const jitterMs = Math.floor(Math.random() * jitterSeconds * 1000);
 			app.Logger.info("Cron:Mimo", `Applying ${(jitterMs / 1000).toFixed(1)}s jitter before starting...`);

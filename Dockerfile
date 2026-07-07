@@ -1,7 +1,7 @@
-FROM node:20-alpine
+FROM node:24-alpine
 
-# Install git
-RUN apk add --no-cache git
+# git: some deps resolve from git; su-exec: drop to PUID/PGID
+RUN apk add --no-cache git su-exec
 
 WORKDIR /app
 
@@ -10,12 +10,9 @@ RUN npm install --omit=dev
 
 COPY . .
 
-RUN addgroup -S hoyolab && adduser -S -G hoyolab hoyolab && \
-    mkdir -p /app/data /app/logs && \
-    chown -R hoyolab:hoyolab /app
+RUN mkdir -p /app/data /app/logs && \
+    chmod +x /app/docker-entrypoint.sh
 
-USER hoyolab
-
-ENV TZ=Asia/Shanghai
-
-CMD ["npm", "start"]
+# Runs as root only to apply PUID/PGID, then the entrypoint drops privileges.
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["node", "index.js"]

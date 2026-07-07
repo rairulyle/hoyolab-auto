@@ -10,8 +10,8 @@ module.exports = class CheckIn {
 		this.#color = options.color;
 	}
 
-	async checkAndExecute () {
-		const accounts = this.#instance.accounts;
+	async checkAndExecute (accountData) {
+		const accounts = accountData ? [accountData].flat() : this.#instance.accounts;
 		if (accounts.length === 0) {
 			app.Logger.warn("No active accounts found for Honkai Impact");
 			return;

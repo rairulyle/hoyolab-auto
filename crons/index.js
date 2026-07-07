@@ -14,8 +14,6 @@ const Stamina = require("./stamina/index.js");
 const UpdateCookie = require("./update-cookie/index.js");
 const WeekliesReminder = require("./weeklies-reminder/index.js");
 
-const config = require("../config.js");
-
 const definitions = [
 	CheckIn,
 	CodeRedeem,
@@ -38,8 +36,8 @@ const BlacklistedCrons = [
 	"weekliesReminder"
 ];
 
-const initCrons = () => {
-	const { blacklist = [], whitelist = []} = config.crons;
+const initCrons = (cronConfig = {}) => {
+	const { blacklist = [], whitelist = []} = cronConfig;
 	if (blacklist.length > 0 && whitelist.length > 0) {
 		throw new Error(`Cannot have both a blacklist and a whitelist for crons`);
 	}
@@ -59,7 +57,6 @@ const initCrons = () => {
 			const job = new CronJob(expression, () => definition.code());
 			job.start();
 
-			crons.job = job;
 			crons.push({ name, job });
 
 			continue;
@@ -73,12 +70,11 @@ const initCrons = () => {
 
 		const name = app.Utils.convertCase(definition.name, "kebab", "camel");
 
-		const expression = config.crons[name] || definition.expression;
+		const expression = cronConfig[name] || definition.expression;
 		const job = new CronJob(expression, () => cron.code(cron));
 		job.start();
 
-		crons.job = job;
-		crons.push(cron);
+		crons.push({ name, job });
 	}
 
 	app.Logger.info("Cron", `Initialized ${crons.length} cron jobs`);
