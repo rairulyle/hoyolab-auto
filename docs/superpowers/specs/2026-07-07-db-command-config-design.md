@@ -37,9 +37,11 @@ forms — no config file.
 ## Non-goals
 
 - Per-guild *cadence* for the polling reminder crons (stamina, expedition,
-  realm, mimo, dailies, weeklies). Only the two daily jobs — **check-in** and
-  **redeem** — are per-guild schedulable. Pollers keep a global cadence and
-  route notifications per guild.
+  realm, mimo, dailies, weeklies). Only the daily **check-in** job is
+  per-guild schedulable. **Code-redeem stays an every-minute global poller**
+  (the engine redeems codes as they're discovered, which beats a daily
+  schedule since codes expire) — it gets per-guild notification routing and
+  result logging, not per-guild timing.
 - Telegram/webhook feature parity work. The platform abstraction is preserved;
   Discord is the managed surface.
 - Rewriting the game engine (crons, `HoyoLab`/`Platform` classes, game
@@ -119,8 +121,13 @@ sequenceDiagram
 
 `index.js` boot calls `reload()`. Every mutating command
 (`/link add|remove|refresh`, `/link edit` submit, `/migrate`, `/config`) calls
-`reload()` afterward. `/config schedule` may call only the reschedule step.
-No duplicated bootstrap logic; no restart.
+a debounced `scheduleReload()` afterward. No duplicated bootstrap logic; no
+restart.
+
+**Platforms are boot-only.** `reload()` rebuilds accounts and schedules;
+the Discord client (and other platforms) connect once at startup and are
+never torn down by a reload — reconnect churn would race the very
+interaction that triggered the reload.
 
 ### Guild-aware notification routing
 
@@ -269,13 +276,13 @@ plus a runtime `interaction.memberPermissions.has(Administrator)` re-check
 
 | Command | Behavior |
 |---|---|
-| `/link add cookie:<…> [label]` | Validate cookie against HoYoLAB; auto-detect **all** games with characters (resolve uid/region/nickname); upsert profile for this guild; `reload()`; reply summary. `label` defaults to the linker's Discord username. Re-adding an existing label **updates** it (idempotent). |
+| `/link add cookie:<…> [label] [tot]` | Validate cookie against HoYoLAB; auto-detect **all** games with characters via the game record card (resolve uid/region/nickname); upsert profile for this guild; `reload()`; reply summary. `label` defaults to the linker's Discord username. Re-adding an existing label **updates** it (idempotent, preserves per-game settings). Tears of Themis has no record card and can't be auto-detected — the optional `tot:true` flag enables it explicitly. |
 | `/link list` | This guild's profiles → games, `tokenStatus`. |
 | `/link edit label:<…>` | Interactive editor (below). |
 | `/link remove label:<…>` | Delete this guild's profile; `reload()`. |
 | `/link refresh label:<…> cookie:<…>` | Replace cookie, reset `tokenStatus=active`, `reload()`. |
 | `/migrate file:<config.json5>` | Parse an uploaded/attached config, upsert its accounts as profiles for this guild, report a summary. Absorbs `convert.js`'s job. |
-| `/config schedule type:<checkin\|redeem> [time]` | Blank = show current (rendered as a Discord timestamp); set = write per-guild `HH:MM` interpreted in the guild's timezone (validated) + reschedule that guild's job. |
+| `/config schedule [time]` | Check-in schedule. Blank = show current (rendered as a Discord timestamp); set = write per-guild `HH:MM` interpreted in the guild's timezone (validated) + reschedule that guild's job. |
 | `/config channel type:<checkin\|redeem> [channel]` | Blank = show current; set = write per-guild channel to `guilds`. |
 | `/config timezone [tz]` | Blank = show current; set = validate an IANA tz (e.g. `Asia/Manila`) and store on the guild. Governs how `HH:MM` schedule times and the daily check-in boundary are interpreted. Default `UTC`. |
 
