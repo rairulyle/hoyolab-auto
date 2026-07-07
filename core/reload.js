@@ -33,6 +33,19 @@ const rebuildAccounts = async (config) => {
 		try {
 			await instance.login();
 			count += instance.accounts.length;
+
+			for (const failure of instance.failedAccounts) {
+				if (!failure.auth) {
+					continue;
+				}
+				const profiles = await app.db.findProfilesByLtuid(failure.ltuid);
+				for (const profile of profiles) {
+					if (profile.tokenStatus !== "expired") {
+						await app.db.setTokenStatus(profile._id, "expired");
+						app.Logger.warn("Reload", `Marked profile "${profile.label}" (guild ${profile.guildId}) token expired — cookie rejected by HoYoLAB`);
+					}
+				}
+			}
 		}
 		catch (e) {
 			app.Logger.error("Reload", {

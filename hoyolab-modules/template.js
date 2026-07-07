@@ -10,6 +10,7 @@ module.exports = class HoyoLab {
 	#dataCache;
 
 	accounts = [];
+	failedAccounts = [];
 
 	/** @type {HoyoLab[]} */
 	static list = [];

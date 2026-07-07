@@ -78,6 +78,14 @@ test("findProfilesByGameUid finds across guilds", async () => {
 	assert.equal(hits.length, 2);
 });
 
+test("findProfilesByLtuid finds across guilds", async () => {
+	await db.upsertProfile(profile());
+	await db.upsertProfile(profile({ guildId: "g2" }));
+	const hits = await db.findProfilesByLtuid("111");
+	assert.equal(hits.length, 2);
+	assert.equal((await db.findProfilesByLtuid("999")).length, 0);
+});
+
 test("guild settings upsert", async () => {
 	await db.setGuildField("g1", "timezone", "Asia/Manila");
 	await db.setGuildField("g1", "checkinChannelId", "c1");

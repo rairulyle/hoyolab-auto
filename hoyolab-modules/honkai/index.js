@@ -57,46 +57,31 @@ module.exports = class HonkaiImpact extends require("../template.js") {
 			});
 
 			if (statusCode !== 200) {
-				throw new app.Error({
-					message: "Failed to login to Honkai Impact account",
-					args: {
-						statusCode,
-						body
-					}
-				});
+				app.Logger.warn(`${this.fullName}:Login`, `HTTP ${statusCode} for ltuid ${ltuid}; skipping this account this cycle`);
+				this.failedAccounts.push({ ltuid, auth: false });
+				continue;
 			}
 
 			const res = body;
 			if (res.retcode !== 0) {
-				throw new app.Error({
-					message: "Failed to login to Honkai Impact account",
-					args: {
-						retcode: res.retcode,
-						message: res.message,
-						res
-					}
-				});
+				const auth = [-100, 10001, 10102].includes(res.retcode);
+				app.Logger.warn(`${this.fullName}:Login`, `retcode ${res.retcode} (${res.message ?? "no message"}) for ltuid ${ltuid}; skipping account`);
+				this.failedAccounts.push({ ltuid, auth });
+				continue;
 			}
 
 			if (typeof res.data !== "object" || !Array.isArray(res.data.list)) {
-				throw new app.Error({
-					message: "Invalid data object received from Honkai Impact account",
-					args: {
-						data: res.data
-					}
-				});
+				app.Logger.warn(`${this.fullName}:Login`, `invalid data for ltuid ${ltuid}; skipping account`);
+				this.failedAccounts.push({ ltuid, auth: false });
+				continue;
 			}
 
 			const { list } = res.data;
 			const data = list.find(account => account.game_id === this.gameId);
 			if (!data) {
-				throw new app.Error({
-					message: "No Honkai Impact account can be found with the provided game account",
-					args: {
-						id: this.id,
-						uid: ltuid
-					}
-				});
+				app.Logger.warn(`${this.fullName}:Login`, `no ${this.fullName} character for ltuid ${ltuid}; skipping account`);
+				this.failedAccounts.push({ ltuid, auth: false });
+				continue;
 			}
 
 			this.#logo = data.logo;

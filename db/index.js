@@ -100,6 +100,10 @@ module.exports = class Database {
 		});
 	}
 
+	async findProfilesByLtuid (ltuid) {
+		return await this.collections.profiles.findAsync({ ltuid });
+	}
+
 	async getGuild (guildId) {
 		return await this.collections.guilds.findOneAsync({ _id: guildId });
 	}
