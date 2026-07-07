@@ -18,6 +18,7 @@ module.exports = class Command extends require("./template.js") {
 		}
 
 		this.description = data.description;
+		this.buildSlashData = typeof data.buildSlashData === "function" ? data.buildSlashData : null;
 
 		if (data.params !== null) {
 			let params = data.params;
@@ -67,6 +68,10 @@ module.exports = class Command extends require("./template.js") {
 	}
 
 	getSlashCommandData () {
+		if (this.buildSlashData) {
+			return this.buildSlashData();
+		}
+
 		if (!this.params || this.params.length === 0) {
 			return new SlashCommandBuilder()
 				.setName(this.name)
