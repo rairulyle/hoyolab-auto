@@ -10,7 +10,7 @@
     "test": "node --test \"**/__tests__/**/*.test.js\""
   },
   "engines": {
-    "node": ">=20.0"
+    "node": ">=24"
   },
   "devDependencies": {
     "@babel/core": "^7.18.10",

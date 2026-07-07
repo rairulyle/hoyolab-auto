@@ -1,12 +1,13 @@
 services:
   instance:
-    image: ghcr.io/rairulyle/hoyolab-auto:latest
-    restart: on-failure:5
     container_name: hoyolab-auto
-    network_mode: bridge
+    image: ghcr.io/rairulyle/hoyolab-auto:latest
+    restart: unless-stopped
     env_file: .env
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-    environment:
-      TZ: UTC
