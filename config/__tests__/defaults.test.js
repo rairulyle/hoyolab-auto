@@ -1,7 +1,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { GAMES, gameKeyFromRecordCardId } = require("../games.js");
+const { GAMES, gameKeyFromRecordCardId, gameKeyFromEngineName } = require("../games.js");
 const defaults = require("../defaults.js");
 
 test("catalog maps record card ids to game keys", () => {
@@ -28,4 +28,13 @@ test("mergeSettings deep-merges overrides without mutating base", () => {
 	assert.equal(merged.stamina.threshold, base.stamina.threshold);
 	assert.equal(base.stamina.check, false);
 	assert.equal(merged.dailiesCheck, base.dailiesCheck);
+});
+
+test("gameKeyFromEngineName reverses engine names to DB keys", () => {
+	assert.equal(gameKeyFromEngineName("nap"), "zenless");
+	assert.equal(gameKeyFromEngineName("tot"), "termis");
+	assert.equal(gameKeyFromEngineName("genshin"), "genshin");
+	assert.equal(gameKeyFromEngineName("starrail"), "starrail");
+	assert.equal(gameKeyFromEngineName("honkai"), "honkai");
+	assert.equal(gameKeyFromEngineName("unknown"), null);
 });
