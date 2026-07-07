@@ -86,10 +86,9 @@ where applicable; `account` is a specific in-game UID (offered as choices).
   to the server's `check-in` channel. **Code redemption is a single server-wide
   poll** (codes and their already-redeemed state are shared, so it can't be
   per-server) — `/config schedule type:redeem` sets that one shared cron
-  (default every minute; it only actually redeems when a *new* code appears),
+  (default every 15 minutes; it only actually redeems when a *new* code appears),
   and results still post to each server's own `redeem` channel.
-- **Timezone default:** a server with no `/config timezone` set uses the bot
-  host's timezone (the container's `TZ`), not a hardcoded UTC.
+- **Timezone default:** a server with no `/config timezone` set uses `UTC`.
 - **Dead cookies:** if HoYoLAB rejects a profile's cookie, it's marked 🔴
   expired (visible in `/link list`) and skipped until you `/link refresh` it.
 - Changes made through commands apply live — no bot restart needed.

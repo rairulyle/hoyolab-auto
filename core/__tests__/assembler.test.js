@@ -68,7 +68,7 @@ test("builds discord platform from env", async () => {
 
 test("injects the redeem cron into config.crons.codeRedeem (stored override wins over default)", async () => {
 	const dflt = await assemble(fakeDb([]), ENV);
-	assert.equal(dflt.crons.codeRedeem, "* * * * *");
+	assert.equal(dflt.crons.codeRedeem, "*/15 * * * *");
 
 	const overridden = await assemble(fakeDb([], { redeemCron: "0 */5 * * * *" }), ENV);
 	assert.equal(overridden.crons.codeRedeem, "0 */5 * * * *");
