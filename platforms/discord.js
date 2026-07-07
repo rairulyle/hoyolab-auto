@@ -170,6 +170,18 @@ module.exports = class DiscordController extends require("./template.js") {
 		}
 	}
 
+	async sendToChannel (channelId, options = {}) {
+		const channelData = await this.client.channels.fetch(channelId);
+		if (!channelData) {
+			throw new app.Error({ message: "Discord channel not found", args: { channelId } });
+		}
+
+		await channelData.send({
+			content: options.content ?? undefined,
+			embeds: options.embeds ?? []
+		});
+	}
+
 	async handleCommand (data) {
 		const {
 			interaction,
