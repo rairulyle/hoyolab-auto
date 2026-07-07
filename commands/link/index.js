@@ -1,13 +1,14 @@
 const { PermissionFlagsBits, SlashCommandBuilder } = require("discord.js");
 
 const { requireGuildAdmin } = require("../../core/admin.js");
-const { scheduleReload } = require("../../core/reload.js");
-const { linkProfile } = require("./service.js");
-const { GAMES } = require("../../config/games.js");
 
-const summarize = (profile) => profile.games
-	.map(g => `${g.active ? "🟢" : "⚪"} **${GAMES[g.key].name}**${g.uid ? ` — \`${g.uid}\` ${g.nickname ?? ""}` : ""}`)
-	.join("\n");
+const leaves = {
+	add: require("./add.js").run,
+	list: require("./list.js").run,
+	edit: require("./edit.js").run,
+	remove: require("./remove.js").run,
+	refresh: require("./refresh.js").run
+};
 
 module.exports = {
 	name: "link",
@@ -49,76 +50,10 @@ module.exports = {
 			return;
 		}
 
-		const guildId = interaction.guildId;
-		const sub = interaction.options.getSubcommand();
-
-		if (sub === "add" || sub === "refresh") {
-			await interaction.deferReply({ ephemeral: true });
-
-			const label = sub === "add"
-				? (interaction.options.getString("label") ?? interaction.user.username)
-				: interaction.options.getString("label");
-
-			if (sub === "refresh" && !await app.db.getProfile(guildId, label)) {
-				return await interaction.editReply({ content: `No profile named **${label}** in this server.` });
-			}
-
-			try {
-				const { profile } = await linkProfile({
-					db: app.db,
-					guildId,
-					label,
-					discordUserId: interaction.user.id,
-					cookie: interaction.options.getString("cookie"),
-					includeTot: interaction.options.getBoolean("tot") ?? false
-				});
-				scheduleReload();
-				return await interaction.editReply({
-					embeds: [{
-						color: 0x2ECC71,
-						title: sub === "add" ? `Linked profile: ${profile.label}` : `Refreshed profile: ${profile.label}`,
-						description: summarize(profile),
-						footer: { text: "Settings are editable via /link edit" }
-					}]
-				});
-			}
-			catch (e) {
-				return await interaction.editReply({ content: `❌ ${e.message}` });
-			}
+		const leaf = leaves[interaction.options.getSubcommand()];
+		if (!leaf) {
+			return;
 		}
-
-		if (sub === "list") {
-			const profiles = await app.db.listProfiles(guildId);
-			if (profiles.length === 0) {
-				return await interaction.reply({ content: "No profiles linked in this server yet. Use `/link add`.", ephemeral: true });
-			}
-
-			return await interaction.reply({
-				ephemeral: true,
-				embeds: [{
-					color: 0x3498DB,
-					title: `Profiles in this server (${profiles.length})`,
-					fields: profiles.map(p => ({
-						name: `${p.tokenStatus === "expired" ? "🔴" : "🟢"} ${p.label}`,
-						value: summarize(p) || "(no games)"
-					}))
-				}]
-			});
-		}
-
-		if (sub === "remove") {
-			const label = interaction.options.getString("label");
-			const removed = await app.db.removeProfile(guildId, label);
-			if (removed === 0) {
-				return await interaction.reply({ content: `No profile named **${label}** in this server.`, ephemeral: true });
-			}
-			scheduleReload();
-			return await interaction.reply({ content: `Removed profile **${label}**.`, ephemeral: true });
-		}
-
-		if (sub === "edit") {
-			const { openEditor } = require("./editor.js");
-			return await openEditor(interaction);
-		}
+		return await leaf(interaction);
 	})
 };
