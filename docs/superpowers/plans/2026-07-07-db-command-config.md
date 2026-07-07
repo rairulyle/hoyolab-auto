@@ -19,6 +19,7 @@
 - Check-in statuses stored: `ok | already | error | captcha` (v1 emits `ok|already|error`; `captcha` reserved). Redeem statuses stored: `ok | already | invalid | expired | error` (v1 cron emits `ok|error`; the engine's own cache already dedupes terminal codes).
 - Per-guild scheduling applies to **check-in only**. Code-redeem stays an every-minute global poller (codes are redeemed on discovery); it gets per-guild *notification routing* and result logging. The `check-in` and `missed-check-in` global crons are blacklisted — per-guild jobs own daily check-in timing.
 - Profiles store `settings` as **partial overrides**; `config/defaults.js` is merged in at assemble time.
+- Tests live in a **co-located `__tests__/` folder next to the source** (e.g. `core/cookie.js` → `core/__tests__/cookie.test.js`), never a top-level `tests/` dir. Require paths are relative to `__tests__/` (one extra `../`). The `npm test` glob is `node --test "**/__tests__/**/*.test.js"`.
 - All new code: tabs for indentation, double quotes, semicolons (match existing ESLint config). Run `npx eslint <changed files>` before every commit.
 - No code comments unless a non-obvious gotcha requires one.
 - Conventional Commits for every commit. No Co-Authored-By trailers, no AI attribution.
@@ -52,7 +53,7 @@
 | `crons/code-redeem/index.js` (modify) | record results + guild notify |
 | `index.js` (rewrite) | dotenv → db → assemble → reload → connect platform |
 | Deleted | `config.js`, `default.config.json5`, `convert.js`, `setup/` |
-| `tests/*.test.js` (new) | node:test suites |
+| `<dir>/__tests__/*.test.js` (new, co-located) | node:test suites |
 
 ---
 
@@ -62,7 +63,7 @@
 - Modify: `package.json`
 - Create: `config/games.js`
 - Create: `config/defaults.js`
-- Test: `tests/defaults.test.js`
+- Test: `config/__tests__/defaults.test.js`
 
 **Interfaces:**
 - Produces: `GAMES` map + `gameKeyFromRecordCardId(id)` + `ENGINE_ACCOUNT_IDS` (config/games.js); `defaults` object with `loglevel, userAgent, retry, crons, guild, gameSettings` + `mergeSettings(base, override)` (config/defaults.js).
@@ -73,22 +74,22 @@
 npm install @seald-io/nedb dotenv
 ```
 
-In `package.json` `scripts`, add/replace:
+In `package.json` `scripts`, add/replace (the `__tests__` glob is required — Node ≥22's `--test` treats a bare directory as a single file, and its no-arg discovery greedily matches `test-*.js` source files like `singleton/test-notification.js`):
 
 ```json
-"test": "node --test tests/"
+"test": "node --test \"**/__tests__/**/*.test.js\""
 ```
 
 - [ ] **Step 2: Write failing test for mergeSettings and catalog**
 
-Create `tests/defaults.test.js`:
+Create `config/__tests__/defaults.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { GAMES, gameKeyFromRecordCardId } = require("../config/games.js");
-const defaults = require("../config/defaults.js");
+const { GAMES, gameKeyFromRecordCardId } = require("../games.js");
+const defaults = require("../defaults.js");
 
 test("catalog maps record card ids to game keys", () => {
 	assert.equal(gameKeyFromRecordCardId(2), "genshin");
@@ -207,7 +208,7 @@ Expected: PASS (3 tests)
 - [ ] **Step 7: Lint and commit**
 
 ```bash
-npx eslint config/ tests/ && git add package.json package-lock.json config/ tests/
+npx eslint config/ && git add package.json config/
 git commit -m "feat(config): add game catalog, code defaults, and test harness"
 ```
 
@@ -217,20 +218,20 @@ git commit -m "feat(config): add game catalog, code defaults, and test harness"
 
 **Files:**
 - Create: `core/cookie.js`
-- Test: `tests/cookie.test.js`
+- Test: `core/__tests__/cookie.test.js`
 
 **Interfaces:**
 - Produces: `parseCookie(raw)` → `{ cookie, ltuid, codeRedeem }` or throws `Error` with `.message` naming the missing key. `cookie` is the normalized `key=value; key=value` string containing only the keys the engine builds (`ltoken_v2, ltuid_v2, ltmid_v2` + redeem trio when present).
 
 - [ ] **Step 1: Write failing test**
 
-Create `tests/cookie.test.js`:
+Create `core/__tests__/cookie.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { parseCookie } = require("../core/cookie.js");
+const { parseCookie } = require("../cookie.js");
 
 const BASE = "ltoken_v2=tokenval; ltuid_v2=12345678; ltmid_v2=midval";
 const REDEEM = `${BASE}; cookie_token_v2=ctok; account_mid_v2=amid; account_id_v2=12345678`;
@@ -309,7 +310,7 @@ Expected: PASS (all tests)
 - [ ] **Step 5: Lint and commit**
 
 ```bash
-npx eslint core/ tests/ && git add core/cookie.js tests/cookie.test.js
+npx eslint core/ && git add core/cookie.js core/__tests__/cookie.test.js
 git commit -m "feat(core): add cookie parsing with ltuid and redeem detection"
 ```
 
@@ -319,20 +320,20 @@ git commit -m "feat(core): add cookie parsing with ltuid and redeem detection"
 
 **Files:**
 - Create: `core/time.js`
-- Test: `tests/time.test.js`
+- Test: `core/__tests__/time.test.js`
 
 **Interfaces:**
 - Produces: `isValidHhmm(str)`, `isValidTimezone(tz)`, `hhmmToCron(hhmm)` → `"0 M H * * *"`, `todayInTz(tz)` → `"YYYY-MM-DD"`, `nextOccurrenceUnix(hhmm, tz, now?)` → unix seconds of the next HH:MM in tz.
 
 - [ ] **Step 1: Write failing test**
 
-Create `tests/time.test.js`:
+Create `core/__tests__/time.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { isValidHhmm, isValidTimezone, hhmmToCron, todayInTz, nextOccurrenceUnix } = require("../core/time.js");
+const { isValidHhmm, isValidTimezone, hhmmToCron, todayInTz, nextOccurrenceUnix } = require("../time.js");
 
 test("isValidHhmm", () => {
 	assert.equal(isValidHhmm("00:00"), true);
@@ -442,7 +443,7 @@ Expected: PASS
 - [ ] **Step 5: Lint and commit**
 
 ```bash
-npx eslint core/time.js tests/time.test.js && git add core/time.js tests/time.test.js
+npx eslint core/time.js core/__tests__/time.test.js && git add core/time.js core/__tests__/time.test.js
 git commit -m "feat(core): add timezone-aware time utilities"
 ```
 
@@ -452,7 +453,7 @@ git commit -m "feat(core): add timezone-aware time utilities"
 
 **Files:**
 - Create: `db/index.js`
-- Test: `tests/db.test.js`
+- Test: `db/__tests__/index.test.js`
 
 **Interfaces:**
 - Produces: `Database` class. Constructor `new Database(dir?)` (default `path.join(process.cwd(), "data", "db")`). Methods (all async): `init()`, `upsertProfile(profile)` → doc, `getProfile(guildId, label)` → doc|null, `listProfiles(guildId)` → docs, `listAllProfiles()` → docs, `removeProfile(guildId, label)` → number, `setTokenStatus(profileId, status)`, `updateGameEntry(profileId, gameKey, patch)` → doc|null (deep-merges `patch.settings`, shallow-assigns other fields like `active`), `findProfilesByGameUid(gameKey, uid)` → docs, `getGuild(guildId)` → doc|null, `listGuilds()` → docs, `setGuildField(guildId, field, value)` → doc, `recordCheckin(row)`, `recordRedeem(row)`, `getCheckin(profileId, game, date)` → doc|null.
@@ -460,7 +461,7 @@ git commit -m "feat(core): add timezone-aware time utilities"
 
 - [ ] **Step 1: Write failing test**
 
-Create `tests/db.test.js`:
+Create `db/__tests__/index.test.js`:
 
 ```js
 const { test, beforeEach, afterEach } = require("node:test");
@@ -469,7 +470,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const Database = require("../db/index.js");
+const Database = require("../index.js");
 
 let dir;
 let db;
@@ -732,7 +733,7 @@ Expected: PASS
 - [ ] **Step 5: Lint and commit**
 
 ```bash
-npx eslint db/ tests/db.test.js && git add db/ tests/db.test.js
+npx eslint db/ && git add db/
 git commit -m "feat(db): add NeDB repository for profiles, guilds, and results"
 ```
 
@@ -742,7 +743,7 @@ git commit -m "feat(db): add NeDB repository for profiles, guilds, and results"
 
 **Files:**
 - Create: `core/assembler.js`
-- Test: `tests/assembler.test.js`
+- Test: `core/__tests__/assembler.test.js`
 
 **Interfaces:**
 - Consumes: `Database` instance (`listAllProfiles`), `config/defaults.js`, `config/games.js`, `process.env.DISCORD_TOKEN` / `DISCORD_BOT_ID`.
@@ -750,13 +751,13 @@ git commit -m "feat(db): add NeDB repository for profiles, guilds, and results"
 
 - [ ] **Step 1: Write failing test**
 
-Create `tests/assembler.test.js`:
+Create `core/__tests__/assembler.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { assemble } = require("../core/assembler.js");
+const { assemble } = require("../assembler.js");
 
 const fakeDb = (profiles) => ({ listAllProfiles: async () => profiles });
 const ENV = { DISCORD_TOKEN: "token.abc.def", DISCORD_BOT_ID: "999" };
@@ -921,7 +922,7 @@ Expected: PASS
 - [ ] **Step 5: Lint and commit**
 
 ```bash
-npx eslint core/assembler.js tests/assembler.test.js && git add core/assembler.js tests/assembler.test.js
+npx eslint core/assembler.js core/__tests__/assembler.test.js && git add core/assembler.js core/__tests__/assembler.test.js
 git commit -m "feat(core): add config assembler producing legacy engine shape"
 ```
 
@@ -932,21 +933,21 @@ git commit -m "feat(core): add config assembler producing legacy engine shape"
 **Files:**
 - Modify: `classes/command.js`
 - Create: `core/admin.js`
-- Test: `tests/admin.test.js`
+- Test: `core/__tests__/admin.test.js`
 
 **Interfaces:**
 - Produces: command definitions may set `buildSlashData: () => SlashCommandBuilder` which `getSlashCommandData()` returns verbatim; `requireGuildAdmin(interaction)` → boolean, replying ephemerally itself when denied.
 
 - [ ] **Step 1: Write failing test**
 
-Create `tests/admin.test.js`:
+Create `core/__tests__/admin.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { PermissionFlagsBits } = require("discord.js");
 
-const { requireGuildAdmin } = require("../core/admin.js");
+const { requireGuildAdmin } = require("../admin.js");
 
 const fakeInteraction = ({ inGuild, admin }) => {
 	const replies = [];
@@ -1027,8 +1028,8 @@ At the top of `getSlashCommandData()` (before the `if (!this.params || ...)` che
 Run: `npm test` — Expected: PASS
 
 ```bash
-npx eslint core/admin.js classes/command.js tests/admin.test.js
-git add core/admin.js classes/command.js tests/admin.test.js
+npx eslint core/admin.js classes/command.js core/__tests__/admin.test.js
+git add core/admin.js classes/command.js core/__tests__/admin.test.js
 git commit -m "feat(commands): add slash-builder escape hatch and guild-admin gate"
 ```
 
@@ -1038,20 +1039,20 @@ git commit -m "feat(commands): add slash-builder escape hatch and guild-admin ga
 
 **Files:**
 - Create: `core/hoyolab-api.js`
-- Test: `tests/hoyolab-api.test.js`
+- Test: `core/__tests__/hoyolab-api.test.js`
 
 **Interfaces:**
 - Produces: `detectGames(cookie, ltuid, got?)` → `[{ key, uid, region, nickname, level }]` for record-card games; throws `Error` with `retcode` property on API failure (retcode -100/10001 → message contains "cookie"). `got` defaults to `(options) => app.Got("HoYoLab", options)` so tests inject a fake.
 
 - [ ] **Step 1: Write failing test**
 
-Create `tests/hoyolab-api.test.js`:
+Create `core/__tests__/hoyolab-api.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { detectGames } = require("../core/hoyolab-api.js");
+const { detectGames } = require("../hoyolab-api.js");
 
 const CARD_RESPONSE = {
 	statusCode: 200,
@@ -1153,7 +1154,7 @@ Expected: PASS
 - [ ] **Step 5: Lint and commit**
 
 ```bash
-npx eslint core/hoyolab-api.js tests/hoyolab-api.test.js && git add core/hoyolab-api.js tests/hoyolab-api.test.js
+npx eslint core/hoyolab-api.js core/__tests__/hoyolab-api.test.js && git add core/hoyolab-api.js core/__tests__/hoyolab-api.test.js
 git commit -m "feat(core): add HoYoLAB game record card detection"
 ```
 
@@ -1582,7 +1583,7 @@ git commit -m "feat(core): add live reload with per-guild check-in scheduling"
 **Files:**
 - Create: `commands/link/service.js`
 - Create: `commands/link/index.js`
-- Test: `tests/link-service.test.js`
+- Test: `commands/link/__tests__/service.test.js`
 
 **Interfaces:**
 - Consumes: `parseCookie`, `detectGames`, `Database.upsertProfile/getProfile/removeProfile`, `scheduleReload`.
@@ -1590,7 +1591,7 @@ git commit -m "feat(core): add live reload with per-guild check-in scheduling"
 
 - [ ] **Step 1: Write failing service test**
 
-Create `tests/link-service.test.js`:
+Create `commands/link/__tests__/service.test.js`:
 
 ```js
 const { test } = require("node:test");
@@ -1599,8 +1600,8 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const Database = require("../db/index.js");
-const { buildGames, mergeGames, linkProfile } = require("../commands/link/service.js");
+const Database = require("../../../db/index.js");
+const { buildGames, mergeGames, linkProfile } = require("../service.js");
 
 const COOKIE = "ltoken_v2=a; ltuid_v2=111; ltmid_v2=b";
 const DETECTED = [
@@ -1879,8 +1880,8 @@ module.exports = { openEditor };
 Run: `npm test` — Expected: PASS
 
 ```bash
-npx eslint commands/link/ tests/link-service.test.js
-git add commands/link/ tests/link-service.test.js
+npx eslint commands/link/
+git add commands/link/
 git commit -m "feat(commands): add /link add, list, remove, refresh"
 ```
 
@@ -2003,7 +2004,7 @@ git commit -m "feat(commands): add /config schedule, channel, timezone"
 **Files:**
 - Create: `commands/link/editor.js` (replace placeholder)
 - Modify: `platforms/discord.js` (route component/modal interactions)
-- Test: `tests/editor.test.js`
+- Test: `commands/link/__tests__/editor.test.js`
 
 **Interfaces:**
 - Consumes: `app.db.getProfile/updateGameEntry/listProfiles`, `scheduleReload`, `GAMES`, `defaults`.
@@ -2011,13 +2012,13 @@ git commit -m "feat(commands): add /config schedule, channel, timezone"
 
 - [ ] **Step 1: Write failing test for the pure panel builder**
 
-Create `tests/editor.test.js`:
+Create `commands/link/__tests__/editor.test.js`:
 
 ```js
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { buildGamePanel, TOGGLES } = require("../commands/link/editor.js");
+const { buildGamePanel, TOGGLES } = require("../editor.js");
 
 const profile = {
 	_id: "p1",
@@ -2276,8 +2277,8 @@ Change the guard to route editor interactions first:
 Run: `npm test` — Expected: PASS
 
 ```bash
-npx eslint commands/link/editor.js platforms/discord.js tests/editor.test.js
-git add commands/link/editor.js platforms/discord.js tests/editor.test.js
+npx eslint commands/link/editor.js platforms/discord.js commands/link/__tests__/editor.test.js
+git add commands/link/editor.js platforms/discord.js commands/link/__tests__/editor.test.js
 git commit -m "feat(commands): add interactive /link edit settings editor"
 ```
 
