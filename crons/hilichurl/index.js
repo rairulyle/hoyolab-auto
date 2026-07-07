@@ -173,7 +173,11 @@ module.exports = {
 				lines.push(`💎 Current Points: ${data.points}`);
 
 				const telegramText = app.Utils.escapeCharacters(lines.join("\n"));
-				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+				const hasSignificantActivity = data.freeItemsClaimed?.length > 0
+					|| data.itemsExchanged.length > 0
+					|| data.codesRedeemed.length > 0
+					|| data.codesObtained?.length > 0;
+				await notifyAccount(account, { embeds: [embed], telegramText, ping: hasSignificantActivity, kind: "reminder" });
 
 				app.Logger.info("Cron:Hilichurl", `(${account.uid}) Genshin Impact: Hilichurl automation completed.`);
 			}
