@@ -101,23 +101,35 @@ const buildGamePanel = (profile, gameKey) => {
 	};
 };
 
-const buildGameSelect = (profile) => ({
-	embeds: [{
-		color: 0x9B59B6,
-		title: `Edit profile: ${profile.label}`,
-		description: "Pick a game to configure."
-	}],
-	components: [new ActionRowBuilder().addComponents(
-		new StringSelectMenuBuilder()
-			.setCustomId(`hle:game:${profile._id}:-`)
-			.setPlaceholder("Select a game")
-			.addOptions(profile.games.map(g => ({
-				label: GAMES[g.key].name,
-				value: g.key,
-				description: g.uid ? `UID ${g.uid}` : undefined
-			})))
-	)]
-});
+const buildGameSelect = (profile) => {
+	const options = profile.games.map(g => ({
+		label: GAMES[g.key].name,
+		value: g.key,
+		description: g.uid ? `UID ${g.uid}` : undefined
+	}));
+
+	if (!profile.games.some(g => g.key === "termis")) {
+		options.push({
+			label: `Enable ${GAMES.termis.name}`,
+			value: "termis",
+			description: "Check-in only; not auto-detected"
+		});
+	}
+
+	return {
+		embeds: [{
+			color: 0x9B59B6,
+			title: `Edit profile: ${profile.label}`,
+			description: "Pick a game to configure."
+		}],
+		components: [new ActionRowBuilder().addComponents(
+			new StringSelectMenuBuilder()
+				.setCustomId(`hle:game:${profile._id}:-`)
+				.setPlaceholder("Select a game")
+				.addOptions(options)
+		)]
+	};
+};
 
 const getProfileById = async (profileId) => await app.db.collections.profiles.findOneAsync({ _id: profileId });
 
@@ -139,7 +151,12 @@ const handleComponent = async (interaction) => {
 
 	if (action === "game") {
 		const selected = interaction.values[0];
-		return await interaction.update(buildGamePanel(profile, selected));
+		let current = profile;
+		if (!profile.games.some(g => g.key === selected)) {
+			current = await app.db.addGameEntry(profileId, { key: selected, uid: null, region: null, nickname: null, active: true, settings: {} });
+			scheduleReload();
+		}
+		return await interaction.update(buildGamePanel(current, selected));
 	}
 
 	if (action === "toggle") {

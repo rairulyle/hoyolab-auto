@@ -94,6 +94,24 @@ module.exports = class Database {
 		return affectedDocuments;
 	}
 
+	async addGameEntry (profileId, entry) {
+		const doc = await this.collections.profiles.findOneAsync({ _id: profileId });
+		if (!doc) {
+			return null;
+		}
+		if ((doc.games ?? []).some(game => game.key === entry.key)) {
+			return doc;
+		}
+
+		const games = [...(doc.games ?? []), entry];
+		const { affectedDocuments } = await this.collections.profiles.updateAsync(
+			{ _id: profileId },
+			{ $set: { games } },
+			{ returnUpdatedDocs: true }
+		);
+		return affectedDocuments;
+	}
+
 	async findProfilesByGameUid (gameKey, uid) {
 		return await this.collections.profiles.findAsync({
 			games: { $elemMatch: { key: gameKey, uid } }

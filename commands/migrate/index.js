@@ -71,11 +71,8 @@ module.exports = {
 				catch {
 					continue;
 				}
-				const bucket = byLtuid.get(parsed.ltuid) ?? { cookie: entry.cookie, discordUserId: entry.discord?.userId ?? null, settings: {}, hasTot: false };
+				const bucket = byLtuid.get(parsed.ltuid) ?? { cookie: entry.cookie, discordUserId: entry.discord?.userId ?? null, settings: {} };
 				bucket.settings[key] = pickSettings(entry);
-				if (key === "termis") {
-					bucket.hasTot = true;
-				}
 				byLtuid.set(parsed.ltuid, bucket);
 			}
 		}
@@ -95,8 +92,7 @@ module.exports = {
 					guildId: interaction.guildId,
 					label,
 					discordUserId: bucket.discordUserId ?? interaction.user.id,
-					cookie: bucket.cookie,
-					includeTot: bucket.hasTot
+					cookie: bucket.cookie
 				});
 				for (const game of profile.games) {
 					const settings = bucket.settings[game.key];

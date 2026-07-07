@@ -86,6 +86,17 @@ test("findProfilesByLtuid finds across guilds", async () => {
 	assert.equal((await db.findProfilesByLtuid("999")).length, 0);
 });
 
+test("addGameEntry appends a game once, idempotent on the key", async () => {
+	const saved = await db.upsertProfile(profile());
+	const entry = { key: "termis", uid: null, region: null, nickname: null, active: true, settings: {} };
+	await db.addGameEntry(saved._id, entry);
+	await db.addGameEntry(saved._id, { ...entry, active: false });
+	const found = await db.getProfile("g1", "main");
+	const termis = found.games.filter(g => g.key === "termis");
+	assert.equal(termis.length, 1);
+	assert.equal(termis[0].active, true);
+});
+
 test("guild settings upsert", async () => {
 	await db.setGuildField("g1", "timezone", "Asia/Manila");
 	await db.setGuildField("g1", "checkinChannelId", "c1");

@@ -13,8 +13,7 @@ const run = async (interaction) => {
 			guildId: interaction.guildId,
 			label,
 			discordUserId: interaction.user.id,
-			cookie: interaction.options.getString("cookie"),
-			includeTot: false
+			cookie: interaction.options.getString("cookie")
 		});
 		scheduleReload();
 		return await interaction.editReply({

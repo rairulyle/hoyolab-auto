@@ -1,35 +1,32 @@
 const { parseCookie } = require("../../core/cookie.js");
 const { detectGames } = require("../../core/hoyolab-api.js");
 
-const buildGames = (detected, includeTot) => {
-	const games = detected.map(d => ({
-		key: d.key,
-		uid: d.uid,
-		region: d.region,
-		nickname: d.nickname,
-		active: true,
-		settings: {}
-	}));
+const buildGames = (detected) => detected.map(d => ({
+	key: d.key,
+	uid: d.uid,
+	region: d.region,
+	nickname: d.nickname,
+	active: true,
+	settings: {}
+}));
 
-	if (includeTot) {
-		games.push({ key: "termis", uid: null, region: null, nickname: null, active: true, settings: {} });
-	}
-
-	return games;
+const mergeGames = (oldGames, newGames) => {
+	const newKeys = new Set(newGames.map(g => g.key));
+	const merged = newGames.map(game => {
+		const previous = (oldGames ?? []).find(g => g.key === game.key);
+		return previous
+			? { ...game, active: previous.active, settings: previous.settings ?? {} }
+			: game;
+	});
+	const retained = (oldGames ?? []).filter(g => !newKeys.has(g.key));
+	return [...merged, ...retained];
 };
 
-const mergeGames = (oldGames, newGames) => newGames.map(game => {
-	const previous = (oldGames ?? []).find(g => g.key === game.key);
-	return previous
-		? { ...game, active: previous.active, settings: previous.settings ?? {} }
-		: game;
-});
-
-const linkProfile = async ({ db, guildId, label, discordUserId, cookie, includeTot, detect = detectGames }) => {
+const linkProfile = async ({ db, guildId, label, discordUserId, cookie, detect = detectGames }) => {
 	const parsed = parseCookie(cookie);
 	const detected = await detect(parsed.cookie, parsed.ltuid);
 
-	const games = buildGames(detected, includeTot);
+	const games = buildGames(detected);
 	if (games.length === 0) {
 		throw new Error("No games found for this HoYoLAB account. Nothing to link.");
 	}
