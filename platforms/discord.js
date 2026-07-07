@@ -94,6 +94,18 @@ module.exports = class DiscordController extends require("./template.js") {
 		});
 
 		client.on("interactionCreate", async (interaction) => {
+			const isComponent = interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit();
+			if (isComponent && interaction.customId?.startsWith("hle:")) {
+				const { handleComponent } = require("../commands/link/editor.js");
+				try {
+					await handleComponent(interaction);
+				}
+				catch (e) {
+					app.Logger.error("Discord", { message: "Editor interaction failed", error: e.message });
+				}
+				return;
+			}
+
 			if (!interaction.isChatInputCommand()) {
 				return;
 			}
