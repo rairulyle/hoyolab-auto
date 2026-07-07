@@ -1,12 +1,11 @@
 const { setTimeout: sleep } = require("node:timers/promises");
-const config = require("../../config.js");
 
 module.exports = {
 	name: "hilichurl",
 	expression: "0 0 11 * * *",
 	description: "This will run the Hilichurl Machine Workshop automation for Genshin Impact - completing tasks, claiming rewards, and exchanging for Primogems.",
 	code: (async function hilichurl () {
-		const jitterSeconds = config.crons?.hilichurlJitter ?? 0;
+		const jitterSeconds = app.Config.get("crons")?.hilichurlJitter ?? 0;
 		if (jitterSeconds > 0) {
 			const jitterMs = Math.floor(Math.random() * jitterSeconds * 1000);
 			app.Logger.info("Cron:Hilichurl", `Applying ${(jitterMs / 1000).toFixed(1)}s jitter before starting...`);
