@@ -20,7 +20,7 @@ const recordAndNotify = async (data, message, status) => {
 			message: status === "ok" ? "" : (data.reason ?? "")
 		});
 	}
-	await notifyAccount(data.account, { embeds: [message.embed], telegramText: message.telegram, kind: "redeem" });
+	await notifyAccount(data.account, { embeds: [message.embed], telegramText: app.Utils.escapeCharacters(message.telegram), kind: "redeem" });
 };
 
 module.exports = {
@@ -74,7 +74,7 @@ module.exports = {
 		for (const data of manual) {
 			const message = buildMessage("manual", data);
 			const gameKey = gameKeyFromEngineName(data.gameKey) ?? data.gameKey;
-			await notifyGuildsForGame(gameKey, { embeds: [message.embed], telegramText: message.telegram, kind: "redeem" });
+			await notifyGuildsForGame(gameKey, { embeds: [message.embed], telegramText: app.Utils.escapeCharacters(message.telegram), kind: "redeem" });
 		}
 	}
 };
