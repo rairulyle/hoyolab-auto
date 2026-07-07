@@ -23,11 +23,14 @@ An option marked **(required)** must be supplied; others are optional.
 
 | Subcommand | Options | What it does |
 |---|---|---|
-| `/link add` | `cookie` (required), `label`, `tot` | Links a HoYoLAB account by cookie and auto-detects every game it plays. `label` defaults to your Discord username; re-using a label updates that profile (keeping its per-game settings). Set `tot:true` to also enable Tears of Themis (it can't be auto-detected). |
+| `/link add` | `cookie` (required), `label` | Links a HoYoLAB account by cookie and auto-detects every game it plays. `label` defaults to your Discord username; re-using a label updates that profile (keeping its per-game settings). |
 | `/link list` | — | Lists this server's profiles with their games and token status (🟢 active / 🔴 expired). |
 | `/link edit` | `label` (required) | Opens an interactive editor: pick a game → toggle its settings with buttons (green = on) → use **Edit values…** for numeric settings like the stamina threshold. |
 | `/link remove` | `label` (required) | Removes a profile from this server. |
 | `/link refresh` | `label` (required), `cookie` (required) | Replaces a profile's cookie (e.g. after it expires) and marks it active again. |
+
+The `label` option on `/link edit`, `/link remove`, and `/link refresh`
+autocompletes from this server's existing profiles.
 
 **Getting your cookie:** follow the HoYoLAB cookie guide —
 <https://github.com/torikushiii/hoyolab-auto?tab=readme-ov-file#installation>.

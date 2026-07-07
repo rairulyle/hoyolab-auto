@@ -19,6 +19,7 @@ module.exports = class Command extends require("./template.js") {
 
 		this.description = data.description;
 		this.buildSlashData = typeof data.buildSlashData === "function" ? data.buildSlashData : null;
+		this.autocomplete = typeof data.autocomplete === "function" ? data.autocomplete : null;
 
 		if (data.params !== null) {
 			let params = data.params;

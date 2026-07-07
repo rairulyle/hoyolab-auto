@@ -14,7 +14,7 @@ const run = async (interaction) => {
 			label,
 			discordUserId: interaction.user.id,
 			cookie: interaction.options.getString("cookie"),
-			includeTot: interaction.options.getBoolean("tot") ?? false
+			includeTot: false
 		});
 		scheduleReload();
 		return await interaction.editReply({

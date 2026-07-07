@@ -106,6 +106,19 @@ module.exports = class DiscordController extends require("./template.js") {
 				return;
 			}
 
+			if (interaction.isAutocomplete()) {
+				const command = app.Command.get(interaction.commandName);
+				if (command?.autocomplete) {
+					try {
+						await command.autocomplete(interaction);
+					}
+					catch (e) {
+						app.Logger.error("Discord", { message: "Autocomplete failed", error: e.message });
+					}
+				}
+				return;
+			}
+
 			if (!interaction.isChatInputCommand()) {
 				return;
 			}
