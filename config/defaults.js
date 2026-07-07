@@ -1,3 +1,5 @@
+const hostTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
 const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 
 const mergeSettings = (base, override) => {
@@ -18,7 +20,8 @@ module.exports = {
 		whitelist: [],
 		blacklist: ["check-in", "missed-check-in"]
 	},
-	guild: { timezone: "UTC", checkinTime: "00:00" },
+	redeemCron: "* * * * *",
+	guild: { timezone: hostTimezone, checkinCron: "0 0 0 * * *" },
 	gameSettings: {
 		honkai: {},
 		termis: {},

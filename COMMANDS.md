@@ -41,7 +41,7 @@ Treat the cookie like a password; only paste it into `/link add` or
 
 | Subcommand | Options | What it does |
 |---|---|---|
-| `/config schedule` | `time` | Sets the daily check-in time as `HH:MM` (24-hour), interpreted in this server's timezone. Run with no `time` to see the current schedule and next run. |
+| `/config schedule` | `type` (required: `check-in` or `redeem`), `cron` | Sets a job's schedule as a **cron expression**. `type:check-in` is **per-server** and runs in this server's timezone; `type:redeem` is **server-wide** (one shared poll — see note below). Run with no `cron` to see the current schedule and next run. Example: `0 30 0 * * *` (00:30 daily), `*/5 * * * *` (every 5 min). |
 | `/config channel` | `type` (required: `check-in` or `redeem`), `channel` | Sets which channel a notification type posts to. Run with no `channel` to see the current one. |
 | `/config timezone` | `tz` | Sets this server's IANA timezone (e.g. `Asia/Manila`), which governs the check-in time and the daily boundary. Run with no `tz` to see the current one. Defaults to `UTC`. |
 
@@ -81,10 +81,15 @@ where applicable; `account` is a specific in-game UID (offered as choices).
 - **Permissions:** `/link`, `/config`, and `/migrate` require the server
   **Administrator** permission (enforced both by Discord's default command
   permissions and a runtime check).
-- **Scheduling:** the daily check-in runs per server at its configured
-  `/config schedule` time and timezone; results post to the `check-in` channel.
-  Gift-code redemption runs automatically on a global poll and posts to each
-  server's `redeem` channel.
+- **Scheduling:** check-in runs **per server** on its configured
+  `/config schedule type:check-in` cron, in that server's timezone; results post
+  to the server's `check-in` channel. **Code redemption is a single server-wide
+  poll** (codes and their already-redeemed state are shared, so it can't be
+  per-server) — `/config schedule type:redeem` sets that one shared cron
+  (default every minute; it only actually redeems when a *new* code appears),
+  and results still post to each server's own `redeem` channel.
+- **Timezone default:** a server with no `/config timezone` set uses the bot
+  host's timezone (the container's `TZ`), not a hardcoded UTC.
 - **Dead cookies:** if HoYoLAB rejects a profile's cookie, it's marked 🔴
   expired (visible in `/link list`) and skipped until you `/link refresh` it.
 - Changes made through commands apply live — no bot restart needed.

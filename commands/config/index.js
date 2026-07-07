@@ -19,8 +19,10 @@ module.exports = {
 		.setDMPermission(false)
 		.addSubcommand(sub => sub
 			.setName("schedule")
-			.setDescription("Show or set the daily check-in time for this server.")
-			.addStringOption(opt => opt.setName("time").setDescription("HH:MM in this server's timezone (e.g. 00:30)")))
+			.setDescription("Show or set the cron schedule for check-in (per server) or redeem (server-wide).")
+			.addStringOption(opt => opt.setName("type").setDescription("Which job to schedule").setRequired(true)
+				.addChoices({ name: "check-in", value: "checkin" }, { name: "redeem", value: "redeem" }))
+			.addStringOption(opt => opt.setName("cron").setDescription("Cron expression, e.g. 0 30 0 * * * (leave empty to view current)")))
 		.addSubcommand(sub => sub
 			.setName("channel")
 			.setDescription("Show or set a notification channel.")
