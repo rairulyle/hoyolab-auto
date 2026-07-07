@@ -1251,20 +1251,20 @@ After the existing `send` method:
 
 ```js
 const sendToGuildChannel = async (guildId, kind, payload) => {
-	const guild = await app.db.getGuild(guildId);
-	const channelId = guild?.[`${kind}ChannelId`];
-	if (!channelId) {
-		app.Logger.warn("Notify", `Guild ${guildId} has no ${kind} channel configured; skipping notification`);
-		return false;
-	}
-
-	const discord = app.Platform.get(1);
-	if (!discord?.client) {
-		app.Logger.warn("Notify", "Discord platform not connected; skipping notification");
-		return false;
-	}
-
 	try {
+		const guild = await app.db.getGuild(guildId);
+		const channelId = guild?.[`${kind}ChannelId`];
+		if (!channelId) {
+			app.Logger.warn("Notify", `Guild ${guildId} has no ${kind} channel configured; skipping notification`);
+			return false;
+		}
+
+		const discord = app.Platform.get(1);
+		if (!discord?.client) {
+			app.Logger.warn("Notify", "Discord platform not connected; skipping notification");
+			return false;
+		}
+
 		await discord.sendToChannel(channelId, payload);
 		return true;
 	}
@@ -1276,6 +1276,8 @@ const sendToGuildChannel = async (guildId, kind, payload) => {
 
 module.exports = { sendToGuildChannel };
 ```
+
+The entire body is inside the try/catch so a DB-layer failure in `getGuild` also resolves to `false` — the helper must never throw (crons call it in a loop).
 
 - [ ] **Step 3: Lint and commit**
 
