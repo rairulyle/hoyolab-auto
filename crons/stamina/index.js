@@ -1,3 +1,5 @@
+const { notifyAccount } = require("../../core/notify.js");
+
 module.exports = {
 	name: "stamina",
 	expression: "0 */30 * * * *",
@@ -51,7 +53,6 @@ module.exports = {
 					? "Your stamina is full!"
 					: "Your stamina is within the set threshold!";
 
-				const platforms = app.Platform.getForAccount(account);
 				const embed = {
 					color: data.assets.color,
 					title: "Stamina Reminder",
@@ -74,28 +75,15 @@ module.exports = {
 					}
 				};
 
-				for (const webhook of platforms.filter(p => p.name === "webhook")) {
-					const userId = webhook.createUserMention(account.discord);
-					await webhook.send(embed, {
-						content: userId,
-						author: data.assets.author,
-						icon: data.assets.logo
-					});
-				}
-
-				const messageText = [
+				const telegramText = app.Utils.escapeCharacters([
 					`📢 Stamina Reminder, ${description}`,
 					`🎮 **Game**: ${data.assets.game}`,
 					`🆔 **UID**: ${account.uid} ${account.nickname}`,
 					`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
 					`🔋 **Stamina**: ${current}/${max}`,
 					`🕒 **Recovery Time**: ${delta}`
-				].join("\n");
-
-				const escapedMessage = app.Utils.escapeCharacters(messageText);
-				for (const telegram of platforms.filter(p => p.name === "telegram")) {
-					await telegram.send(escapedMessage);
-				}
+				].join("\n"));
+				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 			}
 		}
 	})
