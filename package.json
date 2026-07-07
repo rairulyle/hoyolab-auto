@@ -8,6 +8,7 @@
     "migrate": "node convert.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "node --test \"**/__tests__/**/*.test.js\"",
     "setup:windows": "start setup/config/index.html",
     "setup:linux": "xdg-open setup/config/index.html"
   },
@@ -28,10 +29,12 @@
   "license": "AGPL-3.0",
   "main": "index.js",
   "dependencies": {
+    "@seald-io/nedb": "^4.1.2",
     "chalk": "4.1.0",
     "cheerio": "^1.0.0-rc.12",
     "cron": "3.1.6",
     "discord.js": "14.14.1",
+    "dotenv": "^17.4.2",
     "got": "14.2.1",
     "json5": "^2.2.3",
     "keyv": "^4.5.4",
