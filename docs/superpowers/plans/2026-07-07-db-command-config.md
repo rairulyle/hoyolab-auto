@@ -1469,7 +1469,7 @@ const { CronJob } = require("cron");
 
 const { assemble } = require("./assembler.js");
 const { runGuildCheckIn } = require("./guild-jobs.js");
-const { hhmmToCron } = require("./time.js");
+const { hhmmToCron, isValidHhmm } = require("./time.js");
 const defaults = require("../config/defaults.js");
 
 let globalCrons = [];
@@ -1524,7 +1524,7 @@ const scheduleGuildJobs = async () => {
 	for (const guildId of guildIds) {
 		const guild = await app.db.getGuild(guildId);
 		const timezone = guild?.timezone ?? defaults.guild.timezone;
-		const checkinTime = guild?.checkinTime ?? defaults.guild.checkinTime;
+		const checkinTime = isValidHhmm(guild?.checkinTime) ? guild.checkinTime : defaults.guild.checkinTime;
 
 		const job = new CronJob(
 			hhmmToCron(checkinTime),
