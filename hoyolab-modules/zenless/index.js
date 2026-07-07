@@ -158,13 +158,13 @@ module.exports = class ZenlessZoneZero extends require("../template.js") {
 	get logo () { return this.#logo; }
 	get color () { return this.#color; }
 
-	async checkIn () {
+	async checkIn (accountData) {
 		const ci = new CheckIn(this, {
 			logo: this.#logo,
 			color: this.#color
 		});
 
-		return await ci.checkAndExecute();
+		return await ci.checkAndExecute(accountData);
 	}
 
 	async notes (accountData) {
