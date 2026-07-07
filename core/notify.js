@@ -26,13 +26,7 @@ const sendToGuildChannel = async (guildId, kind, payload) => {
 	}
 };
 
-const sendWebhookTelegram = async (platforms, { embeds, telegramText, account, ping = false }) => {
-	for (const webhook of platforms.filter(p => p.name === "webhook")) {
-		const content = ping && account ? webhook.createUserMention(account.discord) : undefined;
-		for (const embed of embeds) {
-			await webhook.send(embed, { content });
-		}
-	}
+const sendTelegram = async (platforms, { telegramText }) => {
 	if (telegramText) {
 		for (const telegram of platforms.filter(p => p.name === "telegram")) {
 			await telegram.send(telegramText);
@@ -52,7 +46,7 @@ const notifyAccount = async (account, { embeds, telegramText, ping = false, kind
 		}
 
 		const platforms = app.Platform.getForAccount(account);
-		await sendWebhookTelegram(platforms, { embeds, telegramText, account, ping });
+		await sendTelegram(platforms, { telegramText });
 	}
 	catch (e) {
 		app.Logger.error("Notify", { message: "notifyAccount failed", error: e.message });
@@ -68,7 +62,7 @@ const notifyGuildsForGame = async (gameKey, { embeds, telegramText, kind }) => {
 			await sendToGuildChannel(guildId, kind, { embeds });
 		}
 
-		await sendWebhookTelegram(app.Platform.list, { embeds, telegramText });
+		await sendTelegram(app.Platform.list, { telegramText });
 	}
 	catch (e) {
 		app.Logger.error("Notify", { message: "notifyGuildsForGame failed", error: e.message });

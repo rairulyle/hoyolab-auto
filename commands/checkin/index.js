@@ -127,16 +127,6 @@ module.exports = {
 			if (interaction) {
 				await interaction.editReply({ embeds: embeds.slice(0, 10) });
 			}
-
-			const webhook = app.Platform.get(3);
-			if (webhook) {
-				for (const embed of embeds) {
-					await webhook.send(embed, {
-						author: "HoyoLab Auto",
-						icon: embed.author?.icon_url
-					});
-				}
-			}
 		}
 		else if (platform.id === 2) {
 			const telegram = app.Platform.get(2);

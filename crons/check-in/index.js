@@ -33,45 +33,6 @@ module.exports = {
 			const account = app.HoyoLab.getAccountById(message.uid);
 			const platforms = app.Platform.getForAccount(account);
 
-			let fields = [
-				{ name: "UID", value: message.uid, inline: true },
-				{ name: "Username", value: message.username, inline: true },
-				{ name: "Region", value: message.region, inline: true },
-				{ name: "Rank", value: message.rank, inline: true },
-				{ name: "Today's Reward", value: `${message.award.name} x${message.award.count}`, inline: true },
-				{ name: "Total Sign-ins", value: message.total, inline: true },
-				{ name: "Result", value: message.result, inline: true }
-			];
-
-			if (message.platform === "tot") {
-				fields = fields.filter(i => i.name !== "Username" && i.name !== "Rank");
-			}
-
-			const embed = {
-				color: message.assets.color,
-				title: message.assets.game,
-				author: {
-					name: message.assets.author,
-					icon_url: message.assets.logo
-				},
-				thumbnail: {
-					url: message.award.icon
-				},
-				fields,
-				timestamp: new Date(),
-				footer: {
-					text: `HoyoLab Auto Check-In (${i + 1}/${messages.length}) Executed`,
-					icon_url: message.assets.logo
-				}
-			};
-
-			for (const webhook of platforms.filter(p => p.name === "webhook")) {
-				await webhook.send(embed, {
-					author: message.assets.author,
-					icon: message.assets.logo
-				});
-			}
-
 			const messageText = [
 				`🎮 **${message.assets.game}** Daily Check-In`,
 				`🆔 **(${message.uid})** ${message.username}`,
