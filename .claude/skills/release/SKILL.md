@@ -53,9 +53,15 @@ explicitly (e.g. `--release-as 1.0.1`) to pin it.
 
 ### 2. Finalize the changelog
 
-`CHANGELOG.md` is hand-maintained; the bump tool is configured to skip it.
-Rename the top heading `## [Unreleased]` → `## [X.Y.Z] - YYYY-MM-DD` (today's
-date via `date +%F`), then commit it as its own non-bumping commit:
+`CHANGELOG.md` is hand-maintained (and `.prettierignore`d, so Prettier never
+reformats it — its layout is entirely on you). Rename the top heading
+`## [Unreleased]` → `## [X.Y.Z] - YYYY-MM-DD` (today's date via `date +%F`),
+then commit it as its own non-bumping commit:
+
+**Write every paragraph and bullet on a single line (no hard-wrapping).** GitHub
+renders release-note markdown with single newlines as hard breaks, so a
+hard-wrapped section pasted into a release comes out ragged with white space on
+the right. One line per entry lets it reflow to full width.
 
 ```bash
 git add CHANGELOG.md

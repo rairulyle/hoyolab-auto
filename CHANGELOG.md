@@ -1,74 +1,45 @@
 # Changelog
 
-All notable changes to this project are documented here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
-[SemVer](https://semver.org/).
+All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [SemVer](https://semver.org/).
+
+Entries are written **one line per paragraph and bullet** (no hard-wrapping) so that a section pasted into GitHub release notes reflows to full width instead of breaking at the source wrap points.
 
 ## [Unreleased]
 
 ## [1.0.0] - 2026-07-08
 
-Complete rework of the upstream
-[torikushiii/hoyolab-auto](https://github.com/torikushiii/hoyolab-auto) bot into
-a DB-backed, command-managed, multi-guild HoYoLAB automation bot. Accounts and
-per-server configuration now live in an embedded database and are managed
-entirely through Discord slash commands — the static `config.json5` is gone.
+Complete rework of the upstream [torikushiii/hoyolab-auto](https://github.com/torikushiii/hoyolab-auto) bot into a DB-backed, command-managed, multi-guild HoYoLAB automation bot. Accounts and per-server configuration now live in an embedded database and are managed entirely through Discord slash commands — the static `config.json5` is gone.
 
 ### Added
 
-- **Database-backed state.** Embedded NeDB store at `data/db/` for profiles,
-  per-guild settings, and check-in/redeem results.
+- **Database-backed state.** Embedded NeDB store at `data/db/` for profiles, per-guild settings, and check-in/redeem results.
 - **Command-managed configuration** through Discord slash commands:
-  - `/link add`, `/link list`, `/link remove`, `/link refresh` to manage HoYoLAB
-    accounts, with profile-label autocomplete.
-  - `/link edit`, an interactive settings editor (also how Tears of Themis is
-    enabled, since it has no game record card to auto-detect).
-  - `/config schedule`, `/config channel`, `/config timezone` for the per-guild
-    check-in cron, notification channels, and timezone.
+  - `/link add`, `/link list`, `/link remove`, `/link refresh` to manage HoYoLAB accounts, with profile-label autocomplete.
+  - `/link edit`, an interactive settings editor (also how Tears of Themis is enabled, since it has no game record card to auto-detect).
+  - `/config schedule`, `/config channel`, `/config timezone` for the per-guild check-in cron, notification channels, and timezone.
   - `/migrate` to import an existing `config.json5`.
-- **Multi-guild support.** Profiles belong to the guild they were linked in;
-  notification channels, timezone, and the check-in cron are per-guild, with a
-  `default` channel fallback.
-- **Cron-based scheduling.** Per-guild check-in runs on a cron expression in the
-  guild's timezone (default UTC); redeem-code polling is a single server-wide
-  poll with a shared code cache.
+- **Multi-guild support.** Profiles belong to the guild they were linked in; notification channels, timezone, and the check-in cron are per-guild, with a `default` channel fallback.
+- **Cron-based scheduling.** Per-guild check-in runs on a cron expression in the guild's timezone (default UTC); redeem-code polling is a single server-wide poll with a shared code cache.
 - **HoYoLAB game-record-card detection** to auto-add supported games on link.
-- **Reminder and redeem notifications** routed through a shared Discord-bot
-  helper (`notifyAccount` / `notifyGuildsForGame`), with default and reminder
-  channel types.
-- **Core building blocks:** cookie parsing (ltuid + redeem detection),
-  timezone-aware time utilities, a config assembler that produces the legacy
-  engine shape, live reload, and a game catalog.
-- **Docker and runtime:** `node:24-alpine` image with LinuxServer-style
-  `PUID`/`PGID` privilege drop, a `./data` bind mount holding all state, and a
-  pinned `.nvmrc` (Node ≥ 24).
-- **Release engineering:** Prettier + ESLint, husky + lint-staged + commitlint
-  (Conventional Commits), a `node:test` suite, CI (lint/format/test/build),
-  versioned GHCR image publishing on tag, and the `/release` + `/release-dev`
-  skills.
-- **Contributor docs:** `CLAUDE.md` / `AGENTS.md`, `CONVENTIONS.md`, and
-  `COMMANDS.md`.
+- **Reminder and redeem notifications** routed through a shared Discord-bot helper (`notifyAccount` / `notifyGuildsForGame`), with default and reminder channel types.
+- **Core building blocks:** cookie parsing (ltuid + redeem detection), timezone-aware time utilities, a config assembler that produces the legacy engine shape, live reload, and a game catalog.
+- **Docker and runtime:** `node:24-alpine` image with LinuxServer-style `PUID`/`PGID` privilege drop, a `./data` bind mount holding all state, and a pinned `.nvmrc` (Node ≥ 24).
+- **Release engineering:** Prettier + ESLint, husky + lint-staged + commitlint (Conventional Commits), a `node:test` suite, CI (lint/format/test/build), versioned GHCR image publishing on tag, and the `/release` + `/release-dev` skills.
+- **Contributor docs:** `CLAUDE.md` / `AGENTS.md`, `CONVENTIONS.md`, and `COMMANDS.md`.
 
 ### Changed
 
-- **Boot from the database instead of `config.json5`** (breaking change vs.
-  upstream): the entry point assembles engine config from DB state at startup
-  and live-reloads on command changes.
+- **Boot from the database instead of `config.json5`** (breaking change vs. upstream): the entry point assembles engine config from DB state at startup and live-reloads on command changes.
 
 ### Removed
 
-- Static `config.json5` as the source of truth, superseded by the database and
-  slash commands.
-- The Discord **webhook** notification platform — notifications now go through
-  the bot and Telegram only.
+- Static `config.json5` as the source of truth, superseded by the database and slash commands.
+- The Discord **webhook** notification platform — notifications now go through the bot and Telegram only.
 
 ### Fixed
 
-- Tolerate per-account login failures during check-in and mark dead cookies'
-  `tokenStatus` as `expired` (🔴 in `/link list`, excluded from future runs).
+- Tolerate per-account login failures during check-in and mark dead cookies' `tokenStatus` as `expired` (🔴 in `/link list`, excluded from future runs).
 - `HoyoLab.get` returns `null` on no match instead of throwing.
 - Restore the significant-activity ping gate for the mimo and hilichurl crons.
-- Escape Telegram text before delivery in redeem notifications, matching the
-  reminder crons.
-- Guard the husky `prepare` script so production installs (`npm install
-  --omit=dev`, e.g. the Docker image build) succeed when husky is absent.
+- Escape Telegram text before delivery in redeem notifications, matching the reminder crons.
+- Guard the husky `prepare` script so production installs (`npm install --omit=dev`, e.g. the Docker image build) succeed when husky is absent.
