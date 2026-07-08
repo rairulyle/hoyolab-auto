@@ -6,6 +6,12 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-07-08
+
+### Fixed
+
+- Slash commands with subcommands (all of `/link` and `/config`) crashed the bot with `TypeError: Cannot read properties of undefined (reading 'replace')` — subcommand interaction options carry no top-level value, so an `undefined` argument reached the command runner. Arguments are now sanitized (undefined dropped, values coerced to strings) before dispatch.
+
 ## [1.0.0] - 2026-07-08
 
 Complete rework of the upstream [torikushiii/hoyolab-auto](https://github.com/torikushiii/hoyolab-auto) bot into a DB-backed, command-managed, multi-guild HoYoLAB automation bot. Accounts and per-server configuration now live in an embedded database and are managed entirely through Discord slash commands — the static `config.json5` is gone.
