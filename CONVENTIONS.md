@@ -149,8 +149,9 @@ account. Four near-identical cards that differ only in owner and IGN is spam.
 - **Per-account row:** the owner mention + IGN, then only the fields that vary —
   reward, streak/threshold, result. Build rows in the embed `description` (or one
   field per account), not as a separate embed.
-- **Colour & footer:** keep the game's accent bar and a single footer; the
-  footer carries **no timestamp** and its text must not duplicate the title.
+- **Colour:** keep the game's accent bar. A footer is optional — add one only
+  when it carries information (see "Footers earn their place" below), never one
+  that just restates the bot or the title.
 - **Errors stay addressable:** a failed account (e.g. dead cookie) keeps its own
   row and still pings its owner via `content` (`<@id>`), never in the embed.
 - **Chunking:** if a group exceeds Discord's limits (25 fields / 6000 chars /
@@ -178,9 +179,12 @@ tooling behind.
   varying data as inline descriptors, over a fixed `Profile / UID / Region /
 Reward / Result` grid duplicated on every card. Labels that read the same on
   every row are noise — the differing values are the information.
-- **No footer timestamps.** Never set `timestamp` on an embed — Discord already
-  shows the message's send time next to the bot name, so an embed clock is
-  redundant. Footer **text** is fine; the timestamp is not.
+- **Footers earn their place; no timestamps.** Never set `timestamp` on an embed
+  — Discord already shows the message's send time next to the bot name. Drop
+  footer **text**, too, when it only restates the bot or context
+  (`HoyoLab Auto · Check-in` merely echoes the author and title). Keep a footer
+  only when it tells the reader something they need — a legend
+  (`🔴 = re-link with /link refresh`), a freshness note, or a manual-action link.
 - **Spacers only when it crowds.** Discord puts no gap between stacked
   (`inline: false`) fields; when a many-field embed crowds, add a blank spacer
   field — a zero-width space (`​`) for both `name` and `value` — between
