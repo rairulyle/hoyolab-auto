@@ -187,3 +187,34 @@ test("recordRedeem appends", async () => {
 	const rows = await db.collections.redeemResults.findAsync({ code: "CODE1" });
 	assert.equal(rows.length, 2);
 });
+
+test("getRedeemStatuses returns statuses for a profile+game+code", async () => {
+	await db.recordRedeem({
+		profileId: "p1",
+		guildId: "g1",
+		game: "genshin",
+		code: "ABC",
+		source: "manual",
+		status: "error"
+	});
+	await db.recordRedeem({
+		profileId: "p1",
+		guildId: "g1",
+		game: "genshin",
+		code: "ABC",
+		source: "manual",
+		status: "ok"
+	});
+	await db.recordRedeem({
+		profileId: "p1",
+		guildId: "g1",
+		game: "genshin",
+		code: "XYZ",
+		source: "manual",
+		status: "ok"
+	});
+
+	const statuses = await db.getRedeemStatuses("p1", "genshin", "ABC");
+	assert.deepEqual(statuses.sort(), ["error", "ok"]);
+	assert.deepEqual(await db.getRedeemStatuses("p1", "genshin", "NONE"), []);
+});

@@ -192,4 +192,9 @@ module.exports = class Database {
 			redeemedAt: new Date().toISOString()
 		});
 	}
+
+	async getRedeemStatuses(profileId, game, code) {
+		const rows = await this.collections.redeemResults.findAsync({ profileId, game, code });
+		return rows.map((row) => row.status);
+	}
 };
