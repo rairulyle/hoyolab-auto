@@ -1,9 +1,16 @@
-# Cache Directory
+# Data Directory
 
-This directory contains the application's cache file and related data.
+This directory holds all of the bot's persistent state — it is the one volume you
+need to back up or mount.
+
+- **`db/`** — the embedded NeDB database (profiles, per-guild settings, and
+  check-in/redeem history). This is the source of truth for all configuration;
+  there is no `config.json5`. It is created on first run and managed entirely
+  through Discord slash commands (`/link`, `/config`).
+- **`cache.json`** — a transient cache (see below), safe to delete.
 
 ## Cache File
-The script will auto-generate a `cache.json` file in this directory once it has been run for the first time.
+The bot will auto-generate a `cache.json` file in this directory once it has been run for the first time.
 
 ### What is cached?
 - Game account data (stamina, expeditions, etc.)

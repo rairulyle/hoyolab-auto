@@ -4,14 +4,25 @@
 </h1>
 
 <p align="center">
-   <img src="https://img.shields.io/badge/NodeJS-20.2.0-green" alt="NodeJS version badge">
-   <img src="https://img.shields.io/github/license/torikushiii/hoyolab-auto" alt="License badge">
-   <img src="https://img.shields.io/github/stars/torikushiii/hoyolab-auto" alt="GitHub stars badge">
+   <img src="https://img.shields.io/badge/NodeJS-%E2%89%A524-green" alt="NodeJS version badge">
+   <img src="https://img.shields.io/github/license/rairulyle/hoyolab-auto" alt="License badge">
+   <img src="https://img.shields.io/github/stars/rairulyle/hoyolab-auto" alt="GitHub stars badge">
 </p>
 
 # HoyoLab Auto
 
-A multi-purpose tool for any supported Hoyoverse games. This tool is designed to assist with daily check-ins, stamina checks, expedition checks, automatic code-redemption, and more.
+> **A personal improvement fork of [torikushiii/hoyolab-auto](https://github.com/torikushiii/hoyolab-auto).**
+> This fork reworks the original into a **database-backed, command-managed,
+> multi-guild** HoYoLAB bot: there is no static `config.json5` — accounts and
+> per-server settings live in an embedded database and are managed entirely
+> through Discord slash commands. It's maintained for my own use; issues and PRs
+> are welcome, but expect it to track what I personally need. All credit for the
+> original tool and its game integrations goes to [torikushiii](https://github.com/torikushiii).
+
+A multi-purpose bot for the supported HoYoverse games. It handles daily
+check-ins, stamina/expedition/realm reminders, automatic code redemption, and
+more — one **profile** per HoYoLAB cookie, many games per profile, configured per
+Discord server.
 
 ## Table of Contents
 
@@ -28,13 +39,13 @@ A multi-purpose tool for any supported Hoyoverse games. This tool is designed to
     - [Notifications Setup](#notifications-setup)
     - [Running with Docker](#running-with-docker)
     - [Contributing](#contributing)
-    - [Buy Me a Coffee](#buy-me-a-coffee)
+    - [Credits](#credits)
 
 ## Google App Script
 
-If you don't have a server to run this script and simply just want to use it for checking in, you can use Google App Script.
+If you don't have a server to run this bot and simply want daily check-ins, you can use the standalone Google Apps Script helper.
 
-- [Google App Script](https://github.com/torikushiii/hoyolab-auto/tree/main/services)
+- [Google Apps Script helper](services/google-script/README.md)
 
 ## Supported Games
 
@@ -239,18 +250,18 @@ If you prefer not to use the Makefile, you can use the following Docker Compose 
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. If there are any bugs, please open an issue.
+This is a personal fork maintained for my own use, so priorities follow what I
+need. That said, issues and pull requests are welcome. For anything substantial,
+open an issue first so we can talk it through. Bug reports with logs and repro
+steps are especially appreciated.
 
-If you have any suggestions or ideas, feel free to open an issue.
+If you're contributing code, see [`CONVENTIONS.md`](CONVENTIONS.md) and
+[`CLAUDE.md`](CLAUDE.md) for the module layout, the config-assembler
+architecture, and the testing policy.
 
-**New to contributing?**
+## Credits
 
-To get started, fork the repo, make your changes, add, commit, and push your changes to your fork. Then, open a pull request. If you're new to GitHub, [this tutorial](https://www.freecodecamp.org/news/how-to-make-your-first-pull-request-on-github-3#let-s-make-our-first-pull-request-) might help.
-
-You can support the project by giving it a star, sharing it with your friends, contributing to the project, and reporting any bugs you find.
-
-## Buy Me a Coffee
-
-If this repo is useful to you, you can support me by buying me a coffee. Thank you!
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/torikushiii)
+This project is a fork of [torikushiii/hoyolab-auto](https://github.com/torikushiii/hoyolab-auto).
+The original tool, its HoYoLAB game integrations, and the Google Apps Script
+helper are all the work of [torikushiii](https://github.com/torikushiii) and
+contributors — if you find this useful, consider starring the upstream project.
