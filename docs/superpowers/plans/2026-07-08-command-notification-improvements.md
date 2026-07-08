@@ -715,6 +715,68 @@ git commit -m "fix(crons): drop reminder footer text that duplicates the title"
 
 ---
 
+### Task 9: Auto check-in embed — Discord mention + IGN
+
+**Files:**
+- Modify: `core/guild-jobs.js:89-92` (the success check-in embed fields)
+
+**Interfaces:**
+- Consumes: `profile.discordUserId` (string | undefined), `resultMessage.username` (in-game name), `game.nickname` (fallback).
+- Produces: nothing.
+
+Context: the auto check-in notification embed (footer "HoyoLab Auto Check-In") currently shows a **Profile** field with the profile label and a **UID** field with the numeric UID. Change the **Profile** field to show the linker's Discord mention, and replace the **UID** field with the in-game name (IGN). This only touches the success embed in `core/guild-jobs.js`; the error embed (line ~74-79) and the manual `/checkin` embed are unchanged.
+
+- [ ] **Step 1: Update the two fields**
+
+In `core/guild-jobs.js`, in the success embed's `fields` array, change the first two entries from:
+
+```js
+							{ name: "Profile", value: profile.label, inline: true },
+							{ name: "UID", value: String(resultMessage.uid), inline: true },
+```
+
+to:
+
+```js
+							{
+								name: "Profile",
+								value: profile.discordUserId
+									? `<@${profile.discordUserId}>`
+									: profile.label,
+								inline: true
+							},
+							{
+								name: "IGN",
+								value: resultMessage.username ?? game.nickname ?? "—",
+								inline: true
+							},
+```
+
+(A profile with no `discordUserId` falls back to the label; an account with no IGN falls back to the game nickname, then `"—"`. The mention renders as a name in the embed field and does not ping.)
+
+- [ ] **Step 2: Load smoke**
+
+Run: `node --check core/guild-jobs.js`
+Expected: exit 0.
+
+- [ ] **Step 3: Format**
+
+Run: `npx prettier --write core/guild-jobs.js && npx prettier --check core/guild-jobs.js`
+Expected: clean.
+
+- [ ] **Step 4: Manual verification**
+
+Trigger an auto check-in (or inspect an embed). Expected: the **Profile** field shows `@you` (mention, no ping) and the second field is **IGN** with the in-game name instead of the numeric UID.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add core/guild-jobs.js
+git commit -m "feat(checkin): show linker mention and IGN in the auto check-in embed"
+```
+
+---
+
 ## Final verification
 
 - [ ] Run `npm test` — expected `fail 0` (new: renameProfile ×3, classifyRedeem ×3, getRedeemStatuses ×1).
