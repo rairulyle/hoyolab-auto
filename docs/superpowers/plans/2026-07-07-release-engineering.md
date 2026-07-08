@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - **Base branch:** this work is based on `origin/main`, which **already has Part A** (the DB/command/config rewrite) merged — real `__tests__/` suites, `@seald-io/nedb`, `dotenv`, and the `test` script all exist. Part B is otherwise independent of Part A and adds only repo/CI/release tooling.
-- **Runtime/build:** Node ≥ 24 (Part A raised the engines floor from 20 to 24; the `node --test` glob in the `test` script needs Node's glob support), CommonJS (`"type": "commonjs"`). CI pins **Node 24**. Package manager is **npm** — `npm ci` in CI, `npm install` locally; always commit the updated `package-lock.json` in the same task that changes dependencies.
+- **Runtime/build:** Node ≥ 24 (Part A raised the engines floor from 20 to 24; the `node --test` glob in the `test` script needs Node's glob support), CommonJS (`"type": "commonjs"`). CI pins **Node 24**. Package manager is **npm** — `npm ci` in CI, `npm install` locally; always commit the updated `package-lock.json` in the same task that changes dependencies. **`package-lock.json` must be tracked** — it is gitignored in the upstream `.gitignore`; Task 1 removes that ignore so `npm ci` has the lockfile it requires.
 - **Code style:** tabs for indentation, double quotes, semicolons, **no trailing comma** — matches the existing `.eslintrc.json` and Part A's constraints. Prettier config must encode this so it never fights ESLint.
 - **Commits:** Conventional Commits (`<type>(<scope>): <subject>`), enforced by the commitlint `commit-msg` hook. **No `Co-Authored-By:` trailers, no AI attribution** anywhere (commits, PRs, issues, release notes). No commitizen / guided-commit prompt — commitlint is the enforcement backstop for hand-typed messages.
 - **Branching:** all tooling work in this plan happens on the feature branch `chore/release-engineering` (already created in an isolated worktree off `origin/main`), never directly on `main`. The **only** sanctioned direct-to-`main` commits are the release flow's changelog (`docs:`) and version-bump (`chore(release):`) commits, made by the `/release` skill.
@@ -26,7 +26,8 @@
 | --- | --- |
 | `.prettierrc` (new) | Prettier config encoding tabs/double-quotes/semi/no-trailing-comma |
 | `.prettierignore` (new) | Excludes non-source (node_modules, data, logs, lockfile, LICENSE, google-script, docs/superpowers) |
-| `.eslintrc.json` (modify) | `root: true`, `extends` → array with `prettier`, `ignorePatterns` for google-script |
+| `.eslintrc.json` (modify) | `root: true`, `extends` → array with `prettier`, `ignorePatterns` for google-script, remove all Prettier-conflicting formatting rules |
+| `.gitignore` (modify) | Un-ignore `package-lock.json` so CI's `npm ci` has a committed lockfile |
 | `package.json` (modify) | Add `version`, dev deps, `format`/`format:check`/`release`/`prepare` scripts, `lint-staged` config |
 | `package-lock.json` (modify) | Updated by each `npm install` |
 | `commitlint.config.js` (new) | `extends: ['@commitlint/config-conventional']` |
@@ -94,15 +95,31 @@ Four changes to `.eslintrc.json`:
     "ignorePatterns": ["services/google-script/**"],
 ```
 
-4. Disable the three formatting rules that conflict with Prettier. **Why this is separate from step 2:** `eslint-config-prettier` (added via `extends`) only turns off conflicting rules that come from *other* extended configs — it **cannot** override rules set directly in this file's own `rules` block. This `.eslintrc.json` hard-sets many formatting rules in `rules`; most were chosen to agree with our Prettier config (tabs, double quotes, semi, no-trailing-comma), but three genuinely conflict once Prettier reflows code (e.g. Prettier breaks long arrow chains onto a new line, violating `implicit-arrow-linebreak: ["error","beside"]` → 48 errors). The authoritative list comes from the tool's own checker — `npx eslint-config-prettier .eslintrc.json` reports exactly `implicit-arrow-linebreak`, `new-parens`, `space-infix-ops`. Set all three to `"off"` in the `rules` block (Prettier owns them now):
+4. Remove **every** formatting rule that conflicts with Prettier from the `rules` block. **Why this is necessary and separate from step 2:** `eslint-config-prettier` (added via `extends`) only turns off conflicting rules inherited from *other* extended configs — it **cannot** override rules set directly in this file's own `rules` block. This `.eslintrc.json` hard-sets ~41 formatting rules directly in `rules` (indent, semi, brace-style, space-before-function-paren, operator-linebreak, quote-props, `unicorn/number-literal-case`, etc.). Adding `prettier` to `extends` does **nothing** for them — they stay active. Three are `error`-severity (fail lint) and ~38 are `warn`-severity (don't fail lint but produce ~583 warnings and, worse, would make Task 2's lint-staged `eslint --fix` reformat code that `prettier --write` then reformats back — an infinite fight).
 
-```json
-        "implicit-arrow-linebreak": "off",
-        "new-parens": "off",
-        "space-infix-ops": "off",
+   The fix is a deterministic loop driven by the tool's own checker:
+
+   ```bash
+   npx eslint-config-prettier .eslintrc.json
+   ```
+
+   It prints two lists: rules that are "unnecessary or might conflict with Prettier" (auto-checkable) and "special rules" it can't auto-check (here: `quotes`). **Delete every rule key it lists — from both sections — out of the `rules` block** (Prettier owns all of them now; `quotes` too, since Prettier already enforces double quotes via `singleQuote: false`). Re-run the checker and repeat until it prints:
+
+   `No rules that are unnecessary or conflict with Prettier were found.`
+
+   Keep all remaining (correctness) rules untouched — e.g. `eqeqeq`, `no-unused-vars`, `no-var`, `unicorn/no-array-for-each`, `unicorn/throw-new-error`. Do not touch the `env`, `plugins`, `parser`, `parserOptions`, or `globals` sections.
+
+- [ ] **Step 3b: Track `package-lock.json` (CI needs a committed lockfile)**
+
+The repo's `.gitignore` currently ignores `package-lock.json` (a torikushiii upstream choice). CI runs `npm ci`, which **requires** a committed lockfile and fails without one. Remove the `package-lock.json` line from `.gitignore` so the lockfile is tracked (the reproducible-build analog of the reference bot's committed `uv.lock`):
+
+Delete this line from `.gitignore`:
+
+```
+package-lock.json
 ```
 
-After this edit, re-running `npx eslint-config-prettier .eslintrc.json` must print `No rules that are unnecessary or conflict with Prettier were found.`
+The lockfile is committed in Step 10's `build:` commit (it is listed in that `git add`).
 
 **Why the ignore:** `services/google-script/index.js` is a self-contained Google Apps Script (uses GAS runtime globals like `UrlFetchApp`, `PropertiesService`, `Utilities`) kept as an upstream-parity mirror — it is **not** part of the Node bot runtime and can never pass Node ESLint (it emits **16 `no-undef` errors**). It drives its own independent Discord webhook and is deliberately kept, so exclude it rather than fix or delete it. Without this, `eslint .` exits non-zero and both Step 9 below and the Task 4 `ci.yml` lint gate fail on day one.
 
@@ -167,18 +184,18 @@ npm run format:check   # Expected: "All matched files use Prettier code style!" 
 npm run lint           # Expected: exit 0
 ```
 
-`npm run lint` exits 0 because Step 3 excludes the google-script error source (`ignorePatterns`), stops the worktree cascade (`root: true`), and disables the three Prettier-conflicting formatting rules (`implicit-arrow-linebreak`, `new-parens`, `space-infix-ops`). ESLint may still print a handful of pre-existing **warnings** (e.g. `no-unused-vars`, `unicorn/no-array-push-push` in `commands/mimo/index.js`, `hoyolab-modules/mimo.js`, `platforms/telegram.js`) — warnings do **not** affect the exit code, so lint stays green. Leave those warnings for a later targeted cleanup. Do not silence any **non-stylistic** error introduced by reformatting (rare) with `noqa`-style disables — instead run `npm run lint:fix`, re-run `npm run format`, and re-verify both.
+`npm run lint` exits 0 with only a handful of genuine **correctness** warnings (e.g. a few `no-unused-vars`) — no formatting warnings — because Step 3 excludes the google-script error source (`ignorePatterns`), stops the worktree cascade (`root: true`), and **removes every Prettier-conflicting formatting rule** so ESLint no longer polices formatting (`npx eslint-config-prettier .eslintrc.json` reports clean). ESLint may still print a handful of pre-existing **warnings** (e.g. `no-unused-vars`, `unicorn/no-array-push-push` in `commands/mimo/index.js`, `hoyolab-modules/mimo.js`, `platforms/telegram.js`) — warnings do **not** affect the exit code, so lint stays green. Leave those warnings for a later targeted cleanup. Do not silence any **non-stylistic** error introduced by reformatting (rare) with `noqa`-style disables — instead run `npm run lint:fix`, re-run `npm run format`, and re-verify both.
 
 - [ ] **Step 10: Commit**
 
 ```bash
-git add .eslintrc.json .prettierrc .prettierignore package.json package-lock.json
-git commit -m "build: add prettier and eslint-config-prettier"
+git add .gitignore .eslintrc.json .prettierrc .prettierignore package.json package-lock.json
+git commit -m "build: add prettier, eslint-config-prettier, and track lockfile"
 git add -A
 git commit -m "style: format repository with prettier"
 ```
 
-Two commits deliberately: config/deps (`build:`) separate from the mechanical reformat (`style:`) so review of each is trivial.
+Two commits deliberately: config/deps/lockfile (`build:`) separate from the mechanical reformat (`style:`) so review of each is trivial. (`package-lock.json` is committable only after Step 3b un-ignores it.)
 
 ---
 
