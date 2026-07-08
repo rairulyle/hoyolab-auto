@@ -11,7 +11,7 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"test": "node --test \"**/__tests__/**/*.test.js\"",
-		"prepare": "husky",
+		"prepare": "husky || true",
 		"release": "commit-and-tag-version"
 	},
 	"engines": {
