@@ -6,6 +6,18 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+### Added
+
+- `/checkin` now posts its results publicly in the channel instead of only to the person who ran it.
+- `/link list` shows which Discord user linked each profile (`Linked by @user`).
+- `/link edit` can rename a profile's label via a "Rename profile…" button, rejecting a name already used in the server.
+- `/redeem` with no code bulk-redeems every available code for each eligible account: it skips codes already redeemed for that account, stops an account's run when its cookie is invalid/expired (marking the profile 🔴 expired), and — when you pick an account — scopes the run to just that account.
+- The auto check-in notification embed now shows the linking Discord user (mention) and the in-game name instead of the profile label and UID.
+
+### Fixed
+
+- Reminder notification embeds no longer repeat the reminder label in both the title and the footer.
+
 ## [1.0.1] - 2026-07-08
 
 ### Fixed
