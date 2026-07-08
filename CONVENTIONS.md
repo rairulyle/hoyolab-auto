@@ -137,6 +137,29 @@ loops into crons.
 - `notifyGuildsForGame(gameKey, …)` handles game-level notifications with no
   account (e.g. manual redeem codes).
 
+## Notification embeds: group by subject, not by account
+
+When a cron produces the **same** notification for several accounts in one run,
+emit **one embed per grouping subject** (per game for check-in/reminders, per
+code for redeem) and list the accounts inside it — never one message per
+account. Four near-identical cards that differ only in owner and IGN is spam.
+
+- **Header (shared once):** game name / author / thumbnail, region, notification
+  type, and a count. Fields whose value is identical across the group live here.
+- **Per-account row:** the owner mention + IGN, then only the fields that vary —
+  reward, streak/threshold, result. Build rows in the embed `description` (or one
+  field per account), not as a separate embed.
+- **Colour & footer:** the game's accent bar and the single timestamped footer
+  are unchanged; the footer text must not duplicate the title.
+- **Errors stay addressable:** a failed account (e.g. dead cookie) keeps its own
+  row and still pings its owner via `content` (`<@id>`), never in the embed.
+- **Chunking:** if a group exceeds Discord's limits (25 fields / 6000 chars /
+  4096-char description), split into more embeds **of the same subject** — never
+  fall back to per-account.
+
+Applies to check-in (group by game), reminders (group by game + reminder type),
+and redeem (group by code).
+
 ## Game keys vs engine names
 
 Profiles/DB use the keys `genshin | starrail | zenless | honkai | termis`. The
