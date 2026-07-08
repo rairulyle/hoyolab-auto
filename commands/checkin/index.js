@@ -45,7 +45,7 @@ module.exports = {
 		}
 
 		if (interaction) {
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply();
 		}
 
 		const results = [];
