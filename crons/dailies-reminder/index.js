@@ -40,8 +40,7 @@ RegionalTaskManager.registerTask("DailiesReminder", 21, 0, async (account) => {
 				inline: true
 			},
 			{ name: "Current Stamina", value: `${current}/${max} (${delta})`, inline: true }
-		],
-		timestamp: new Date()
+		]
 	};
 
 	const telegramText = app.Utils.escapeCharacters(

@@ -50,8 +50,7 @@ module.exports = {
 					description: "Your shop has finished selling videos!",
 					thumbnail: {
 						url: data.assets.logo
-					},
-					timestamp: new Date()
+					}
 				};
 
 				const telegramText = app.Utils.escapeCharacters(

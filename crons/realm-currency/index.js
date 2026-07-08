@@ -57,8 +57,7 @@ module.exports = {
 					],
 					thumbnail: {
 						url: data.assets.logo
-					},
-					timestamp: new Date()
+					}
 				};
 
 				const telegramText = app.Utils.escapeCharacters(

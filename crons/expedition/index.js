@@ -64,8 +64,7 @@ module.exports = {
 							value: app.HoyoLab.getRegion(account.region),
 							inline: true
 						}
-					],
-					timestamp: new Date()
+					]
 				};
 
 				const telegramText = app.Utils.escapeCharacters(

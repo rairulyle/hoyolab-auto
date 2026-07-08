@@ -1,6 +1,5 @@
 const createEmbed = (type, diary, options = {}) => {
 	const account = options.account;
-	const platform = options.platform;
 
 	const { data } = diary;
 	const currentMonth = data.currentMonth;
@@ -54,12 +53,7 @@ const createEmbed = (type, diary, options = {}) => {
 							.join("\n"),
 						inline: true
 					}
-				],
-				timestamp: new Date(),
-				footer: {
-					text: `HoyoLab Diary - ${platform.fullName}`,
-					icon_url: data.assets.logo
-				}
+				]
 			}
 		];
 
@@ -112,12 +106,7 @@ const createEmbed = (type, diary, options = {}) => {
 							.join("\n"),
 						inline: true
 					}
-				],
-				timestamp: new Date(),
-				footer: {
-					text: `HoyoLab Diary - ${platform.fullName}`,
-					icon_url: data.assets.logo
-				}
+				]
 			}
 		];
 

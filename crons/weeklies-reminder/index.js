@@ -29,8 +29,7 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 			{ name: "UID", value: account.uid, inline: true },
 			{ name: "Username", value: account.nickname, inline: true },
 			{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true }
-		],
-		timestamp: new Date()
+		]
 	};
 
 	const message = [
