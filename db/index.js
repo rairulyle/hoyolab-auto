@@ -63,6 +63,33 @@ module.exports = class Database {
 		return await this.collections.profiles.removeAsync({ key: profileKey(guildId, label) }, {});
 	}
 
+	async renameProfile(profileId, newLabel) {
+		const doc = await this.collections.profiles.findOneAsync({ _id: profileId });
+		if (!doc) {
+			throw new Error(`Profile not found: ${profileId}`);
+		}
+
+		const trimmed = String(newLabel).trim();
+		if (trimmed.length === 0) {
+			throw new Error("Label cannot be empty.");
+		}
+
+		const newKey = profileKey(doc.guildId, trimmed);
+		if (newKey !== doc.key) {
+			const clash = await this.collections.profiles.findOneAsync({ key: newKey });
+			if (clash) {
+				throw new Error(`A profile named "${trimmed}" already exists in this server.`);
+			}
+		}
+
+		await this.collections.profiles.updateAsync(
+			{ _id: profileId },
+			{ $set: { label: trimmed, key: newKey } },
+			{}
+		);
+		return await this.collections.profiles.findOneAsync({ _id: profileId });
+	}
+
 	async setTokenStatus(profileId, status) {
 		await this.collections.profiles.updateAsync(
 			{ _id: profileId },
