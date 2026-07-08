@@ -1,5 +1,6 @@
 {
 	"name": "hoyolab-auto",
+	"version": "1.0.0",
 	"module": "index.js",
 	"type": "commonjs",
 	"scripts": {
@@ -9,7 +10,9 @@
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"test": "node --test \"**/__tests__/**/*.test.js\""
+		"test": "node --test \"**/__tests__/**/*.test.js\"",
+		"prepare": "husky || true",
+		"release": "commit-and-tag-version"
 	},
 	"engines": {
 		"node": ">=24"
@@ -17,10 +20,15 @@
 	"devDependencies": {
 		"@babel/core": "^7.18.10",
 		"@babel/eslint-parser": "^7.18.9",
+		"@commitlint/cli": "^21.2.0",
+		"@commitlint/config-conventional": "^21.2.0",
 		"@types/bun": "latest",
+		"commit-and-tag-version": "^12.7.3",
 		"eslint": "8.56.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-unicorn": "^43.0.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.0.8",
 		"prettier": "^3.9.4"
 	},
 	"peerDependencies": {
@@ -41,5 +49,14 @@
 		"keyv": "^4.5.4",
 		"keyv-file": "^0.3.1",
 		"winston": "3.13.0"
+	},
+	"lint-staged": {
+		"*.{js,cjs,mjs}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,md,yml,yaml}": [
+			"prettier --write"
+		]
 	}
 }

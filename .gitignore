@@ -197,4 +197,5 @@ data/db/
 generated-cookie.txt
 diff.sh
 
-# npm
+# superpowers SDD scratch (task briefs, reports, review packages, ledger)
+.superpowers/

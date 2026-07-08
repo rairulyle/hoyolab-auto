@@ -230,6 +230,8 @@ npx husky init
 
 This creates `.husky/pre-commit` (with a default `npm test` line), adds `"prepare": "husky"` to `package.json` scripts, and sets `core.hooksPath` to `.husky/_`.
 
+**Then guard the prepare script:** change it to `"prepare": "husky || true"`. The `prepare` lifecycle script runs on **every** `npm install`, including the Dockerfile's production install (`npm install --omit=dev`), which omits husky (a devDependency). With a bare `"prepare": "husky"`, that production install dies with `sh: husky: not found` (exit 127) and the Docker build (and the `ci.yml` build-validate job) fails. `husky || true` runs husky in dev and no-ops when husky is absent. This surfaces only on a real Docker build — local/per-task checks pass without it.
+
 - [ ] **Step 3: Overwrite `.husky/pre-commit` to run lint-staged**
 
 Replace the file's entire contents with:
