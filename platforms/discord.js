@@ -130,7 +130,10 @@ module.exports = class DiscordController extends require("./template.js") {
 			const commandName = interaction.commandName;
 			const options = interaction.options;
 
-			const args = options.data.map((i) => i.value);
+			const args = options.data
+				.map((i) => i.value)
+				.filter((value) => value !== undefined)
+				.map(String);
 
 			const channelData = interaction.channel;
 			const userData = interaction.user;

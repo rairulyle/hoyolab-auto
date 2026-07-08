@@ -217,8 +217,7 @@ module.exports = class Command extends require("./template.js") {
 			params: {}
 		};
 
-		const whitespaceRegex = /\s+/;
-		const args = argumentArray.map((i) => i.replace(whitespaceRegex, "")).filter(Boolean);
+		const args = Command.normalizeArguments(argumentArray);
 
 		let execution;
 		try {
@@ -260,6 +259,14 @@ module.exports = class Command extends require("./template.js") {
 		}
 
 		return execution;
+	}
+
+	static normalizeArguments(argumentArray) {
+		const whitespaceRegex = /\s+/;
+		return argumentArray
+			.filter((value) => value !== undefined && value !== null)
+			.map((value) => String(value).replace(whitespaceRegex, ""))
+			.filter(Boolean);
 	}
 
 	static is(string) {
