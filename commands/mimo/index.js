@@ -1,7 +1,7 @@
 const createEmbed = (result) => {
 	const gameColors = {
-		starrail: 0xBB0BB5,
-		nap: 0xFF8300
+		starrail: 0xbb0bb5,
+		nap: 0xff8300
 	};
 
 	const gameNames = {
@@ -13,22 +13,31 @@ const createEmbed = (result) => {
 
 	if (result.tasksClaimed.length > 0) {
 		const totalPoints = result.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-		fields.push({
-			name: "🎯 Tasks Claimed",
-			value: result.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024) || "None",
-			inline: false
-		});
-		fields.push({
-			name: "💰 Points Earned",
-			value: `+${totalPoints} pts`,
-			inline: true
-		});
+		fields.push(
+			{
+				name: "🎯 Tasks Claimed",
+				value:
+					result.tasksClaimed
+						.map((t) => `• ${t.name} (+${t.points})`)
+						.join("\n")
+						.slice(0, 1024) || "None",
+				inline: false
+			},
+			{
+				name: "💰 Points Earned",
+				value: `+${totalPoints} pts`,
+				inline: true
+			}
+		);
 	}
 
 	if (result.itemsExchanged.length > 0) {
 		fields.push({
 			name: "🎁 Items Exchanged",
-			value: result.itemsExchanged.map(i => `• ${i.name} (-${i.cost} pts)`).join("\n").slice(0, 1024),
+			value: result.itemsExchanged
+				.map((i) => `• ${i.name} (-${i.cost} pts)`)
+				.join("\n")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -36,7 +45,10 @@ const createEmbed = (result) => {
 	if (result.codesRedeemed.length > 0) {
 		fields.push({
 			name: "✅ Codes Redeemed",
-			value: result.codesRedeemed.map(c => `\`${c}\``).join(", ").slice(0, 1024),
+			value: result.codesRedeemed
+				.map((c) => `\`${c}\``)
+				.join(", ")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -44,7 +56,10 @@ const createEmbed = (result) => {
 	if (result.codesObtained?.length > 0) {
 		fields.push({
 			name: "🎫 Codes Obtained",
-			value: result.codesObtained.map(c => `\`${c}\``).join("\n").slice(0, 1024),
+			value: result.codesObtained
+				.map((c) => `\`${c}\``)
+				.join("\n")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -52,7 +67,10 @@ const createEmbed = (result) => {
 	if (result.lotteryDraws?.length > 0) {
 		fields.push({
 			name: "🎰 Lottery Draws",
-			value: result.lotteryDraws.map(d => `• ${d.name}`).join("\n").slice(0, 1024),
+			value: result.lotteryDraws
+				.map((d) => `• ${d.name}`)
+				.join("\n")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -63,13 +81,14 @@ const createEmbed = (result) => {
 		inline: true
 	});
 
-	const hasActivity = result.tasksClaimed.length > 0
-		|| result.itemsExchanged.length > 0
-		|| result.codesRedeemed.length > 0
-		|| result.lotteryDraws?.length > 0;
+	const hasActivity =
+		result.tasksClaimed.length > 0 ||
+		result.itemsExchanged.length > 0 ||
+		result.codesRedeemed.length > 0 ||
+		result.lotteryDraws?.length > 0;
 
 	return {
-		color: gameColors[result.game] || 0x5865F2,
+		color: gameColors[result.game] || 0x5865f2,
 		title: `🐾 Traveling Mimo`,
 		author: {
 			name: `${result.nickname} (${result.uid})`,
@@ -106,7 +125,7 @@ module.exports = {
 			required: false
 		}
 	],
-	run: (async function mimo (context, game) {
+	run: async function mimo(context, game) {
 		const { interaction } = context;
 
 		const gameMapping = {
@@ -120,9 +139,10 @@ module.exports = {
 		}
 
 		const supportedGames = ["starrail", "nap"];
-		const gamesToRun = game && game !== "all"
-			? [game].filter(g => supportedGames.includes(g))
-			: supportedGames;
+		const gamesToRun =
+			game && game !== "all"
+				? [game].filter((g) => supportedGames.includes(g))
+				: supportedGames;
 
 		if (gamesToRun.length === 0) {
 			const message = "Invalid game specified. Supported games are: Star Rail, ZZZ";
@@ -152,7 +172,10 @@ module.exports = {
 
 			for (const account of accounts) {
 				try {
-					app.Logger.info("Command:Mimo", `Running Mimo for ${gameName} - ${account.uid}`);
+					app.Logger.info(
+						"Command:Mimo",
+						`Running Mimo for ${gameName} - ${account.uid}`
+					);
 
 					const result = await gamePlatform.mimo(account);
 					if (!result.success) {
@@ -170,8 +193,7 @@ module.exports = {
 						nickname: account.nickname,
 						...result.data
 					});
-				}
-				catch (e) {
+				} catch (e) {
 					app.Logger.error("Command:Mimo", {
 						message: "Mimo automation failed",
 						game: gameName,
@@ -194,13 +216,16 @@ module.exports = {
 				: { success: false, reply: message };
 		}
 
-		const embeds = results.map(r => createEmbed(r));
+		const embeds = results.map((r) => createEmbed(r));
 
 		if (errors.length > 0) {
 			embeds.push({
-				color: 0xFF0000,
+				color: 0xff0000,
 				title: "❌ Errors",
-				description: errors.map(e => `• **${e.game}** ${e.uid ? `(${e.uid})` : ""}: ${e.error}`).join("\n").slice(0, 4096)
+				description: errors
+					.map((e) => `• **${e.game}** ${e.uid ? `(${e.uid})` : ""}: ${e.error}`)
+					.join("\n")
+					.slice(0, 4096)
 			});
 		}
 
@@ -209,11 +234,11 @@ module.exports = {
 			return;
 		}
 
-		const summaryLines = results.map(r => {
+		const summaryLines = results.map((r) => {
 			const gameShort = { starrail: "HSR", nap: "ZZZ" }[r.game] || r.game;
 			return `${gameShort} - ${r.nickname}: ${r.points} pts`;
 		});
 
 		return { success: true, reply: summaryLines.join("\n") };
-	})
+	}
 };

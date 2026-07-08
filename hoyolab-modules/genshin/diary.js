@@ -6,13 +6,13 @@ module.exports = class Diary {
 	#logo;
 	#color;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 	}
 
-	async diary (accountData) {
+	async diary(accountData) {
 		const cachedData = await app.Cache.get(`${this.#instance.name}:${accountData.uid}:diary`);
 		if (cachedData) {
 			return {
@@ -29,7 +29,7 @@ module.exports = class Diary {
 		}
 
 		const currentMonth = new Date().getMonth() + 1;
-		const lastMonth = (currentMonth === 1) ? 12 : currentMonth - 1;
+		const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
 
 		const [primoPromises, moraPromises] = await Promise.allSettled([
 			this.fetchResultsForType(accountData, 1, { currentMonth, lastMonth }),
@@ -87,7 +87,7 @@ module.exports = class Diary {
 				return acc;
 			}, {});
 
-			const actionPercentages = Object.keys(actionCounts).map(category => ({
+			const actionPercentages = Object.keys(actionCounts).map((category) => ({
 				category,
 				total: actionCounts[category].total,
 				percentage: ((actionCounts[category].total / totalNum) * 100).toFixed(0)
@@ -105,7 +105,10 @@ module.exports = class Diary {
 		const lastMonthPrimo = calculateTotalsAndPercentages(primoData.lastMonthResults);
 		const lastMonthPass = calculateTotalNum(moraData.lastMonthResults);
 
-		const primoIncomeDecreasePercentage = (((lastMonthPrimo.totalNum - currentMonthPrimo.totalNum) / lastMonthPrimo.totalNum) * 100).toFixed(0);
+		const primoIncomeDecreasePercentage = (
+			((lastMonthPrimo.totalNum - currentMonthPrimo.totalNum) / lastMonthPrimo.totalNum) *
+			100
+		).toFixed(0);
 
 		const diaryData = {
 			currentMonth: {
@@ -138,7 +141,7 @@ module.exports = class Diary {
 		};
 	}
 
-	async fetchResultsForType (accountData, type, options = {}) {
+	async fetchResultsForType(accountData, type, options = {}) {
 		const maxRetries = 3;
 		const retryDelay = 5000;
 
@@ -173,7 +176,10 @@ module.exports = class Diary {
 
 			if (response.body.retcode !== 0) {
 				if (response.body.retcode === -500001 && retryCount < maxRetries) {
-					app.Logger.debug(`${this.#instance.fullName}:Diary`, `Rate limited, retrying in ${retryDelay / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`);
+					app.Logger.debug(
+						`${this.#instance.fullName}:Diary`,
+						`Rate limited, retrying in ${retryDelay / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`
+					);
 					await sleep(retryDelay);
 					return fetchPage(type, month, currentPage, retryCount + 1);
 				}
@@ -203,8 +209,7 @@ module.exports = class Diary {
 				if (data && data.list && data.list.length > 0) {
 					allData = allData.concat(data.list);
 					currentPage++;
-				}
-				else {
+				} else {
 					hasMorePages = false;
 				}
 			}

@@ -11,12 +11,7 @@ const errorMessages = {
 	"-2017": "The code has been used"
 };
 
-const CaptchaCodes = [
-	10035,
-	5003,
-	10041,
-	1034
-];
+const CaptchaCodes = [10035, 5003, 10041, 1034];
 
 const BattleRecords = (type) => {
 	const records = {
@@ -31,7 +26,7 @@ const BattleRecords = (type) => {
 const errorMessage = (type, code) => {
 	const isCaptcha = CaptchaCodes.includes(code);
 	if (isCaptcha) {
-		const message = app.Utils.tag.trim `
+		const message = app.Utils.tag.trim`
             Your account is currently encountered with a captcha challenge.
             Please solve the captcha by visiting the following link to solve the challenge:
             ${BattleRecords(type)}

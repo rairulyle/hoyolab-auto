@@ -16,17 +16,26 @@ const DETECTED = [
 test("buildGames maps only detected games (never auto-adds tot)", () => {
 	const games = buildGames(DETECTED);
 	assert.equal(games.length, 2);
-	assert.deepEqual(games[0], { key: "genshin", uid: "800", region: "os_asia", nickname: "T", active: true, settings: {} });
-	assert.ok(!games.some(g => g.key === "termis"));
+	assert.deepEqual(games[0], {
+		key: "genshin",
+		uid: "800",
+		region: "os_asia",
+		nickname: "T",
+		active: true,
+		settings: {}
+	});
+	assert.ok(!games.some((g) => g.key === "termis"));
 });
 
 test("mergeGames preserves settings and active for matching keys", () => {
-	const oldGames = [{ key: "genshin", uid: "800", active: false, settings: { stamina: { check: true } } }];
+	const oldGames = [
+		{ key: "genshin", uid: "800", active: false, settings: { stamina: { check: true } } }
+	];
 	const merged = mergeGames(oldGames, buildGames(DETECTED));
-	const genshin = merged.find(g => g.key === "genshin");
+	const genshin = merged.find((g) => g.key === "genshin");
 	assert.equal(genshin.active, false);
 	assert.equal(genshin.settings.stamina.check, true);
-	assert.equal(merged.find(g => g.key === "starrail").active, true);
+	assert.equal(merged.find((g) => g.key === "starrail").active, true);
 });
 
 test("mergeGames retains old games not in the new detection (e.g. manually-enabled ToT)", () => {
@@ -35,7 +44,7 @@ test("mergeGames retains old games not in the new detection (e.g. manually-enabl
 		{ key: "termis", uid: null, active: true, settings: { redeemCode: true } }
 	];
 	const merged = mergeGames(oldGames, buildGames(DETECTED));
-	const termis = merged.find(g => g.key === "termis");
+	const termis = merged.find((g) => g.key === "termis");
 	assert.ok(termis, "termis should survive a relink that doesn't re-detect it");
 	assert.equal(termis.settings.redeemCode, true);
 });
@@ -66,15 +75,33 @@ test("linkProfile validates, detects, and upserts; relink preserves settings", a
 		cookie: COOKIE,
 		detect: async () => DETECTED
 	});
-	assert.equal(relinked.games.find(g => g.key === "genshin").settings.stamina.check, true);
+	assert.equal(relinked.games.find((g) => g.key === "genshin").settings.stamina.check, true);
 
-	await assert.rejects(() => linkProfile({
-		db, guildId: "g1", label: "x", discordUserId: "u1", cookie: "garbage", detect: async () => DETECTED
-	}), /ltoken_v2/);
+	await assert.rejects(
+		() =>
+			linkProfile({
+				db,
+				guildId: "g1",
+				label: "x",
+				discordUserId: "u1",
+				cookie: "garbage",
+				detect: async () => DETECTED
+			}),
+		/ltoken_v2/
+	);
 
-	await assert.rejects(() => linkProfile({
-		db, guildId: "g1", label: "x", discordUserId: "u1", cookie: COOKIE, detect: async () => []
-	}), /No games/i);
+	await assert.rejects(
+		() =>
+			linkProfile({
+				db,
+				guildId: "g1",
+				label: "x",
+				discordUserId: "u1",
+				cookie: COOKIE,
+				detect: async () => []
+			}),
+		/No games/i
+	);
 
 	fs.rmSync(dir, { recursive: true, force: true });
 });

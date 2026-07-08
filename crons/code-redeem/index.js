@@ -1,8 +1,4 @@
-const {
-	fetchCodes,
-	checkAndRedeem,
-	buildMessage
-} = require("./utils");
+const { fetchCodes, checkAndRedeem, buildMessage } = require("./utils");
 const { notifyAccount, notifyGuildsForGame } = require("../../core/notify.js");
 const { gameKeyFromEngineName } = require("../../config/games.js");
 
@@ -20,14 +16,18 @@ const recordAndNotify = async (data, message, status) => {
 			message: status === "ok" ? "" : (data.reason ?? "")
 		});
 	}
-	await notifyAccount(data.account, { embeds: [message.embed], telegramText: app.Utils.escapeCharacters(message.telegram), kind: "redeem" });
+	await notifyAccount(data.account, {
+		embeds: [message.embed],
+		telegramText: app.Utils.escapeCharacters(message.telegram),
+		kind: "redeem"
+	});
 };
 
 module.exports = {
 	name: "code-redeem",
 	expression: "* * * * *",
 	description: "Check and redeem codes for supported games from HoyoLab.",
-	code: async function codeRedeem () {
+	code: async function codeRedeem() {
 		const accountData = app.HoyoLab.getActiveAccounts();
 
 		if (accountData.length === 0) {
@@ -74,7 +74,11 @@ module.exports = {
 		for (const data of manual) {
 			const message = buildMessage("manual", data);
 			const gameKey = gameKeyFromEngineName(data.gameKey) ?? data.gameKey;
-			await notifyGuildsForGame(gameKey, { embeds: [message.embed], telegramText: app.Utils.escapeCharacters(message.telegram), kind: "redeem" });
+			await notifyGuildsForGame(gameKey, {
+				embeds: [message.embed],
+				telegramText: app.Utils.escapeCharacters(message.telegram),
+				kind: "redeem"
+			});
 		}
 	}
 };

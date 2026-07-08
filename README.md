@@ -14,26 +14,30 @@
 A multi-purpose tool for any supported Hoyoverse games. This tool is designed to assist with daily check-ins, stamina checks, expedition checks, automatic code-redemption, and more.
 
 ## Table of Contents
+
 - [HoyoLab Auto](#hoyolab-auto)
-  - [Table of Contents](#table-of-contents)
-  - [Google App Script](#google-app-script)
-  - [Supported Games](#supported-games)
-  - [Features](#features)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-    - [Cache File Location](#cache-file-location)
-  - [Migration](#migration)
-  - [Usage](#usage)
-  - [Notifications Setup](#notifications-setup)
-  - [Running with Docker](#running-with-docker)
-  - [Contributing](#contributing)
-  - [Buy Me a Coffee](#buy-me-a-coffee)
+    - [Table of Contents](#table-of-contents)
+    - [Google App Script](#google-app-script)
+    - [Supported Games](#supported-games)
+    - [Features](#features)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+        - [Cache File Location](#cache-file-location)
+    - [Migration](#migration)
+    - [Usage](#usage)
+    - [Notifications Setup](#notifications-setup)
+    - [Running with Docker](#running-with-docker)
+    - [Contributing](#contributing)
+    - [Buy Me a Coffee](#buy-me-a-coffee)
 
 ## Google App Script
+
 If you don't have a server to run this script and simply just want to use it for checking in, you can use Google App Script.
-  - [Google App Script](https://github.com/torikushiii/hoyolab-auto/tree/main/services)
+
+- [Google App Script](https://github.com/torikushiii/hoyolab-auto/tree/main/services)
 
 ## Supported Games
+
 - [x] Honkai Impact 3rd (Daily Check-In only)
 - [x] Tears of Themis (Daily Check-In only)
 - [x] Genshin Impact
@@ -41,69 +45,74 @@ If you don't have a server to run this script and simply just want to use it for
 - [x] Zenless Zone Zero
 
 ## Features
+
 - **Honkai Impact 3rd**:
-  - **Daily check-in**: Runs every midnight local time.
+    - **Daily check-in**: Runs every midnight local time.
 
 - **Tears of Themis**:
-  - **Daily check-in**: Runs every midnight local time.
+    - **Daily check-in**: Runs every midnight local time.
 
 - **Genshin Impact**:
-  - **Daily check-in**: Runs every midnight local time.
-  - **Dailies**: Reminds you to do your dailies, such as commissions if you haven't done them at 09:00 (local time).
-  - **Weeklies**: Reminds you to do your weekly bosses/discounted resin if you haven't done them at 09:00 (local time).
-  - **Stamina check**: Reminds you to spend your resin if you're at your set threshold or capped.
-  - **Expedition check**: Check your expeditions and sends a notification if they're done.
-  - **Realm currency**: Sends a notification if your realm currency is capped.
-  - **Code Redeems**: Search for codes and redeem them automatically.
-  - **Traveler's Diary**: Check your monthly currency income.
+    - **Daily check-in**: Runs every midnight local time.
+    - **Dailies**: Reminds you to do your dailies, such as commissions if you haven't done them at 09:00 (local time).
+    - **Weeklies**: Reminds you to do your weekly bosses/discounted resin if you haven't done them at 09:00 (local time).
+    - **Stamina check**: Reminds you to spend your resin if you're at your set threshold or capped.
+    - **Expedition check**: Check your expeditions and sends a notification if they're done.
+    - **Realm currency**: Sends a notification if your realm currency is capped.
+    - **Code Redeems**: Search for codes and redeem them automatically.
+    - **Traveler's Diary**: Check your monthly currency income.
 - **Honkai: Star Rail**:
-  - **Daily check-in**: Runs every midnight local time.
-  - **Dailies**: Reminds you to do your dailies, such as commissions if you haven't done them at 09:00 (local time).
-  - **Stamina check**: Reminds you to spend your stamina if you're at your set threshold or capped.
-  - **Expedition check**: Check your expeditions and sends a notification if they're done.
-  - **Code Redeems**: Search for codes and redeem them automatically.
-  - **Trailblazer Monthly Calendar**: Check your monthly currency income.
-  - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and exchange for Stellar Jade.
+    - **Daily check-in**: Runs every midnight local time.
+    - **Dailies**: Reminds you to do your dailies, such as commissions if you haven't done them at 09:00 (local time).
+    - **Stamina check**: Reminds you to spend your stamina if you're at your set threshold or capped.
+    - **Expedition check**: Check your expeditions and sends a notification if they're done.
+    - **Code Redeems**: Search for codes and redeem them automatically.
+    - **Trailblazer Monthly Calendar**: Check your monthly currency income.
+    - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and exchange for Stellar Jade.
 - **Zenless Zone Zero**:
-  - **Daily check-in**: Runs every midnight local time.
-  - **Dailies**: Reminds you to do your dailies, such as commissions if you haven't done them at 09:00 (local time).
-  - **Stamina check**: Reminds you to spend your stamina if you're at your set threshold or capped.
-  - **Howl Scracth Card**: Notifies you if you haven't scratched the card for the day at 09:00 (local time).
-  - **Shop Status**: Notifies you if the shop has finished selling videos.
-  - **Code Redeems**: Search for codes and redeem them automatically.
-  - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and exchange for Polychrome.
+    - **Daily check-in**: Runs every midnight local time.
+    - **Dailies**: Reminds you to do your dailies, such as commissions if you haven't done them at 09:00 (local time).
+    - **Stamina check**: Reminds you to spend your stamina if you're at your set threshold or capped.
+    - **Howl Scracth Card**: Notifies you if you haven't scratched the card for the day at 09:00 (local time).
+    - **Shop Status**: Notifies you if the shop has finished selling videos.
+    - **Code Redeems**: Search for codes and redeem them automatically.
+    - **Traveling Mimo**: Automatically complete Mimo tasks, claim points, and exchange for Polychrome.
 
 ## Prerequisites
+
 - [Git](https://git-scm.com/downloads)
 - [Node.js](https://nodejs.org/en/)
 - A Discord bot application ([create one here](https://discord.com/developers/applications)), invited to your server with the `bot` and `applications.commands` scopes.
 
 ## Installation
+
 1. Clone the repository.
 2. Run `npm install` to install the dependencies.
 3. Copy `.env.example` to `.env` and set `DISCORD_TOKEN` to your bot's token:
-   ```bash
-   cp .env.example .env
-   ```
+    ```bash
+    cp .env.example .env
+    ```
 4. Run the application:
-   ```bash
-   npm start
-   ```
+    ```bash
+    npm start
+    ```
 5. Finish setup with slash commands in your Discord server:
-   - `/link add cookie:<your HoYoLAB cookie>` — link an account (see [Usage](#usage) below for how to grab your cookie).
-   - `/config channel` — set the notification channel(s).
-   - `/config timezone` — set your guild's timezone.
-   - `/config schedule` — set check-in/redeem schedule times.
-   - Coming from an old `config.json5`? Run `/migrate file:<config.json5>` to import your existing accounts instead of relinking them by hand.
+    - `/link add cookie:<your HoYoLAB cookie>` — link an account (see [Usage](#usage) below for how to grab your cookie).
+    - `/config channel` — set the notification channel(s).
+    - `/config timezone` — set your guild's timezone.
+    - `/config schedule` — set check-in/redeem schedule times.
+    - Coming from an old `config.json5`? Run `/migrate file:<config.json5>` to import your existing accounts instead of relinking them by hand.
 
 ### Cache File Location
 
 After running the application for the first time, a cache file will be automatically created at:
+
 ```
 ./data/cache.json
 ```
 
 This file stores temporary data to improve performance and reduce API calls. The application's database (profiles, guild settings, check-in/redeem history) lives under `data/db/`. The `data/` directory structure will look like this:
+
 ```
 project-root/
 ├── data/
@@ -116,6 +125,7 @@ project-root/
 ```
 
 **Important Notes:**
+
 - The cache file is automatically managed by the application
 - Do not manually edit the cache file
 - The cache file will be recreated if deleted
@@ -134,9 +144,11 @@ project-root/
 This imports your existing accounts and settings as linked profiles. Once migrated, all further configuration happens through slash commands (`/link`, `/config`) — `config.json5` is no longer read by the application.
 
 ## Usage
+
 For a detailed guide on grabbing your HoYoLAB cookie, refer to this gist: [Cookie Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd).
 
 ## Notifications Setup
+
 Notifications are sent to the Discord channel(s) configured with `/config channel` in your server — no separate webhook or Telegram setup is required.
 
 ## Running with Docker
@@ -146,21 +158,23 @@ for convenience, but you can also use Docker commands directly.
 
 **1. Prerequisites**
 
-- **Docker:**  Ensure Docker is installed and running. Download it from [https://www.docker.com/](https://www.docker.com/).
+- **Docker:** Ensure Docker is installed and running. Download it from [https://www.docker.com/](https://www.docker.com/).
 - **Docker Compose:** Most Docker installations include Docker Compose. If not, install it from [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
 
 **2. Configuration**
 
 1. Copy `.env.example` to `.env` and set `DISCORD_TOKEN`:
-   ```bash
-   cp .env.example .env
-   ```
+    ```bash
+    cp .env.example .env
+    ```
 2. Start the container (see below), then finish setup through Discord slash commands: `/link add`, `/config channel`, `/config timezone`, `/config schedule` (or `/migrate file:<config.json5>` if you're bringing accounts over from an old install).
 
 **Important for Docker Users:**
+
 > [!NOTE]
 > When running with Docker, the cache file will be created inside the container at `/app/data/cache.json`. To persist cache data between container restarts, ensure the `data` directory is properly mounted as a volume (this is already configured in the provided `docker-compose.yml`).
 > If this is your first time running docker:
+>
 > - Make sure your user is listed in the docker group, you can do so by running `sudo usermod -aG docker $USER`, logging out and back in
 > - From the project root, grant yourself perms to not have errors while accessing certain folders such as `data`. We can fix this by running `sudo chown -R $USER:$USER data logs && chmod -R 777 data logs`
 
@@ -171,58 +185,60 @@ for convenience, but you can also use Docker commands directly.
 The provided Makefile simplifies common Docker tasks.
 
 - **Build the image:**
-  ```bash
-  make build
-  ```
+    ```bash
+    make build
+    ```
 - **Start the application:**
-  ```bash
-  make up
-  ```
+    ```bash
+    make up
+    ```
 - **Stop the application:**
-  ```bash
-  make down
-  ```
+    ```bash
+    make down
+    ```
 - **View logs:**
-  ```bash
-  make logs
-  ```
+    ```bash
+    make logs
+    ```
 - **Rebuild and restart:**
-  ```bash
-  make update
-  ```
 
-  For a complete list of available Makefile targets, run:
+    ```bash
+    make update
+    ```
 
-  ```bash
-  make help
-  ```
+    For a complete list of available Makefile targets, run:
+
+    ```bash
+    make help
+    ```
 
 **Using Docker Compose Directly:**
 
 If you prefer not to use the Makefile, you can use the following Docker Compose commands:
 
 - **Build the image:**
-  ```bash
-  docker-compose build
-  ```
+    ```bash
+    docker-compose build
+    ```
 - **Start the application:**
-  ```bash
-  docker-compose up -d
-  ```
+    ```bash
+    docker-compose up -d
+    ```
 - **Stop the application:**
-  ```bash
-  docker-compose down
-  ```
+    ```bash
+    docker-compose down
+    ```
 - **View logs:**
-  ```bash
-  docker-compose logs -f instance
-  ```
+    ```bash
+    docker-compose logs -f instance
+    ```
 - **Rebuild and restart:**
-  ```bash
-  docker-compose down && docker-compose build && docker-compose up -d
-  ```
+    ```bash
+    docker-compose down && docker-compose build && docker-compose up -d
+    ```
 
 ## Contributing
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. If there are any bugs, please open an issue.
 
 If you have any suggestions or ideas, feel free to open an issue.
@@ -234,6 +250,7 @@ To get started, fork the repo, make your changes, add, commit, and push your cha
 You can support the project by giving it a star, sharing it with your friends, contributing to the project, and reporting any bugs you find.
 
 ## Buy Me a Coffee
+
 If this repo is useful to you, you can support me by buying me a coffee. Thank you!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/torikushiii)

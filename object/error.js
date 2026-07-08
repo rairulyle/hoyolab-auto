@@ -3,7 +3,7 @@ class Error extends globalThis.Error {
 	#timestamp;
 	#messageDescriptor;
 
-	constructor (obj = {}) {
+	constructor(obj = {}) {
 		if (obj.constructor !== Object) {
 			throw new globalThis.Error("obj must be an object to receive as params");
 		}
@@ -25,9 +25,10 @@ class Error extends globalThis.Error {
 
 		Object.defineProperty(this, "message", {
 			get: () => {
-				const message = (this.#messageDescriptor.get === "function")
-					? this.#messageDescriptor.get()
-					: this.#messageDescriptor.value;
+				const message =
+					this.#messageDescriptor.get === "function"
+						? this.#messageDescriptor.get()
+						: this.#messageDescriptor.value;
 
 				const parts = [message];
 				if (this.#args) {
@@ -39,7 +40,7 @@ class Error extends globalThis.Error {
 					const tabbedCauseMessage = causeMessage
 						.trim()
 						.split("\n")
-						.map(i => `\t${i}`)
+						.map((i) => `\t${i}`)
 						.join("\n");
 
 					parts.push(tabbedCauseMessage);
@@ -50,21 +51,29 @@ class Error extends globalThis.Error {
 		});
 	}
 
-	get args () { return this.#args; }
-	get timestamp () { return this.#timestamp; }
-	get date () { return new Date(this.#timestamp); }
+	get args() {
+		return this.#args;
+	}
 
-	static get GenericRequest () {
+	get timestamp() {
+		return this.#timestamp;
+	}
+
+	get date() {
+		return new Date(this.#timestamp);
+	}
+
+	static get GenericRequest() {
 		return GenericRequestError;
 	}
 
-	static get HoyoLabRequest () {
+	static get HoyoLabRequest() {
 		return HoyoLabRequestError;
 	}
 }
 
 class GenericRequestError extends Error {
-	constructor (obj = {}) {
+	constructor(obj = {}) {
 		super({
 			message: obj.message,
 			name: "GenericRequestError",
@@ -77,13 +86,13 @@ class GenericRequestError extends Error {
 		});
 	}
 
-	static get name () {
+	static get name() {
 		return "GenericRequestError";
 	}
 }
 
 class HoyoLabRequestError extends Error {
-	constructor (obj = {}) {
+	constructor(obj = {}) {
 		const errorMessages = {
 			1009: "The account does not exist",
 			"-100": "The provided cookie is either invalid or expired.",
@@ -97,17 +106,12 @@ class HoyoLabRequestError extends Error {
 			"-2017": "The code has been used"
 		};
 
-		const CaptchaCodes = [
-			10035,
-			5003,
-			10041,
-			1034
-		];
+		const CaptchaCodes = [10035, 5003, 10041, 1034];
 
 		const isCaptchaCode = CaptchaCodes.includes(obj.retcode);
-		const message = (isCaptchaCode)
+		const message = isCaptchaCode
 			? "A captcha challenge was requested. Please solve it and try again."
-			: errorMessages[obj.retcode] ?? "Unknown error";
+			: (errorMessages[obj.retcode] ?? "Unknown error");
 
 		super({
 			message,
@@ -119,7 +123,7 @@ class HoyoLabRequestError extends Error {
 		});
 	}
 
-	static get name () {
+	static get name() {
 		return "HoyoLabRequestError";
 	}
 }

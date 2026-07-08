@@ -14,7 +14,7 @@ module.exports = class UtilsSingleton {
 	 * @inheritdoc
 	 * @returns {UtilsSingleton}
 	 */
-	static singleton () {
+	static singleton() {
 		if (!UtilsSingleton.module) {
 			UtilsSingleton.module = new UtilsSingleton();
 		}
@@ -33,23 +33,23 @@ module.exports = class UtilsSingleton {
 		}
 	};
 
-	formatTime (seconds = 0) {
+	formatTime(seconds = 0) {
 		const array = [];
 
 		if (seconds >= UtilsSingleton.timeUnits.d.s) {
 			const days = Math.floor(seconds / UtilsSingleton.timeUnits.d.s);
 			array.push(`${days} days`);
-			seconds -= (days * UtilsSingleton.timeUnits.d.s);
+			seconds -= days * UtilsSingleton.timeUnits.d.s;
 		}
 		if (seconds >= UtilsSingleton.timeUnits.h.s) {
 			const hr = Math.floor(seconds / UtilsSingleton.timeUnits.h.s);
 			array.push(`${hr} hr`);
-			seconds -= (hr * UtilsSingleton.timeUnits.h.s);
+			seconds -= hr * UtilsSingleton.timeUnits.h.s;
 		}
 		if (seconds >= UtilsSingleton.timeUnits.m.s) {
 			const min = Math.floor(seconds / UtilsSingleton.timeUnits.m.s);
 			array.push(`${min} min`);
-			seconds -= (min * UtilsSingleton.timeUnits.m.s);
+			seconds -= min * UtilsSingleton.timeUnits.m.s;
 		}
 		if (seconds >= 0 || array.length === 0) {
 			array.push(`${this.round(seconds, 3)} sec`);
@@ -58,20 +58,20 @@ module.exports = class UtilsSingleton {
 		return array.join(", ");
 	}
 
-	round (number, precision = 0) {
-		return Math.round(number * (10 ** precision)) / (10 ** precision);
+	round(number, precision = 0) {
+		return Math.round(number * 10 ** precision) / 10 ** precision;
 	}
 
-	escapeCharacters (string) {
+	escapeCharacters(string) {
 		return string.replace(/[_[\]()~`>#+\-=|{}.!]/g, "\\$&");
 	}
 
-	cheerio (html) {
+	cheerio(html) {
 		const cheerio = require("cheerio");
 		return cheerio.load(html);
 	}
 
-	generateDS () {
+	generateDS() {
 		const time = (Date.now() / 1000).toFixed(0);
 		const random = this.randomString();
 		const hash = this.hash(`salt=${UtilsSingleton.DS_SALT}&t=${time}&r=${random}`);
@@ -79,7 +79,7 @@ module.exports = class UtilsSingleton {
 		return `${time},${random},${hash}`;
 	}
 
-	fieldsBuilder (data, options = {}) {
+	fieldsBuilder(data, options = {}) {
 		const fields = [];
 		for (const key in data) {
 			if (Object.hasOwnProperty.call(data, key)) {
@@ -91,7 +91,7 @@ module.exports = class UtilsSingleton {
 		return fields;
 	}
 
-	convertCase (text, caseFrom, caseTo) {
+	convertCase(text, caseFrom, caseTo) {
 		if (typeof text !== "string") {
 			throw new app.Error({
 				message: "Text must be typeof string",
@@ -102,14 +102,11 @@ module.exports = class UtilsSingleton {
 		let words = [];
 		if (caseFrom === "camel" && caseTo === "snake") {
 			words = text.split(/(?=[A-Z])/);
-		}
-		else if (caseFrom === "snake" && caseTo === "camel") {
+		} else if (caseFrom === "snake" && caseTo === "camel") {
 			words = text.split("_");
-		}
-		else if (caseFrom === "kebab" && caseTo === "camel") {
+		} else if (caseFrom === "kebab" && caseTo === "camel") {
 			words = text.split("-");
-		}
-		else if (caseFrom === "text" && caseTo === "camel") {
+		} else if (caseFrom === "text" && caseTo === "camel") {
 			words = text.split(" ");
 		}
 
@@ -117,23 +114,23 @@ module.exports = class UtilsSingleton {
 
 		let result = "";
 		if (caseTo === "snake") {
-			result = words.map(i => this.capitalize(i)).join("_");
-		}
-		else if (caseTo === "kebab") {
+			result = words.map((i) => this.capitalize(i)).join("_");
+		} else if (caseTo === "kebab") {
 			result = words.join("-");
-		}
-		else if (caseTo === "camel") {
-			result = words.map((i, ind) => (ind === 0) ? i.toLowerCase() : this.capitalize(i)).join("");
+		} else if (caseTo === "camel") {
+			result = words
+				.map((i, ind) => (ind === 0 ? i.toLowerCase() : this.capitalize(i)))
+				.join("");
 		}
 
 		return result.replace(/id$/i, "ID");
 	}
 
-	capitalize (string) {
+	capitalize(string) {
 		return string[0].toUpperCase() + string.substring(1);
 	}
 
-	randomString () {
+	randomString() {
 		let result = "";
 		const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 		const length = 6;
@@ -145,10 +142,7 @@ module.exports = class UtilsSingleton {
 		return result;
 	}
 
-	hash (string) {
-		return crypto
-			.createHash("md5")
-			.update(string)
-			.digest("hex");
+	hash(string) {
+		return crypto.createHash("md5").update(string).digest("hex");
 	}
 };

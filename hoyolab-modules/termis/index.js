@@ -19,7 +19,7 @@ module.exports = class TearsOfThemis extends require("../template.js") {
 	#logo;
 	#color;
 
-	constructor (config) {
+	constructor(config) {
 		super("tot", config, {
 			gameId: 0,
 			config: DEFAULT_CONSTANTS
@@ -37,7 +37,7 @@ module.exports = class TearsOfThemis extends require("../template.js") {
 		}
 	}
 
-	async login () {
+	async login() {
 		const accounts = this.data;
 
 		let accountList = 0;
@@ -45,8 +45,9 @@ module.exports = class TearsOfThemis extends require("../template.js") {
 			const cookieData = account.cookie;
 			const ltuid = account.ltuid;
 
-			this.#logo = "https://hyl-static-res-prod.hoyolab.com/communityweb/business/nxx_hoyoverse.png";
-			this.#color = 0xFF8300;
+			this.#logo =
+				"https://hyl-static-res-prod.hoyolab.com/communityweb/business/nxx_hoyoverse.png";
+			this.#color = 0xff8300;
 
 			this.accounts.push({
 				platform: this.name,
@@ -70,14 +71,22 @@ module.exports = class TearsOfThemis extends require("../template.js") {
 			});
 
 			accountList++;
-			app.Logger.info(this.fullName, `Logged into account ${accountList} [${ltuid}] (Tears of Themis)`);
+			app.Logger.info(
+				this.fullName,
+				`Logged into account ${accountList} [${ltuid}] (Tears of Themis)`
+			);
 		}
 	}
 
-	get logo () { return this.#logo; }
-	get color () { return this.#color; }
+	get logo() {
+		return this.#logo;
+	}
 
-	async checkIn (accountData) {
+	get color() {
+		return this.#color;
+	}
+
+	async checkIn(accountData) {
 		const ci = new CheckIn(this, {
 			logo: this.#logo,
 			color: this.#color

@@ -3,15 +3,13 @@ const nameSymbol = Symbol.for("name");
 let gotModule;
 let gotRequestErrors;
 
-const sanitize = (string) => string
-	.replaceAll(/\.\.[/\\]?/g, "")
-	.replaceAll(/%2E%2E[/\\]?/g, "");
+const sanitize = (string) => string.replaceAll(/\.\.[/\\]?/g, "").replaceAll(/%2E%2E[/\\]?/g, "");
 
 class StaticGot {
 	static importable = true;
 	static uniqueIdentifier = nameSymbol;
 
-	static async initialize () {
+	static async initialize() {
 		gotModule ??= await import("got");
 		gotRequestErrors ??= [
 			gotModule.CancelError,
@@ -23,14 +21,12 @@ class StaticGot {
 		return this;
 	}
 
-	static get (identifier) {
+	static get(identifier) {
 		if (identifier instanceof StaticGot) {
 			return identifier;
-		}
-		else if (typeof identifier === "string") {
+		} else if (typeof identifier === "string") {
 			return StaticGot.data.find((i) => i[nameSymbol] === identifier) ?? null;
-		}
-		else {
+		} else {
 			throw new app.Error({
 				message: "Invalid user identifier type",
 				args: { id: identifier, type: typeof identifier }
@@ -38,7 +34,7 @@ class StaticGot {
 		}
 	}
 
-	static async importData (definitions) {
+	static async importData(definitions) {
 		if (!Array.isArray(definitions)) {
 			throw new app.Error({
 				message: "Definitions must be provided as an array"
@@ -67,7 +63,10 @@ class StaticGot {
 		while (result.length < definitions.length) {
 			const index = count % definitions.length;
 			const definition = definitions[index % definitions.length];
-			if (!loadedDefinitions.has(definition) && (definition.parent === null || loadedParents.has(definition.parent))) {
+			if (
+				!loadedDefinitions.has(definition) &&
+				(definition.parent === null || loadedParents.has(definition.parent))
+			) {
 				const instance = StaticGot.#add(definition, result);
 				result.push(instance);
 				loadedParents.add(instance[nameSymbol]);
@@ -80,9 +79,11 @@ class StaticGot {
 		StaticGot.data = result;
 	}
 
-	static async importSpecific (...definitions) {
+	static async importSpecific(...definitions) {
 		for (const definition of definitions) {
-			const oldInstanceIndex = StaticGot.data.findIndex((i) => i[nameSymbol] === definition.name);
+			const oldInstanceIndex = StaticGot.data.findIndex(
+				(i) => i[nameSymbol] === definition.name
+			);
 			if (oldInstanceIndex !== -1) {
 				StaticGot.data.splice(oldInstanceIndex, 1);
 			}
@@ -92,17 +93,15 @@ class StaticGot {
 		}
 	}
 
-	static #add (definition, parentDefinitions) {
+	static #add(definition, parentDefinitions) {
 		let initError;
 		let options = {};
 		if (definition.optionsType === "object") {
 			options = definition.options;
-		}
-		else if (definition.optionsType === "function") {
+		} else if (definition.optionsType === "function") {
 			try {
 				options = definition.options();
-			}
-			catch (e) {
+			} catch (e) {
 				console.warn(`Got instance ${definition.name} init error - skipped`, e);
 				initError = e;
 			}
@@ -117,8 +116,7 @@ class StaticGot {
 					cause: initError
 				});
 			};
-		}
-		else if (definition.parent) {
+		} else if (definition.parent) {
 			const parent = parentDefinitions.find((i) => i[nameSymbol] === definition.parent);
 			if (!parent) {
 				throw new app.Error({
@@ -131,8 +129,7 @@ class StaticGot {
 			}
 
 			instance = parent.extend(options);
-		}
-		else {
+		} else {
 			instance = gotModule.got.extend(options);
 		}
 
@@ -141,7 +138,7 @@ class StaticGot {
 		return instance;
 	}
 
-	static sanitize (strings, ...values) {
+	static sanitize(strings, ...values) {
 		const result = [];
 		for (let i = 0; i < strings.length; i++) {
 			result.push(strings[i]);
@@ -154,18 +151,20 @@ class StaticGot {
 		return result.join("").trim();
 	}
 
-	static isRequestError (error) {
+	static isRequestError(error) {
 		return gotRequestErrors.some((GotError) => error instanceof GotError);
 	}
 
-	static get specificName () {
+	static get specificName() {
 		return "Got";
 	}
 }
 
 module.exports = new Proxy(StaticGot, {
 	apply: function (target, thisArg, args) {
-		const options = args.find((i) => typeof i === "object" && i?.constructor?.name === "Object");
+		const options = args.find(
+			(i) => typeof i === "object" && i?.constructor?.name === "Object"
+		);
 		if (options && typeof options.url === "string" && !options.skipURLSanitization) {
 			options.url = sanitize(options.url);
 		}

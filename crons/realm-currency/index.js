@@ -4,7 +4,7 @@ module.exports = {
 	name: "realm-currency",
 	expression: "0 */1 * * *",
 	description: "This cron will check your Tea Pot Realm currency and notify you if it's full",
-	code: (async function realmCurrency () {
+	code: async function realmCurrency() {
 		const accountList = app.HoyoLab.getActiveAccounts({ whitelist: "genshin" });
 		if (accountList.length === 0) {
 			app.Logger.warn("Cron:RealmCurrency", "No active accounts to run the cron");
@@ -65,13 +65,20 @@ module.exports = {
 					}
 				};
 
-				const telegramText = app.Utils.escapeCharacters([
-					`💰 Realm Currency`,
-					`UID: ${account.uid} ${account.nickname}`,
-					`Your realm currency is full!`
-				].join("\n"));
-				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+				const telegramText = app.Utils.escapeCharacters(
+					[
+						`💰 Realm Currency`,
+						`UID: ${account.uid} ${account.nickname}`,
+						`Your realm currency is full!`
+					].join("\n")
+				);
+				await notifyAccount(account, {
+					embeds: [embed],
+					telegramText,
+					ping: true,
+					kind: "reminder"
+				});
 			}
 		}
-	})
+	}
 };

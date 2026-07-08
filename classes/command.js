@@ -8,7 +8,7 @@ module.exports = class Command extends require("./template.js") {
 
 	data = {};
 
-	constructor (data) {
+	constructor(data) {
 		super();
 
 		this.name = data.name;
@@ -18,7 +18,8 @@ module.exports = class Command extends require("./template.js") {
 		}
 
 		this.description = data.description;
-		this.buildSlashData = typeof data.buildSlashData === "function" ? data.buildSlashData : null;
+		this.buildSlashData =
+			typeof data.buildSlashData === "function" ? data.buildSlashData : null;
 		this.autocomplete = typeof data.autocomplete === "function" ? data.autocomplete : null;
 
 		if (data.params !== null) {
@@ -26,8 +27,7 @@ module.exports = class Command extends require("./template.js") {
 			if (typeof params === "string") {
 				try {
 					params = JSON.parse(params);
-				}
-				catch (e) {
+				} catch (e) {
 					this.params = null;
 					app.Logger.log("Command", {
 						message: "Command parameters are not valid JSON",
@@ -44,12 +44,10 @@ module.exports = class Command extends require("./template.js") {
 
 		if (typeof data.run === "function") {
 			this.code = data.run;
-		}
-		else {
+		} else {
 			try {
 				this.code = eval(data.run);
-			}
-			catch (e) {
+			} catch (e) {
 				console.error(`Failed to compile code for ${this.name}`, e);
 				this.code = () => ({
 					success: false,
@@ -59,16 +57,16 @@ module.exports = class Command extends require("./template.js") {
 		}
 	}
 
-	destroy () {
+	destroy() {
 		this.code = null;
 		this.data = null;
 	}
 
-	execute (...args) {
+	execute(...args) {
 		return this.code(...args);
 	}
 
-	getSlashCommandData () {
+	getSlashCommandData() {
 		if (this.buildSlashData) {
 			return this.buildSlashData();
 		}
@@ -90,27 +88,30 @@ module.exports = class Command extends require("./template.js") {
 			switch (param.type) {
 				case "string":
 					if (param.accounts) {
-						const accounts = app.HoyoLab.getActiveAccounts({ blacklist: ["honkai", "tot"]});
+						const accounts = app.HoyoLab.getActiveAccounts({
+							blacklist: ["honkai", "tot"]
+						});
 
 						if (accounts.length === 0) {
 							continue;
 						}
 
-						const choices = accounts.map(i => ({
+						const choices = accounts.map((i) => ({
 							name: `(${app.HoyoLab.getRegion(i.region)}) ${i.game.short} - (${i.uid}) ${i.nickname}`,
 							value: i.uid
 						}));
 
-						option = builder.addStringOption(opt =>
-							opt.setName(param.name)
+						option = builder.addStringOption((opt) =>
+							opt
+								.setName(param.name)
 								.setDescription(param.description)
 								.addChoices(choices)
 								.setRequired(param.required ?? false)
 						);
-					}
-					else {
-						option = builder.addStringOption(opt =>
-							opt.setName(param.name)
+					} else {
+						option = builder.addStringOption((opt) =>
+							opt
+								.setName(param.name)
 								.setDescription(param.description)
 								.addChoices(param.choices ?? [])
 								.setRequired(param.required ?? false)
@@ -118,15 +119,17 @@ module.exports = class Command extends require("./template.js") {
 					}
 					break;
 				case "integer":
-					option = builder.addIntegerOption(opt =>
-						opt.setName(param.name)
+					option = builder.addIntegerOption((opt) =>
+						opt
+							.setName(param.name)
 							.setDescription(param.description)
 							.setRequired(param.required ?? false)
 					);
 					break;
 				case "boolean":
-					option = builder.addBooleanOption(opt =>
-						opt.setName(param.name)
+					option = builder.addBooleanOption((opt) =>
+						opt
+							.setName(param.name)
 							.setDescription(param.description)
 							.setRequired(param.required ?? false)
 					);
@@ -141,16 +144,16 @@ module.exports = class Command extends require("./template.js") {
 		return builder;
 	}
 
-	static async initialize () {
+	static async initialize() {
 		return this;
 	}
 
-	static async importData (definitions) {
+	static async importData(definitions) {
 		super.importData(definitions);
 		await this.validate();
 	}
 
-	static async validate () {
+	static async validate() {
 		if (Command.data.length === 0) {
 			app.Logger.warn("Command", "No commands loaded");
 		}
@@ -159,21 +162,19 @@ module.exports = class Command extends require("./template.js") {
 			app.Logger.warn("Command", "No configuration data found");
 		}
 
-		const names = Command.data.flatMap(i => i.name);
+		const names = Command.data.flatMap((i) => i.name);
 		const duplicates = names.filter((i, index) => names.indexOf(i) !== index);
 		if (duplicates.length > 0) {
 			console.warn("Duplicate command name found", duplicates);
 		}
 	}
 
-	static get (name) {
+	static get(name) {
 		if (name instanceof Command) {
 			return name;
-		}
-		else if (typeof name === "string") {
-			return Command.data.find(i => i.name === name);
-		}
-		else {
+		} else if (typeof name === "string") {
+			return Command.data.find((i) => i.name === name);
+		} else {
 			throw new app.Error({
 				message: "Invalid command name",
 				args: {
@@ -184,7 +185,7 @@ module.exports = class Command extends require("./template.js") {
 		}
 	}
 
-	static async checkAndRun (identifier, argumentArray, channelData, userData, options = {}) {
+	static async checkAndRun(identifier, argumentArray, channelData, userData, options = {}) {
 		if (!identifier) {
 			return {
 				success: false,
@@ -217,9 +218,7 @@ module.exports = class Command extends require("./template.js") {
 		};
 
 		const whitespaceRegex = /\s+/;
-		const args = argumentArray
-			.map(i => i.replace(whitespaceRegex, ""))
-			.filter(Boolean);
+		const args = argumentArray.map((i) => i.replace(whitespaceRegex, "")).filter(Boolean);
 
 		let execution;
 		try {
@@ -230,8 +229,7 @@ module.exports = class Command extends require("./template.js") {
 			if (execution?.reply === undefined) {
 				return;
 			}
-		}
-		catch (e) {
+		} catch (e) {
 			const logObject = {
 				message: "Command execution failed",
 				data: {
@@ -264,20 +262,20 @@ module.exports = class Command extends require("./template.js") {
 		return execution;
 	}
 
-	static is (string) {
+	static is(string) {
 		const prefix = Command.getPrefix();
 		if (prefix === null) {
 			return false;
 		}
 
-		return (string.startsWith(prefix) && string.length > prefix.length);
+		return string.startsWith(prefix) && string.length > prefix.length;
 	}
 
-	static get prefix () {
+	static get prefix() {
 		return Command.getPrefix();
 	}
 
-	static getPrefix () {
+	static getPrefix() {
 		return app.Config.get("prefix") ?? null;
 	}
 };

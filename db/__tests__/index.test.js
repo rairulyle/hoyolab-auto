@@ -27,7 +27,14 @@ const profile = (over = {}) => ({
 	tokenStatus: "active",
 	discordUserId: "u1",
 	games: [
-		{ key: "genshin", uid: "800", region: "os_asia", nickname: "Trav", active: true, settings: {} }
+		{
+			key: "genshin",
+			uid: "800",
+			region: "os_asia",
+			nickname: "Trav",
+			active: true,
+			settings: {}
+		}
 	],
 	...over
 });
@@ -88,11 +95,18 @@ test("findProfilesByLtuid finds across guilds", async () => {
 
 test("addGameEntry appends a game once, idempotent on the key", async () => {
 	const saved = await db.upsertProfile(profile());
-	const entry = { key: "termis", uid: null, region: null, nickname: null, active: true, settings: {} };
+	const entry = {
+		key: "termis",
+		uid: null,
+		region: null,
+		nickname: null,
+		active: true,
+		settings: {}
+	};
 	await db.addGameEntry(saved._id, entry);
 	await db.addGameEntry(saved._id, { ...entry, active: false });
 	const found = await db.getProfile("g1", "main");
-	const termis = found.games.filter(g => g.key === "termis");
+	const termis = found.games.filter((g) => g.key === "termis");
 	assert.equal(termis.length, 1);
 	assert.equal(termis[0].active, true);
 });
@@ -108,7 +122,14 @@ test("guild settings upsert", async () => {
 
 test("recordCheckin upserts one row per profile+game+date", async () => {
 	const saved = await db.upsertProfile(profile());
-	const row = { profileId: saved._id, guildId: "g1", game: "genshin", date: "2026-07-07", status: "ok", message: "done" };
+	const row = {
+		profileId: saved._id,
+		guildId: "g1",
+		game: "genshin",
+		date: "2026-07-07",
+		status: "ok",
+		message: "done"
+	};
 	await db.recordCheckin(row);
 	await db.recordCheckin({ ...row, status: "already" });
 	const found = await db.getCheckin(saved._id, "genshin", "2026-07-07");
@@ -123,8 +144,24 @@ test("setTokenStatus flips status", async () => {
 
 test("recordRedeem appends", async () => {
 	const saved = await db.upsertProfile(profile());
-	await db.recordRedeem({ profileId: saved._id, guildId: "g1", game: "genshin", code: "CODE1", source: "auto", status: "ok", message: "" });
-	await db.recordRedeem({ profileId: saved._id, guildId: "g1", game: "genshin", code: "CODE1", source: "auto", status: "ok", message: "" });
+	await db.recordRedeem({
+		profileId: saved._id,
+		guildId: "g1",
+		game: "genshin",
+		code: "CODE1",
+		source: "auto",
+		status: "ok",
+		message: ""
+	});
+	await db.recordRedeem({
+		profileId: saved._id,
+		guildId: "g1",
+		game: "genshin",
+		code: "CODE1",
+		source: "auto",
+		status: "ok",
+		message: ""
+	});
 	const rows = await db.collections.redeemResults.findAsync({ code: "CODE1" });
 	assert.equal(rows.length, 2);
 });

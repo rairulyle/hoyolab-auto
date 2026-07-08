@@ -30,14 +30,16 @@ module.exports = {
 			if (platform.name === "Discord") {
 				// For Discord bot, we just return a reply - no need to call external send methods
 				const timestamp = new Date().toLocaleString();
-				app.Logger.info("TestCommand", `Manual test triggered via Discord bot: ${customMessage}`);
+				app.Logger.info(
+					"TestCommand",
+					`Manual test triggered via Discord bot: ${customMessage}`
+				);
 
 				return {
 					success: true,
 					reply: `🧪 **Manual Test Notification**\n\n${customMessage}\n\n🔧 **Test Type:** Manual\n🕒 **Triggered At:** ${timestamp}\n🤖 **Platform:** Discord Bot`
 				};
-			}
-			else {
+			} else {
 				// For other platforms (telegram), use the test notification system
 				await TestNotification.sendManualTestNotification(platform, {
 					message: customMessage
@@ -48,8 +50,7 @@ module.exports = {
 					reply: "✅ Test notification sent successfully!"
 				};
 			}
-		}
-		catch (e) {
+		} catch (e) {
 			app.Logger.error("TestCommand", `Failed to send test notification: ${e.message}`);
 
 			return {

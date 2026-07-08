@@ -2,11 +2,11 @@ module.exports = class RedeemCode {
 	/** @type {import("../template")} */
 	#instance;
 
-	constructor (instance) {
+	constructor(instance) {
 		this.#instance = instance;
 	}
 
-	async redeemCode (accountData, code) {
+	async redeemCode(accountData, code) {
 		const cookieData = app.HoyoLab.parseCookie(accountData.cookie, {
 			whitelist: [
 				"cookie_token_v2",
@@ -65,7 +65,10 @@ module.exports = class RedeemCode {
 			};
 		}
 
-		app.Logger.info(`${this.#instance.fullName}:RedeemCode`, `(${accountData.uid}) ${accountData.nickname} redeemed code: ${code}`);
+		app.Logger.info(
+			`${this.#instance.fullName}:RedeemCode`,
+			`(${accountData.uid}) ${accountData.nickname} redeemed code: ${code}`
+		);
 
 		return {
 			success: true,

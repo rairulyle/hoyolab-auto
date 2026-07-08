@@ -6,28 +6,25 @@ module.exports = class HoyoDate extends Date {
 		GLOBAL: 540 // GMT+9
 	};
 
-
-	constructor (...args) {
-		if (args.length > 1 && args.every(i => typeof i === "number")) {
+	constructor(...args) {
+		if (args.length > 1 && args.every((i) => typeof i === "number")) {
 			args[1] = args[1] - 1;
 		}
 
 		super(...args);
 	}
 
-	setTimezoneOffset (offset) {
+	setTimezoneOffset(offset) {
 		if (typeof offset === "string") {
 			offset = HoyoDate.REGION_OFFSETS[offset.toUpperCase()];
 			if (offset === undefined) {
 				throw new Error("Invalid region. Use 'ASIA', 'EU', or 'AMERICA'");
 			}
-		}
-		else {
+		} else {
 			offset = Number(offset);
 			if (Number.isNaN(offset)) {
 				throw new Error("Invalid offset");
-			}
-			else if (offset % 15 !== 0) {
+			} else if (offset % 15 !== 0) {
 				throw new Error("Unrecognized offset - make sure to use offset in minutes");
 			}
 		}
@@ -36,7 +33,7 @@ module.exports = class HoyoDate extends Date {
 		return this;
 	}
 
-	discardTimeUnits (...units) {
+	discardTimeUnits(...units) {
 		for (const unit of units) {
 			switch (unit) {
 				case "h":
@@ -58,20 +55,20 @@ module.exports = class HoyoDate extends Date {
 		return this;
 	}
 
-	clone () {
+	clone() {
 		return new this.constructor(this);
 	}
 
-	addHours (h) {
+	addHours(h) {
 		this.hours += h;
 		return this;
 	}
 
-	get hours () {
+	get hours() {
 		return super.getHours();
 	}
 
-	set hours (h) {
+	set hours(h) {
 		super.setHours(h);
 	}
 };

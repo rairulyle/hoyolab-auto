@@ -7,12 +7,12 @@ const { mergeSettings } = require("../config/defaults.js");
 const profileKey = (guildId, label) => `${guildId}:${String(label).toLowerCase()}`;
 
 module.exports = class Database {
-	constructor (dir = path.join(process.cwd(), "data", "db")) {
+	constructor(dir = path.join(process.cwd(), "data", "db")) {
 		this.dir = dir;
 		this.collections = {};
 	}
 
-	async init () {
+	async init() {
 		fs.mkdirSync(this.dir, { recursive: true });
 
 		const open = async (name) => {
@@ -30,7 +30,7 @@ module.exports = class Database {
 		await this.collections.profiles.ensureIndexAsync({ fieldName: "guildId" });
 	}
 
-	async upsertProfile (profile) {
+	async upsertProfile(profile) {
 		const key = profileKey(profile.guildId, profile.label);
 		const existing = await this.collections.profiles.findOneAsync({ key });
 		const doc = {
@@ -40,41 +40,44 @@ module.exports = class Database {
 			createdAt: existing?.createdAt ?? new Date().toISOString()
 		};
 		delete doc._id;
-		const { affectedDocuments } = await this.collections.profiles.updateAsync(
-			{ key },
-			doc,
-			{ upsert: true, returnUpdatedDocs: true }
-		);
+		const { affectedDocuments } = await this.collections.profiles.updateAsync({ key }, doc, {
+			upsert: true,
+			returnUpdatedDocs: true
+		});
 		return affectedDocuments;
 	}
 
-	async getProfile (guildId, label) {
+	async getProfile(guildId, label) {
 		return await this.collections.profiles.findOneAsync({ key: profileKey(guildId, label) });
 	}
 
-	async listProfiles (guildId) {
+	async listProfiles(guildId) {
 		return await this.collections.profiles.findAsync({ guildId });
 	}
 
-	async listAllProfiles () {
+	async listAllProfiles() {
 		return await this.collections.profiles.findAsync({});
 	}
 
-	async removeProfile (guildId, label) {
+	async removeProfile(guildId, label) {
 		return await this.collections.profiles.removeAsync({ key: profileKey(guildId, label) }, {});
 	}
 
-	async setTokenStatus (profileId, status) {
-		await this.collections.profiles.updateAsync({ _id: profileId }, { $set: { tokenStatus: status } }, {});
+	async setTokenStatus(profileId, status) {
+		await this.collections.profiles.updateAsync(
+			{ _id: profileId },
+			{ $set: { tokenStatus: status } },
+			{}
+		);
 	}
 
-	async updateGameEntry (profileId, gameKey, patch) {
+	async updateGameEntry(profileId, gameKey, patch) {
 		const doc = await this.collections.profiles.findOneAsync({ _id: profileId });
 		if (!doc) {
 			return null;
 		}
 
-		const games = doc.games.map(game => {
+		const games = doc.games.map((game) => {
 			if (game.key !== gameKey) {
 				return game;
 			}
@@ -82,7 +85,9 @@ module.exports = class Database {
 			return {
 				...game,
 				...rest,
-				settings: settings ? mergeSettings(game.settings ?? {}, settings) : (game.settings ?? {})
+				settings: settings
+					? mergeSettings(game.settings ?? {}, settings)
+					: (game.settings ?? {})
 			};
 		});
 
@@ -94,12 +99,12 @@ module.exports = class Database {
 		return affectedDocuments;
 	}
 
-	async addGameEntry (profileId, entry) {
+	async addGameEntry(profileId, entry) {
 		const doc = await this.collections.profiles.findOneAsync({ _id: profileId });
 		if (!doc) {
 			return null;
 		}
-		if ((doc.games ?? []).some(game => game.key === entry.key)) {
+		if ((doc.games ?? []).some((game) => game.key === entry.key)) {
 			return doc;
 		}
 
@@ -112,25 +117,25 @@ module.exports = class Database {
 		return affectedDocuments;
 	}
 
-	async findProfilesByGameUid (gameKey, uid) {
+	async findProfilesByGameUid(gameKey, uid) {
 		return await this.collections.profiles.findAsync({
 			games: { $elemMatch: { key: gameKey, uid } }
 		});
 	}
 
-	async findProfilesByLtuid (ltuid) {
+	async findProfilesByLtuid(ltuid) {
 		return await this.collections.profiles.findAsync({ ltuid });
 	}
 
-	async getGuild (guildId) {
+	async getGuild(guildId) {
 		return await this.collections.guilds.findOneAsync({ _id: guildId });
 	}
 
-	async listGuilds () {
+	async listGuilds() {
 		return await this.collections.guilds.findAsync({});
 	}
 
-	async setGuildField (guildId, field, value) {
+	async setGuildField(guildId, field, value) {
 		const { affectedDocuments } = await this.collections.guilds.updateAsync(
 			{ _id: guildId },
 			{ $set: { [field]: value } },
@@ -139,7 +144,7 @@ module.exports = class Database {
 		return affectedDocuments;
 	}
 
-	async recordCheckin (row) {
+	async recordCheckin(row) {
 		const _id = `${row.profileId}:${row.game}:${row.date}`;
 		await this.collections.checkinResults.updateAsync(
 			{ _id },
@@ -148,11 +153,16 @@ module.exports = class Database {
 		);
 	}
 
-	async getCheckin (profileId, game, date) {
-		return await this.collections.checkinResults.findOneAsync({ _id: `${profileId}:${game}:${date}` });
+	async getCheckin(profileId, game, date) {
+		return await this.collections.checkinResults.findOneAsync({
+			_id: `${profileId}:${game}:${date}`
+		});
 	}
 
-	async recordRedeem (row) {
-		await this.collections.redeemResults.insertAsync({ ...row, redeemedAt: new Date().toISOString() });
+	async recordRedeem(row) {
+		await this.collections.redeemResults.insertAsync({
+			...row,
+			redeemedAt: new Date().toISOString()
+		});
 	}
 };

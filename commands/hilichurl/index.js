@@ -6,7 +6,11 @@ const createEmbed = (result) => {
 		fields.push(
 			{
 				name: "🎯 Tasks Claimed",
-				value: result.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024) || "None",
+				value:
+					result.tasksClaimed
+						.map((t) => `• ${t.name} (+${t.points})`)
+						.join("\n")
+						.slice(0, 1024) || "None",
 				inline: false
 			},
 			{
@@ -20,7 +24,10 @@ const createEmbed = (result) => {
 	if (result.freeItemsClaimed?.length > 0) {
 		fields.push({
 			name: "🆓 Free Items Claimed",
-			value: result.freeItemsClaimed.map(i => `• ${i}`).join("\n").slice(0, 1024),
+			value: result.freeItemsClaimed
+				.map((i) => `• ${i}`)
+				.join("\n")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -28,7 +35,10 @@ const createEmbed = (result) => {
 	if (result.itemsExchanged.length > 0) {
 		fields.push({
 			name: "🎁 Items Exchanged",
-			value: result.itemsExchanged.map(i => `• ${i.name} (-${i.cost} pts)`).join("\n").slice(0, 1024),
+			value: result.itemsExchanged
+				.map((i) => `• ${i.name} (-${i.cost} pts)`)
+				.join("\n")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -36,7 +46,10 @@ const createEmbed = (result) => {
 	if (result.codesRedeemed.length > 0) {
 		fields.push({
 			name: "✅ Codes Redeemed",
-			value: result.codesRedeemed.map(c => `\`${c}\``).join(", ").slice(0, 1024),
+			value: result.codesRedeemed
+				.map((c) => `\`${c}\``)
+				.join(", ")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -44,7 +57,10 @@ const createEmbed = (result) => {
 	if (result.codesObtained?.length > 0) {
 		fields.push({
 			name: "🎫 Codes Obtained",
-			value: result.codesObtained.map(c => `\`${c}\``).join("\n").slice(0, 1024),
+			value: result.codesObtained
+				.map((c) => `\`${c}\``)
+				.join("\n")
+				.slice(0, 1024),
 			inline: false
 		});
 	}
@@ -55,13 +71,14 @@ const createEmbed = (result) => {
 		inline: true
 	});
 
-	const hasActivity = result.tasksClaimed.length > 0
-		|| result.freeItemsClaimed?.length > 0
-		|| result.itemsExchanged.length > 0
-		|| result.codesRedeemed.length > 0;
+	const hasActivity =
+		result.tasksClaimed.length > 0 ||
+		result.freeItemsClaimed?.length > 0 ||
+		result.itemsExchanged.length > 0 ||
+		result.codesRedeemed.length > 0;
 
 	return {
-		color: 0x0099FF, // Genshin blue
+		color: 0x0099ff, // Genshin blue
 		title: "🔧 Hilichurl Machine Workshop",
 		author: {
 			name: `${result.nickname} (${result.uid})`,
@@ -86,7 +103,7 @@ module.exports = {
 	name: "hilichurl",
 	description: "Manually run Hilichurl Machine Workshop automation for Genshin Impact.",
 	params: [],
-	run: (async function hilichurl (context) {
+	run: async function hilichurl(context) {
 		const { interaction } = context;
 
 		const accounts = app.HoyoLab.getActiveAccounts({ whitelist: "genshin" });
@@ -114,7 +131,10 @@ module.exports = {
 
 		for (const account of accounts) {
 			try {
-				app.Logger.info("Command:Hilichurl", `Running Hilichurl for Genshin - ${account.uid}`);
+				app.Logger.info(
+					"Command:Hilichurl",
+					`Running Hilichurl for Genshin - ${account.uid}`
+				);
 
 				const result = await genshinPlatform.hilichurl(account);
 				if (!result.success) {
@@ -130,8 +150,7 @@ module.exports = {
 					nickname: account.nickname,
 					...result.data
 				});
-			}
-			catch (e) {
+			} catch (e) {
 				app.Logger.error("Command:Hilichurl", {
 					message: "Hilichurl automation failed",
 					uid: account.uid,
@@ -151,13 +170,16 @@ module.exports = {
 				: { success: false, reply: message };
 		}
 
-		const embeds = results.map(r => createEmbed(r));
+		const embeds = results.map((r) => createEmbed(r));
 
 		if (errors.length > 0) {
 			embeds.push({
-				color: 0xFF0000,
+				color: 0xff0000,
 				title: "❌ Errors",
-				description: errors.map(e => `• **Genshin** (${e.uid}): ${e.error}`).join("\n").slice(0, 4096)
+				description: errors
+					.map((e) => `• **Genshin** (${e.uid}): ${e.error}`)
+					.join("\n")
+					.slice(0, 4096)
 			});
 		}
 
@@ -166,7 +188,7 @@ module.exports = {
 			return;
 		}
 
-		const summaryLines = results.map(r => `GI - ${r.nickname}: ${r.points} pts`);
+		const summaryLines = results.map((r) => `GI - ${r.nickname}: ${r.points} pts`);
 		return { success: true, reply: summaryLines.join("\n") };
-	})
+	}
 };

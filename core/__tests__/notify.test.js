@@ -4,7 +4,10 @@ const assert = require("node:assert/strict");
 const { resolveChannelId } = require("../notify.js");
 
 test("resolveChannelId returns the specific channel when set", () => {
-	assert.equal(resolveChannelId({ checkinChannelId: "a", defaultChannelId: "d" }, "checkin"), "a");
+	assert.equal(
+		resolveChannelId({ checkinChannelId: "a", defaultChannelId: "d" }, "checkin"),
+		"a"
+	);
 });
 
 test("resolveChannelId falls back to the default channel", () => {

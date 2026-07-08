@@ -12,27 +12,27 @@ Add `allowedPlatforms` to any account entry inside a game's `data[]` array:
 
 ```json5
 {
-    id: 3,
-    active: true,
-    type: 'genshin',
-    data: [
-        {
-            cookie: '...',
-            allowedPlatforms: null, // null = all platforms (default)
-            // ...
-        }
-    ]
+	id: 3,
+	active: true,
+	type: "genshin",
+	data: [
+		{
+			cookie: "...",
+			allowedPlatforms: null // null = all platforms (default)
+			// ...
+		}
+	]
 }
 ```
 
 ### Values
 
-| Value | Behaviour |
-|---|---|
-| `null` | All configured platforms receive notifications (default — existing behaviour) |
-| `[]` | No platforms receive notifications (silences this account) |
-| `[3]` | Only the platform with `id: 3` receives notifications |
-| `[3, 4]` | Only platforms with `id: 3` and `id: 4` receive notifications |
+| Value    | Behaviour                                                                     |
+| -------- | ----------------------------------------------------------------------------- |
+| `null`   | All configured platforms receive notifications (default — existing behaviour) |
+| `[]`     | No platforms receive notifications (silences this account)                    |
+| `[3]`    | Only the platform with `id: 3` receives notifications                         |
+| `[3, 4]` | Only platforms with `id: 3` and `id: 4` receive notifications                 |
 
 ## Use Case: Multiple Webhooks per Game
 
@@ -100,21 +100,21 @@ If you have two Star Rail accounts and want them in different Discord channels:
 
 ```json5
 {
-    id: 4,
-    active: true,
-    type: 'starrail',
-    data: [
-        {
-            cookie: '...account1...',
-            allowedPlatforms: [3], // account 1 → #starrail-main
-            // ...
-        },
-        {
-            cookie: '...account2...',
-            allowedPlatforms: [4], // account 2 → #starrail-alt
-            // ...
-        }
-    ]
+	id: 4,
+	active: true,
+	type: "starrail",
+	data: [
+		{
+			cookie: "...account1...",
+			allowedPlatforms: [3] // account 1 → #starrail-main
+			// ...
+		},
+		{
+			cookie: "...account2...",
+			allowedPlatforms: [4] // account 2 → #starrail-alt
+			// ...
+		}
+	]
 }
 ```
 
@@ -124,9 +124,9 @@ Set `allowedPlatforms: []` to disable notifications for a specific account witho
 
 ```json5
 {
-    cookie: '...',
-    allowedPlatforms: [], // automation still runs, no notifications sent
-    // ...
+	cookie: "...",
+	allowedPlatforms: [] // automation still runs, no notifications sent
+	// ...
 }
 ```
 

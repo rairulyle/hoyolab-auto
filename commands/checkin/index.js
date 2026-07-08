@@ -4,7 +4,8 @@ module.exports = {
 	params: [
 		{
 			name: "game",
-			description: "The game you want to check-in for. Leave empty to check-in for all games.",
+			description:
+				"The game you want to check-in for. Leave empty to check-in for all games.",
 			type: "string",
 			choices: [
 				{ name: "All Games", value: "all" },
@@ -17,7 +18,7 @@ module.exports = {
 			required: false
 		}
 	],
-	run: (async function checkin (context, game) {
+	run: async function checkin(context, game) {
 		const { interaction, platform } = context;
 
 		const gameMapping = {
@@ -31,9 +32,10 @@ module.exports = {
 			game = gameMapping[game.toLowerCase()] || game.toLowerCase();
 		}
 
-		const activeGameAccounts = game && game !== "all"
-			? [game].filter(g => app.HoyoLab.get(g))
-			: app.HoyoLab.getActivePlatform();
+		const activeGameAccounts =
+			game && game !== "all"
+				? [game].filter((g) => app.HoyoLab.get(g))
+				: app.HoyoLab.getActivePlatform();
 
 		if (activeGameAccounts.length === 0) {
 			const message = "No active game accounts found.";
@@ -62,8 +64,7 @@ module.exports = {
 				}
 
 				results.push(...execution);
-			}
-			catch (e) {
+			} catch (e) {
 				app.Logger.error("Command:CheckIn", {
 					message: "Check-in failed",
 					game: name,
@@ -87,13 +88,17 @@ module.exports = {
 					{ name: "Username", value: message.username, inline: true },
 					{ name: "Region", value: message.region, inline: true },
 					{ name: "Rank", value: message.rank, inline: true },
-					{ name: "Today's Reward", value: `${message.award.name} x${message.award.count}`, inline: true },
+					{
+						name: "Today's Reward",
+						value: `${message.award.name} x${message.award.count}`,
+						inline: true
+					},
 					{ name: "Total Sign-ins", value: message.total, inline: true },
 					{ name: "Result", value: message.result, inline: true }
 				];
 
 				if (message.platform === "tot") {
-					fields = fields.filter(f => f.name !== "Username" && f.name !== "Rank");
+					fields = fields.filter((f) => f.name !== "Username" && f.name !== "Rank");
 				}
 
 				return {
@@ -117,9 +122,9 @@ module.exports = {
 
 			if (errors.length > 0) {
 				embeds.push({
-					color: 0xFF0000,
+					color: 0xff0000,
 					title: "❌ Check-In Errors",
-					description: errors.map(e => `**${e.game}**: ${e.error}`).join("\n"),
+					description: errors.map((e) => `**${e.game}**: ${e.error}`).join("\n"),
 					timestamp: new Date()
 				});
 			}
@@ -127,8 +132,7 @@ module.exports = {
 			if (interaction) {
 				await interaction.editReply({ embeds: embeds.slice(0, 10) });
 			}
-		}
-		else if (platform.id === 2) {
+		} else if (platform.id === 2) {
 			const telegram = app.Platform.get(2);
 			if (telegram) {
 				for (const message of results) {
@@ -147,17 +151,18 @@ module.exports = {
 				}
 
 				if (errors.length > 0) {
-					const errorText = errors.map(e => `❌ ${e.game}: ${e.error}`).join("\n");
+					const errorText = errors.map((e) => `❌ ${e.game}: ${e.error}`).join("\n");
 					await telegram.send(app.Utils.escapeCharacters(errorText));
 				}
 			}
-		}
-		else {
+		} else {
 			const summary = [];
 			if (results.length > 0) {
 				summary.push(`✅ Successfully checked in for ${results.length} account(s):`);
 				for (const r of results) {
-					summary.push(`  • ${r.assets.game}: ${r.username} - ${r.award.name} x${r.award.count}`);
+					summary.push(
+						`  • ${r.assets.game}: ${r.username} - ${r.award.name} x${r.award.count}`
+					);
 				}
 			}
 			if (errors.length > 0) {
@@ -173,5 +178,5 @@ module.exports = {
 		}
 
 		return { success: true };
-	})
+	}
 };

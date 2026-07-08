@@ -4,12 +4,16 @@ const { notifyAccount } = require("../../core/notify.js");
 module.exports = {
 	name: "mimo",
 	expression: "0 0 */6 * * *",
-	description: "This will run the Traveling Mimo automation for supported games (Star Rail, ZZZ) - completing tasks, claiming rewards, and exchanging for premium currency.",
-	code: (async function mimo () {
+	description:
+		"This will run the Traveling Mimo automation for supported games (Star Rail, ZZZ) - completing tasks, claiming rewards, and exchanging for premium currency.",
+	code: async function mimo() {
 		const jitterSeconds = app.Config.get("crons")?.mimoJitter ?? 0;
 		if (jitterSeconds > 0) {
 			const jitterMs = Math.floor(Math.random() * jitterSeconds * 1000);
-			app.Logger.info("Cron:Mimo", `Applying ${(jitterMs / 1000).toFixed(1)}s jitter before starting...`);
+			app.Logger.info(
+				"Cron:Mimo",
+				`Applying ${(jitterMs / 1000).toFixed(1)}s jitter before starting...`
+			);
 			await sleep(jitterMs);
 		}
 
@@ -42,14 +46,15 @@ module.exports = {
 							error: result.message
 						});
 
-						const isCriticalError = result.message?.toLowerCase().includes("cookie")
-							|| result.message?.toLowerCase().includes("expired")
-							|| result.message?.toLowerCase().includes("login");
+						const isCriticalError =
+							result.message?.toLowerCase().includes("cookie") ||
+							result.message?.toLowerCase().includes("expired") ||
+							result.message?.toLowerCase().includes("login");
 
 						if (isCriticalError) {
 							const region = app.HoyoLab.getRegion(account.region);
 							const embed = {
-								color: 0xFF0000,
+								color: 0xff0000,
 								title: `🐾 Traveling Mimo Failure - ${account.game.name}`,
 								author: {
 									name: `${region} Server - ${account.nickname}`,
@@ -63,29 +68,40 @@ module.exports = {
 								}
 							};
 
-							const telegramText = app.Utils.escapeCharacters([
-								`🐾 *Traveling Mimo Failure* - ${account.game.name}`,
-								`Region: ${region} | UID: ${account.uid}`,
-								`Player: ${account.nickname}`,
-								"",
-								`❌ *Error:* ${result.message}`
-							].join("\n"));
-							await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+							const telegramText = app.Utils.escapeCharacters(
+								[
+									`🐾 *Traveling Mimo Failure* - ${account.game.name}`,
+									`Region: ${region} | UID: ${account.uid}`,
+									`Player: ${account.nickname}`,
+									"",
+									`❌ *Error:* ${result.message}`
+								].join("\n")
+							);
+							await notifyAccount(account, {
+								embeds: [embed],
+								telegramText,
+								ping: true,
+								kind: "reminder"
+							});
 						}
 						continue;
 					}
 
 					const { data } = result;
 
-					const hasActivity = data.tasksClaimed.length > 0
-						|| data.itemsExchanged.length > 0
-						|| data.codesRedeemed.length > 0
-						|| data.codesObtained?.length > 0
-						|| data.lotteryDraws?.length > 0
-						|| data.errors?.length > 0;
+					const hasActivity =
+						data.tasksClaimed.length > 0 ||
+						data.itemsExchanged.length > 0 ||
+						data.codesRedeemed.length > 0 ||
+						data.codesObtained?.length > 0 ||
+						data.lotteryDraws?.length > 0 ||
+						data.errors?.length > 0;
 
 					if (!hasActivity) {
-						app.Logger.debug("Cron:Mimo", `(${account.uid}) ${account.game.short}: No new Mimo activity.`);
+						app.Logger.debug(
+							"Cron:Mimo",
+							`(${account.uid}) ${account.game.short}: No new Mimo activity.`
+						);
 						continue;
 					}
 
@@ -94,21 +110,30 @@ module.exports = {
 
 					if (data.tasksClaimed.length > 0) {
 						const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-						fields.push({
-							name: "🎯 Tasks Claimed",
-							value: data.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024),
-							inline: false
-						}, {
-							name: "💰 Points Earned",
-							value: `+${totalPoints} pts`,
-							inline: true
-						});
+						fields.push(
+							{
+								name: "🎯 Tasks Claimed",
+								value: data.tasksClaimed
+									.map((t) => `• ${t.name} (+${t.points})`)
+									.join("\n")
+									.slice(0, 1024),
+								inline: false
+							},
+							{
+								name: "💰 Points Earned",
+								value: `+${totalPoints} pts`,
+								inline: true
+							}
+						);
 					}
 
 					if (data.itemsExchanged.length > 0) {
 						fields.push({
 							name: "🎁 Items Exchanged",
-							value: data.itemsExchanged.map(i => `• ${i.name} (-${i.cost} pts)`).join("\n").slice(0, 1024),
+							value: data.itemsExchanged
+								.map((i) => `• ${i.name} (-${i.cost} pts)`)
+								.join("\n")
+								.slice(0, 1024),
 							inline: false
 						});
 					}
@@ -124,7 +149,10 @@ module.exports = {
 					if (data.codesObtained?.length > 0) {
 						fields.push({
 							name: "🎫 Codes Obtained (Not Auto-Redeemed)",
-							value: data.codesObtained.map(c => `\`${c}\``).join("\n").slice(0, 1024),
+							value: data.codesObtained
+								.map((c) => `\`${c}\``)
+								.join("\n")
+								.slice(0, 1024),
 							inline: false
 						});
 					}
@@ -132,7 +160,10 @@ module.exports = {
 					if (data.lotteryDraws?.length > 0) {
 						fields.push({
 							name: "🎰 Lottery Draws",
-							value: data.lotteryDraws.map(d => `• ${d.name}`).join("\n").slice(0, 1024),
+							value: data.lotteryDraws
+								.map((d) => `• ${d.name}`)
+								.join("\n")
+								.slice(0, 1024),
 							inline: false
 						});
 					}
@@ -140,7 +171,10 @@ module.exports = {
 					if (data.errors?.length > 0) {
 						fields.push({
 							name: "❌ Errors",
-							value: data.errors.map(e => `• ${e}`).join("\n").slice(0, 1024),
+							value: data.errors
+								.map((e) => `• ${e}`)
+								.join("\n")
+								.slice(0, 1024),
 							inline: false
 						});
 					}
@@ -151,15 +185,19 @@ module.exports = {
 						inline: true
 					});
 
-					const currencyItem = data.shopStatus.find(i => {
+					const currencyItem = data.shopStatus.find((i) => {
 						const name = i.name.toLowerCase();
-						return name.includes("primogem")
-							|| name.includes("stellar jade")
-							|| name.includes("polychrome");
+						return (
+							name.includes("primogem") ||
+							name.includes("stellar jade") ||
+							name.includes("polychrome")
+						);
 					});
 
 					if (currencyItem && currencyItem.nextRefreshTime > 0) {
-						const restockDate = new Date(Date.now() + (currencyItem.nextRefreshTime * 1000));
+						const restockDate = new Date(
+							Date.now() + currencyItem.nextRefreshTime * 1000
+						);
 						fields.push({
 							name: "⏰ Next Currency Restock",
 							value: `<t:${Math.floor(restockDate.getTime() / 1000)}:R>`,
@@ -194,11 +232,15 @@ module.exports = {
 
 					if (data.tasksClaimed.length > 0) {
 						const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-						lines.push(`🎯 Tasks Claimed: ${data.tasksClaimed.length} (+${totalPoints} pts)`);
+						lines.push(
+							`🎯 Tasks Claimed: ${data.tasksClaimed.length} (+${totalPoints} pts)`
+						);
 					}
 
 					if (data.itemsExchanged.length > 0) {
-						lines.push(`🎁 Items Exchanged: ${data.itemsExchanged.map(i => i.name).join(", ")}`);
+						lines.push(
+							`🎁 Items Exchanged: ${data.itemsExchanged.map((i) => i.name).join(", ")}`
+						);
 					}
 
 					if (data.codesRedeemed.length > 0) {
@@ -213,7 +255,9 @@ module.exports = {
 					}
 
 					if (data.lotteryDraws?.length > 0) {
-						lines.push(`🎰 Lottery Draws: ${data.lotteryDraws.map(d => d.name).join(", ")}`);
+						lines.push(
+							`🎰 Lottery Draws: ${data.lotteryDraws.map((d) => d.name).join(", ")}`
+						);
 					}
 
 					if (data.errors?.length > 0) {
@@ -225,14 +269,22 @@ module.exports = {
 					lines.push(`💎 Current Points: ${data.points}`);
 
 					const telegramText = app.Utils.escapeCharacters(lines.join("\n"));
-					const hasSignificantActivity = data.itemsExchanged.length > 0
-						|| data.codesRedeemed.length > 0
-						|| data.codesObtained?.length > 0;
-					await notifyAccount(account, { embeds: [embed], telegramText, ping: hasSignificantActivity, kind: "reminder" });
+					const hasSignificantActivity =
+						data.itemsExchanged.length > 0 ||
+						data.codesRedeemed.length > 0 ||
+						data.codesObtained?.length > 0;
+					await notifyAccount(account, {
+						embeds: [embed],
+						telegramText,
+						ping: hasSignificantActivity,
+						kind: "reminder"
+					});
 
-					app.Logger.info("Cron:Mimo", `(${account.uid}) ${account.game.short}: Mimo automation completed.`);
-				}
-				catch (e) {
+					app.Logger.info(
+						"Cron:Mimo",
+						`(${account.uid}) ${account.game.short}: Mimo automation completed.`
+					);
+				} catch (e) {
 					app.Logger.error("Cron:Mimo", {
 						message: "Error running Mimo automation",
 						game: gameName,
@@ -242,5 +294,5 @@ module.exports = {
 				}
 			}
 		}
-	})
+	}
 };

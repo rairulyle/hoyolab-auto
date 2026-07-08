@@ -12,15 +12,21 @@ const run = async (interaction) => {
 	if (!cron) {
 		const current = guild?.checkinCron ?? defaults.guild.checkinCron;
 		const unix = nextCronUnix(current, timezone);
-		return await reply(`Check-in runs on \`${current}\` (${timezone}) — next run <t:${unix}:t> (<t:${unix}:R>).`);
+		return await reply(
+			`Check-in runs on \`${current}\` (${timezone}) — next run <t:${unix}:t> (<t:${unix}:R>).`
+		);
 	}
 	if (!isValidCron(cron)) {
-		return await reply("That isn't a valid cron expression. Example: `0 30 0 * * *` (00:30 daily).");
+		return await reply(
+			"That isn't a valid cron expression. Example: `0 30 0 * * *` (00:30 daily)."
+		);
 	}
 	await app.db.setGuildField(guildId, "checkinCron", cron);
 	scheduleReload();
 	const unix = nextCronUnix(cron, timezone);
-	return await reply(`Check-in will now run on \`${cron}\` (${timezone}) — next run <t:${unix}:t> (<t:${unix}:R>).`);
+	return await reply(
+		`Check-in will now run on \`${cron}\` (${timezone}) — next run <t:${unix}:t> (<t:${unix}:R>).`
+	);
 };
 
 module.exports = { run };

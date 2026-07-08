@@ -1,16 +1,16 @@
 module.exports = class ClassTemplate {
-	destroy () {
+	destroy() {
 		throw new Error("destroy() is not implemented");
 	}
 
 	static data = [];
 
-	static async initialize () {
+	static async initialize() {
 		await this.loadData();
 		return this;
 	}
 
-	static async loadData () {
+	static async loadData() {
 		throw new app.Error({
 			message: "loadData() must be implemented in the child class",
 			args: {
@@ -19,7 +19,7 @@ module.exports = class ClassTemplate {
 		});
 	}
 
-	static async importData (definitions) {
+	static async importData(definitions) {
 		if (this.data && this.data.length !== 0) {
 			for (const instance of this.data) {
 				instance.destroy();
@@ -28,6 +28,6 @@ module.exports = class ClassTemplate {
 			this.data = [];
 		}
 
-		this.data = definitions.map(i => new this(i));
+		this.data = definitions.map((i) => new this(i));
 	}
 };

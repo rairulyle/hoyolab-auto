@@ -7,8 +7,7 @@ const fetchData = async () => {
 			const hash = execSync("git rev-parse --short HEAD").toString().trim();
 
 			version = `HoyoLabAuto@${hash}`;
-		}
-		catch {
+		} catch {
 			version = "HoyoLabAuto";
 		}
 	}
@@ -49,7 +48,13 @@ const fetchData = async () => {
 
 const redeemCodes = async (accountData, code) => {
 	const Cookie = app.HoyoLab.parseCookie(accountData.cookie, {
-		whitelist: ["cookie_token_v2", "account_mid_v2", "account_id_v2", "cookie_token", "account_id"]
+		whitelist: [
+			"cookie_token_v2",
+			"account_mid_v2",
+			"account_id_v2",
+			"cookie_token",
+			"account_id"
+		]
 	});
 
 	const res = await app.Got("HoYoLab", {
@@ -89,7 +94,10 @@ const redeemCodes = async (accountData, code) => {
 	}
 
 	if (retcode !== 0) {
-		app.Logger.info(`CodeRedeem:Genshin:${accountData.uid}`, `${code.code} - ${res.body.message}`);
+		app.Logger.info(
+			`CodeRedeem:Genshin:${accountData.uid}`,
+			`${code.code} - ${res.body.message}`
+		);
 		return {
 			success: false,
 			reason: res.body.message

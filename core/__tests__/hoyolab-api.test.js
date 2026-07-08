@@ -9,8 +9,20 @@ const CARD_RESPONSE = {
 		retcode: 0,
 		data: {
 			list: [
-				{ game_id: 2, game_role_id: "800000001", region: "os_asia", nickname: "Trav", level: 60 },
-				{ game_id: 6, game_role_id: "801000001", region: "prod_official_asia", nickname: "Blaze", level: 70 },
+				{
+					game_id: 2,
+					game_role_id: "800000001",
+					region: "os_asia",
+					nickname: "Trav",
+					level: 60
+				},
+				{
+					game_id: 6,
+					game_role_id: "801000001",
+					region: "prod_official_asia",
+					nickname: "Blaze",
+					level: 70
+				},
 				{ game_id: 999, game_role_id: "x", region: "y", nickname: "z", level: 1 }
 			]
 		}
@@ -22,7 +34,13 @@ test("maps record cards to game keys, skipping unknown ids", async () => {
 	const games = await detectGames("cookie", "111", got);
 	assert.deepEqual(games, [
 		{ key: "genshin", uid: "800000001", region: "os_asia", nickname: "Trav", level: 60 },
-		{ key: "starrail", uid: "801000001", region: "prod_official_asia", nickname: "Blaze", level: 70 }
+		{
+			key: "starrail",
+			uid: "801000001",
+			region: "prod_official_asia",
+			nickname: "Blaze",
+			level: 70
+		}
 	]);
 });
 

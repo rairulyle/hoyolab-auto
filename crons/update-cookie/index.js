@@ -2,7 +2,7 @@ module.exports = {
 	name: "update-cookie",
 	expression: "0 */2 * * *",
 	description: "Update cookie for all accounts",
-	code: (async function updateCookie () {
+	code: async function updateCookie() {
 		// eslint-disable-next-line object-curly-spacing
 		const accounts = app.HoyoLab.getActiveAccounts({ blacklist: ["honkai", "tot"] });
 		if (accounts.length === 0) {
@@ -26,5 +26,5 @@ module.exports = {
 		}
 
 		app.Logger.debug("Cron:UpdateCookie", "Updated cookie for all accounts");
-	})
+	}
 };

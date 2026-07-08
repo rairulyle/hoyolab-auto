@@ -1,0 +1,9 @@
+node_modules
+data
+logs
+package-lock.json
+LICENSE
+*.min.js
+CHANGELOG.md
+services/google-script
+docs/superpowers

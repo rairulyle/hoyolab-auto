@@ -3,19 +3,23 @@ const { notifyAccount } = require("../../core/notify.js");
 module.exports = {
 	name: "expedition",
 	expression: "0 */30 * * * *",
-	description: "Check for ongoing expeditions every 30 minutes and send a notification if all expeditions are completed.",
-	code: (async function expedition () {
+	description:
+		"Check for ongoing expeditions every 30 minutes and send a notification if all expeditions are completed.",
+	code: async function expedition() {
 		// eslint-disable-next-line object-curly-spacing
 		const accountList = app.HoyoLab.getActiveAccounts({ blacklist: ["honkai", "nap", "tot"] });
 		if (accountList.length === 0) {
-			app.Logger.warn("Cron:Expedition", "No active accounts found to run expedition check for.");
+			app.Logger.warn(
+				"Cron:Expedition",
+				"No active accounts found to run expedition check for."
+			);
 			return;
 		}
 
 		const activeGameAccounts = app.HoyoLab.getActivePlatform();
 		for (const name of activeGameAccounts) {
 			const platform = app.HoyoLab.get(name);
-			const accounts = accountList.filter(account => account.platform === name);
+			const accounts = accountList.filter((account) => account.platform === name);
 
 			for (const account of accounts) {
 				const expeditionCheck = account.expedition.check;
@@ -55,7 +59,11 @@ module.exports = {
 					fields: [
 						{ name: "UID", value: account.uid, inline: true },
 						{ name: "Username", value: account.nickname, inline: true },
-						{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true }
+						{
+							name: "Region",
+							value: app.HoyoLab.getRegion(account.region),
+							inline: true
+						}
 					],
 					timestamp: new Date(),
 					footer: {
@@ -64,13 +72,20 @@ module.exports = {
 					}
 				};
 
-				const telegramText = app.Utils.escapeCharacters([
-					`📢 Expedition Reminder, All Expeditions are Completed!`,
-					`🎮 **Game**: ${data.assets.game}`,
-					`🆔 **UID**: ${account.uid} ${account.nickname}`
-				].join("\n"));
-				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+				const telegramText = app.Utils.escapeCharacters(
+					[
+						`📢 Expedition Reminder, All Expeditions are Completed!`,
+						`🎮 **Game**: ${data.assets.game}`,
+						`🆔 **UID**: ${account.uid} ${account.nickname}`
+					].join("\n")
+				);
+				await notifyAccount(account, {
+					embeds: [embed],
+					telegramText,
+					ping: true,
+					kind: "reminder"
+				});
 			}
 		}
-	})
+	}
 };

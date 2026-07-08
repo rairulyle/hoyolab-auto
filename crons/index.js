@@ -30,14 +30,10 @@ const definitions = [
 	WeekliesReminder
 ];
 
-const BlacklistedCrons = [
-	"dailiesReminder",
-	"howlScratchCard",
-	"weekliesReminder"
-];
+const BlacklistedCrons = ["dailiesReminder", "howlScratchCard", "weekliesReminder"];
 
 const initCrons = (cronConfig = {}) => {
-	const { blacklist = [], whitelist = []} = cronConfig;
+	const { blacklist = [], whitelist = [] } = cronConfig;
 	if (blacklist.length > 0 && whitelist.length > 0) {
 		throw new Error(`Cannot have both a blacklist and a whitelist for crons`);
 	}
@@ -46,11 +42,9 @@ const initCrons = (cronConfig = {}) => {
 	for (const definition of definitions) {
 		if (blacklist.length > 0 && blacklist.includes(definition.name)) {
 			continue;
-		}
-		else if (whitelist.length > 0 && !whitelist.includes(definition.name)) {
+		} else if (whitelist.length > 0 && !whitelist.includes(definition.name)) {
 			continue;
-		}
-		else if (BlacklistedCrons.includes(definition.name)) {
+		} else if (BlacklistedCrons.includes(definition.name)) {
 			const name = app.Utils.convertCase(definition.name, "kebab", "camel");
 
 			const expression = definition.expression;

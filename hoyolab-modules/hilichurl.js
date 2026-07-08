@@ -32,18 +32,18 @@ module.exports = class HilichurlWorkshop {
 	#logo;
 	#color;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 	}
 
-	#buildEndpoint (endpoint) {
+	#buildEndpoint(endpoint) {
 		// Genshin uses underscores instead of hyphens
 		return `${HILICHURL_BASE_URL}/${endpoint.replace(/-/g, "_")}`;
 	}
 
-	async #request (endpoint, options = {}) {
+	async #request(endpoint, options = {}) {
 		const { method = "GET", params = {}, data = null, cookie } = options;
 
 		const url = this.#buildEndpoint(endpoint);
@@ -59,8 +59,7 @@ module.exports = class HilichurlWorkshop {
 
 		if (method === "GET") {
 			requestOptions.searchParams = params;
-		}
-		else {
+		} else {
 			requestOptions.method = "POST";
 			requestOptions.json = data || params;
 		}
@@ -77,20 +76,27 @@ module.exports = class HilichurlWorkshop {
 			// - retcode -500004 = VisitsTooFrequently (JSON response)
 			// - HTTP 429 = Too Many Requests
 			// - Body contains "Too Many Requests" string
-			const isRateLimited = res.body?.retcode === -500004
-				|| res.statusCode === 429
-				|| (typeof res.body === "string" && res.body.includes("Too Many Requests"));
+			const isRateLimited =
+				res.body?.retcode === -500004 ||
+				res.statusCode === 429 ||
+				(typeof res.body === "string" && res.body.includes("Too Many Requests"));
 
 			if (isRateLimited) {
 				if (attempt === maxRetries) {
-					app.Logger.warn(`${this.#instance.fullName}:Hilichurl`, `Rate limited after ${maxRetries} attempts, giving up`);
+					app.Logger.warn(
+						`${this.#instance.fullName}:Hilichurl`,
+						`Rate limited after ${maxRetries} attempts, giving up`
+					);
 					return res;
 				}
 
-				const maxWait = Math.min(baseDelay * (2 ** attempt), maxDelay);
+				const maxWait = Math.min(baseDelay * 2 ** attempt, maxDelay);
 				const totalDelay = Math.floor(baseDelay + Math.random() * (maxWait - baseDelay));
 
-				app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `Rate limited, retrying in ${totalDelay}ms (attempt ${attempt}/${maxRetries})`);
+				app.Logger.info(
+					`${this.#instance.fullName}:Hilichurl`,
+					`Rate limited, retrying in ${totalDelay}ms (attempt ${attempt}/${maxRetries})`
+				);
 				await sleep(totalDelay);
 				continue;
 			}
@@ -99,7 +105,7 @@ module.exports = class HilichurlWorkshop {
 		}
 	}
 
-	async getGameInfo (accountData) {
+	async getGameInfo(accountData) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("index", {
@@ -116,11 +122,14 @@ module.exports = class HilichurlWorkshop {
 		}
 
 		// Genshin uses act_list[].act_info structure
-		const gameList = res.body.data.act_list?.map(item => item.act_info) ?? [];
-		const game = gameList.find(g => g.game_id === 2); // Genshin = game_id 2
+		const gameList = res.body.data.act_list?.map((item) => item.act_info) ?? [];
+		const game = gameList.find((g) => g.game_id === 2); // Genshin = game_id 2
 
 		if (!game) {
-			return { success: false, message: "Hilichurl Workshop event not active for Genshin Impact" };
+			return {
+				success: false,
+				message: "Hilichurl Workshop event not active for Genshin Impact"
+			};
 		}
 
 		return {
@@ -137,7 +146,7 @@ module.exports = class HilichurlWorkshop {
 		};
 	}
 
-	async getTasks (accountData, versionId) {
+	async getTasks(accountData, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("task-list", {
@@ -159,7 +168,7 @@ module.exports = class HilichurlWorkshop {
 
 		return {
 			success: true,
-			data: res.body.data.task_list.map(task => ({
+			data: res.body.data.task_list.map((task) => ({
 				id: task.task_id,
 				name: task.task_name,
 				timeType: task.time_type, // 0=permanent, 1=daily, 2=weekly
@@ -174,7 +183,7 @@ module.exports = class HilichurlWorkshop {
 		};
 	}
 
-	async finishTask (accountData, taskId, versionId) {
+	async finishTask(accountData, taskId, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("finish-task", {
@@ -198,7 +207,7 @@ module.exports = class HilichurlWorkshop {
 		return { success: true };
 	}
 
-	async claimTaskReward (accountData, taskId, versionId) {
+	async claimTaskReward(accountData, taskId, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		// Genshin uses POST for receive-point
@@ -224,7 +233,7 @@ module.exports = class HilichurlWorkshop {
 		return { success: true };
 	}
 
-	async getShopItems (accountData, versionId) {
+	async getShopItems(accountData, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("exchange-list", {
@@ -246,7 +255,7 @@ module.exports = class HilichurlWorkshop {
 
 		return {
 			success: true,
-			data: res.body.data.exchange_award_list.map(item => ({
+			data: res.body.data.exchange_award_list.map((item) => ({
 				id: item.award_id,
 				name: item.name,
 				icon: item.icon,
@@ -260,7 +269,7 @@ module.exports = class HilichurlWorkshop {
 		};
 	}
 
-	async exchangeItem (accountData, awardId, versionId) {
+	async exchangeItem(accountData, awardId, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("exchange", {
@@ -291,7 +300,7 @@ module.exports = class HilichurlWorkshop {
 		};
 	}
 
-	async run (accountData) {
+	async run(accountData) {
 		const results = {
 			tasksFinished: [],
 			tasksClaimed: [],
@@ -306,25 +315,37 @@ module.exports = class HilichurlWorkshop {
 
 		const gameInfo = await this.getGameInfo(accountData);
 		if (!gameInfo.success) {
-			return { success: false, message: gameInfo.message || "Failed to get Hilichurl Workshop info" };
+			return {
+				success: false,
+				message: gameInfo.message || "Failed to get Hilichurl Workshop info"
+			};
 		}
 
 		const { versionId } = gameInfo.data;
 		results.points = gameInfo.data.points;
 
-		app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Starting Hilichurl Workshop automation - Current points: ${results.points}`);
+		app.Logger.info(
+			`${this.#instance.fullName}:Hilichurl`,
+			`(${accountData.uid}) Starting Hilichurl Workshop automation - Current points: ${results.points}`
+		);
 
 		// Process tasks
 		const tasks = await this.getTasks(accountData, versionId);
 		if (tasks.success) {
 			for (const task of tasks.data) {
 				// Try to auto-complete finishable tasks
-				if (task.status === TaskStatus.ONGOING && FinishableTaskTypes.includes(task.taskType)) {
+				if (
+					task.status === TaskStatus.ONGOING &&
+					FinishableTaskTypes.includes(task.taskType)
+				) {
 					const finishResult = await this.finishTask(accountData, task.id, versionId);
 					if (finishResult.success) {
 						results.tasksFinished.push(task.name);
 						task.status = TaskStatus.FINISHED;
-						app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Finished task: ${task.name}`);
+						app.Logger.info(
+							`${this.#instance.fullName}:Hilichurl`,
+							`(${accountData.uid}) Finished task: ${task.name}`
+						);
 					}
 					await sleep(1000);
 				}
@@ -335,7 +356,10 @@ module.exports = class HilichurlWorkshop {
 					if (claimResult.success) {
 						results.tasksClaimed.push({ name: task.name, points: task.point });
 						results.points += task.point;
-						app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Claimed ${task.point} points for: ${task.name}`);
+						app.Logger.info(
+							`${this.#instance.fullName}:Hilichurl`,
+							`(${accountData.uid}) Claimed ${task.point} points for: ${task.name}`
+						);
 					}
 					await sleep(1000);
 				}
@@ -351,7 +375,7 @@ module.exports = class HilichurlWorkshop {
 		// Process shop exchanges
 		const shopItems = await this.getShopItems(accountData, versionId);
 		if (shopItems.success) {
-			results.shopStatus = shopItems.data.map(item => ({
+			results.shopStatus = shopItems.data.map((item) => ({
 				name: item.name,
 				cost: item.cost,
 				stock: item.stock,
@@ -359,18 +383,23 @@ module.exports = class HilichurlWorkshop {
 				nextRefreshTime: item.nextRefreshTime
 			}));
 
-			const freeItems = shopItems.data.filter(item => item.cost === 0 && item.status === ShopItemStatus.EXCHANGEABLE);
+			const freeItems = shopItems.data.filter(
+				(item) => item.cost === 0 && item.status === ShopItemStatus.EXCHANGEABLE
+			);
 			for (const item of freeItems) {
 				const exchangeResult = await this.exchangeItem(accountData, item.id, versionId);
 				if (exchangeResult.success) {
 					results.freeItemsClaimed.push(item.name);
-					app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Claimed free item: ${item.name}`);
+					app.Logger.info(
+						`${this.#instance.fullName}:Hilichurl`,
+						`(${accountData.uid}) Claimed free item: ${item.name}`
+					);
 				}
 				await sleep(1000);
 			}
 
 			const currencyItems = shopItems.data
-				.filter(item => item.name.toLowerCase().includes("primogem"))
+				.filter((item) => item.name.toLowerCase().includes("primogem"))
 				.sort((a, b) => b.cost - a.cost);
 
 			for (const item of currencyItems) {
@@ -388,26 +417,36 @@ module.exports = class HilichurlWorkshop {
 					results.itemsExchanged.push({ name: item.name, cost: item.cost, code });
 					results.points -= item.cost;
 
-					app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Exchanged ${item.name}${code ? ` for code: ${code}` : ""}`);
+					app.Logger.info(
+						`${this.#instance.fullName}:Hilichurl`,
+						`(${accountData.uid}) Exchanged ${item.name}${code ? ` for code: ${code}` : ""}`
+					);
 
 					// Check if auto-redeem is enabled (hilichurl.redeem defaults to true for backward compatibility)
-					const shouldRedeem = accountData.redeemCode && (accountData.hilichurl?.redeem !== false);
+					const shouldRedeem =
+						accountData.redeemCode && accountData.hilichurl?.redeem !== false;
 
 					if (code && shouldRedeem) {
 						await sleep(5000);
 						const redeemResult = await this.#instance.redeemCode(accountData, code);
 						if (redeemResult.success) {
 							results.codesRedeemed.push(code);
-							app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Redeemed code: ${code}`);
+							app.Logger.info(
+								`${this.#instance.fullName}:Hilichurl`,
+								`(${accountData.uid}) Redeemed code: ${code}`
+							);
+						} else {
+							results.errors.push(
+								`Failed to redeem code ${code}: ${redeemResult.message}`
+							);
 						}
-						else {
-							results.errors.push(`Failed to redeem code ${code}: ${redeemResult.message}`);
-						}
-					}
-					else if (code) {
+					} else if (code) {
 						// Code obtained but not auto-redeemed
 						results.codesObtained.push(code);
-						app.Logger.info(`${this.#instance.fullName}:Hilichurl`, `(${accountData.uid}) Code obtained (not auto-redeemed): ${code}`);
+						app.Logger.info(
+							`${this.#instance.fullName}:Hilichurl`,
+							`(${accountData.uid}) Code obtained (not auto-redeemed): ${code}`
+						);
 					}
 				}
 
@@ -428,7 +467,7 @@ module.exports = class HilichurlWorkshop {
 		};
 	}
 
-	async getNextRestockTime (accountData) {
+	async getNextRestockTime(accountData) {
 		const gameInfo = await this.getGameInfo(accountData);
 		if (!gameInfo.success) {
 			return { success: false };
@@ -439,7 +478,7 @@ module.exports = class HilichurlWorkshop {
 			return { success: false };
 		}
 
-		const currencyItem = shopItems.data.find(i => i.name.toLowerCase().includes("primogem"));
+		const currencyItem = shopItems.data.find((i) => i.name.toLowerCase().includes("primogem"));
 		if (!currencyItem) {
 			return { success: false, message: "No primogem items found" };
 		}
@@ -448,14 +487,15 @@ module.exports = class HilichurlWorkshop {
 			success: true,
 			data: {
 				nextRefreshTime: currencyItem.nextRefreshTime,
-				nextRefreshDate: currencyItem.nextRefreshTime > 0
-					? new Date(Date.now() + (currencyItem.nextRefreshTime * 1000))
-					: null
+				nextRefreshDate:
+					currencyItem.nextRefreshTime > 0
+						? new Date(Date.now() + currencyItem.nextRefreshTime * 1000)
+						: null
 			}
 		};
 	}
 
-	#getCookieData (accountData) {
+	#getCookieData(accountData) {
 		return app.HoyoLab.parseCookie(accountData.cookie, {
 			whitelist: [
 				"ltoken_v2",

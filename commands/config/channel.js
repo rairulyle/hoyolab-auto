@@ -8,7 +8,11 @@ const run = async (interaction) => {
 	const field = `${type}ChannelId`;
 	if (!channel) {
 		const current = guild?.[field];
-		return await reply(current ? `**${type}** notifications go to <#${current}>.` : `No **${type}** channel configured yet.`);
+		return await reply(
+			current
+				? `**${type}** notifications go to <#${current}>.`
+				: `No **${type}** channel configured yet.`
+		);
 	}
 	await app.db.setGuildField(guildId, field, channel.id);
 	return await reply(`**${type}** notifications will go to <#${channel.id}>.`);

@@ -27,12 +27,9 @@ module.exports = {
 			required: true
 		}
 	],
-	run: (async function redeem (context, game, uid, code) {
+	run: async function redeem(context, game, uid, code) {
 		const { interaction } = context;
-		const supportedGames = app.HoyoLab.supportedGames({ blacklist: [
-			"honkai",
-			"tot"
-		]});
+		const supportedGames = app.HoyoLab.supportedGames({ blacklist: ["honkai", "tot"] });
 
 		if (supportedGames.length === 0) {
 			if (interaction) {
@@ -108,5 +105,5 @@ module.exports = {
 			success: true,
 			reply: `Successfully redeemed code: ${code}`
 		};
-	})
+	}
 };

@@ -8,8 +8,7 @@ const fetchData = async () => {
 			const hash = execSync("git rev-parse --short HEAD").toString().trim();
 
 			version = `HoyoLabAuto@${hash}`;
-		}
-		catch {
+		} catch {
 			version = "HoyoLabAuto";
 		}
 	}

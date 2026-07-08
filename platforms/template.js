@@ -13,15 +13,14 @@ module.exports = class Platform {
 	/** @type {Platform[]} */
 	static list = [];
 
-	constructor (name, config) {
+	constructor(name, config) {
 		this.#name = name;
 		this.#id = config.id;
 		if (!this.#id) {
 			throw new app.Error({
 				message: "No ID provided for Platform."
 			});
-		}
-		else if (typeof this.#id !== "number") {
+		} else if (typeof this.#id !== "number") {
 			throw new app.Error({
 				message: "Invalid ID must be a number."
 			});
@@ -38,30 +37,68 @@ module.exports = class Platform {
 		Platform.list.push(this);
 	}
 
-	get ID () { return this.#id; }
-	get id () { return this.#id; }
-	get Name () { return this.#name; }
-	get name () { return this.#name; }
-	get botId () { return this.#botId; }
-	get Token () { return this.#token; }
-	get token () { return this.#token; }
-	get Prefix () { return this.#prefix; }
-	get prefix () { return this.#prefix; }
-	get chatId () { return this.#chatId; }
-	get Data () { return this.#data; }
-	get data () { return this.#data; }
-	get disableNotification () { return this.#disableNotification; }
+	get ID() {
+		return this.#id;
+	}
 
-	initListeners () {}
+	get id() {
+		return this.#id;
+	}
+
+	get Name() {
+		return this.#name;
+	}
+
+	get name() {
+		return this.#name;
+	}
+
+	get botId() {
+		return this.#botId;
+	}
+
+	get Token() {
+		return this.#token;
+	}
+
+	get token() {
+		return this.#token;
+	}
+
+	get Prefix() {
+		return this.#prefix;
+	}
+
+	get prefix() {
+		return this.#prefix;
+	}
+
+	get chatId() {
+		return this.#chatId;
+	}
+
+	get Data() {
+		return this.#data;
+	}
+
+	get data() {
+		return this.#data;
+	}
+
+	get disableNotification() {
+		return this.#disableNotification;
+	}
+
+	initListeners() {}
 
 	// eslint-disable-next-line no-unused-vars
-	async send (message, options = {}) {
+	async send(message, options = {}) {
 		throw new app.Error({
 			message: "Send method not implemented by the Platform."
 		});
 	}
 
-	prepareMessage (messageData, options = {}) {
+	prepareMessage(messageData, options = {}) {
 		if (!options.type) {
 			throw new app.Error({
 				message: "No type provided for message preparation",
@@ -80,13 +117,7 @@ module.exports = class Platform {
 			});
 		}
 
-		const types = [
-			"stamina",
-			"check-in",
-			"expedition",
-			"dailies",
-			"weeklies"
-		];
+		const types = ["stamina", "check-in", "expedition", "dailies", "weeklies"];
 
 		const type = options.type;
 		if (!types.includes(type)) {
@@ -101,11 +132,11 @@ module.exports = class Platform {
 		return messageData;
 	}
 
-	restart () {}
+	restart() {}
 
-	destroy () {}
+	destroy() {}
 
-	static getForAccount (account) {
+	static getForAccount(account) {
 		if (!account) {
 			return [...Platform.list];
 		}
@@ -116,25 +147,22 @@ module.exports = class Platform {
 		if (allowed.length === 0) {
 			return [];
 		}
-		return Platform.list.filter(p => allowed.includes(p.id));
+		return Platform.list.filter((p) => allowed.includes(p.id));
 	}
 
-	static get (identifier) {
+	static get(identifier) {
 		if (identifier instanceof Platform) {
 			return identifier;
-		}
-		else if (typeof identifier === "number") {
-			return Platform.list.find(i => i.id === identifier) ?? null;
-		}
-		else if (typeof identifier === "string") {
-			const platform = Platform.list.find(i => i.name === identifier);
+		} else if (typeof identifier === "number") {
+			return Platform.list.find((i) => i.id === identifier) ?? null;
+		} else if (typeof identifier === "string") {
+			const platform = Platform.list.find((i) => i.name === identifier);
 			if (platform.length === 0) {
 				return null;
 			}
 
 			return platform;
-		}
-		else {
+		} else {
 			throw new app.Error({
 				message: "Unrecognized identifier type.",
 				args: typeof identifier
@@ -142,7 +170,7 @@ module.exports = class Platform {
 		}
 	}
 
-	static create (type, config) {
+	static create(type, config) {
 		let InstancePlatform;
 		switch (type) {
 			case "discord":

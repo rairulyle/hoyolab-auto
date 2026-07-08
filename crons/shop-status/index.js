@@ -3,8 +3,9 @@ const { notifyAccount } = require("../../core/notify.js");
 module.exports = {
 	name: "shop-status",
 	expression: "0 */1 * * *",
-	description: "This will check your current shop status and will fire a notification if your shop has finished selling.",
-	code: (async function shopStatus () {
+	description:
+		"This will check your current shop status and will fire a notification if your shop has finished selling.",
+	code: async function shopStatus() {
 		const accounts = app.HoyoLab.getActiveAccounts({ whitelist: "nap" });
 		if (accounts.length === 0) {
 			app.Logger.warn("Cron:ShopStatus", "No active accounts found to run shop status for.");
@@ -57,13 +58,20 @@ module.exports = {
 					}
 				};
 
-				const telegramText = app.Utils.escapeCharacters([
-					`🛒 Shop Status`,
-					`UID: ${account.uid} ${account.nickname}`,
-					`Your shop has finished selling videos!`
-				].join("\n"));
-				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+				const telegramText = app.Utils.escapeCharacters(
+					[
+						`🛒 Shop Status`,
+						`UID: ${account.uid} ${account.nickname}`,
+						`Your shop has finished selling videos!`
+					].join("\n")
+				);
+				await notifyAccount(account, {
+					embeds: [embed],
+					telegramText,
+					ping: true,
+					kind: "reminder"
+				});
 			}
 		}
-	})
+	}
 };

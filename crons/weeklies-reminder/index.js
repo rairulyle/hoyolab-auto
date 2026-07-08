@@ -62,9 +62,9 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 		}
 	}
 	if (platform.type === "starrail") {
-		const bossCompleted = (weeklies.weeklyBoss === 0);
-		const simCompleted = (weeklies.rogueScore === weeklies.maxScore);
-		const divergent = (weeklies.tournScore === weeklies.tournMaxScore && weeklies.tournUnlocked);
+		const bossCompleted = weeklies.weeklyBoss === 0;
+		const simCompleted = weeklies.rogueScore === weeklies.maxScore;
+		const divergent = weeklies.tournScore === weeklies.tournMaxScore && weeklies.tournUnlocked;
 		if (bossCompleted && simCompleted && divergent) {
 			return;
 		}
@@ -75,7 +75,9 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 				value: `${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`,
 				inline: true
 			});
-			message.push(`- **Weekly Boss**: ${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`);
+			message.push(
+				`- **Weekly Boss**: ${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`
+			);
 		}
 		if (!simCompleted) {
 			embed.fields.push({
@@ -91,12 +93,14 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 				value: `${weeklies.tournScore}/${weeklies.tournMaxScore}`,
 				inline: true
 			});
-			message.push(`- **Divergent Universe**: ${weeklies.tournScore}/${weeklies.tournMaxScore}`);
+			message.push(
+				`- **Divergent Universe**: ${weeklies.tournScore}/${weeklies.tournMaxScore}`
+			);
 		}
 	}
 	if (platform.type === "nap") {
-		const bountiesCompleted = (weeklies.bounty === weeklies.bountyTotal);
-		const surveyCompleted = (weeklies.surveyPoints === weeklies.surveyPointsTotal);
+		const bountiesCompleted = weeklies.bounty === weeklies.bountyTotal;
+		const surveyCompleted = weeklies.surveyPoints === weeklies.surveyPointsTotal;
 		if (bountiesCompleted && surveyCompleted) {
 			return;
 		}
@@ -115,7 +119,9 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 				value: `${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`,
 				inline: true
 			});
-			message.push(`- **Survey Points**: ${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`);
+			message.push(
+				`- **Survey Points**: ${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`
+			);
 		}
 	}
 
@@ -127,8 +133,8 @@ module.exports = {
 	name: "weeklies-reminder",
 	expression: "*/5 * * * 0",
 	description: "Reminds you to complete your weeklies.",
-	code: (async function weekliesReminder () {
+	code: async function weekliesReminder() {
 		// eslint-disable-next-line object-curly-spacing
 		await RegionalTaskManager.executeTasks();
-	})
+	}
 };

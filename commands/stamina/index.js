@@ -23,12 +23,22 @@ const getStaminaData = async (accounts, game) => {
 
 const formatStaminaMessage = (data, discord = false) => {
 	let text = "";
-	for (const { uid, region, username, currentStamina, maxStamina, recoveryTime, reserveStamina } of data) {
+	for (const {
+		uid,
+		region,
+		username,
+		currentStamina,
+		maxStamina,
+		recoveryTime,
+		reserveStamina
+	} of data) {
 		const delta = app.Utils.formatTime(recoveryTime);
 		const fixedRegion = app.HoyoLab.getRegion(region);
 
 		const description = [
-			discord ? `\n\`\`\`yaml\n${username} (${uid}) - ${fixedRegion}\`\`\`` : `\n${username} (${uid}) - ${fixedRegion}`,
+			discord
+				? `\n\`\`\`yaml\n${username} (${uid}) - ${fixedRegion}\`\`\``
+				: `\n${username} (${uid}) - ${fixedRegion}`,
 			`Current: ${Math.floor(currentStamina)}/${maxStamina}`,
 			`Recovery Time: ${delta}`
 		];
@@ -58,12 +68,9 @@ module.exports = {
 			required: true
 		}
 	],
-	run: (async function stamina (context, game) {
+	run: async function stamina(context, game) {
 		const { interaction } = context;
-		const supportedGames = app.HoyoLab.supportedGames({ blacklist: [
-			"honkai",
-			"tot"
-		]});
+		const supportedGames = app.HoyoLab.supportedGames({ blacklist: ["honkai", "tot"] });
 
 		if (supportedGames.length === 0) {
 			const message = "There are no accounts available for checking stamina.";
@@ -79,7 +86,10 @@ module.exports = {
 				: { success: false, reply: message.replace(/nap/, "zenless") };
 		}
 
-		game = game.toLowerCase() === "zenless" || game.toLowerCase() === "zzz" ? "nap" : game.toLowerCase();
+		game =
+			game.toLowerCase() === "zenless" || game.toLowerCase() === "zzz"
+				? "nap"
+				: game.toLowerCase();
 
 		if (!supportedGames.includes(game)) {
 			const message = `Invalid game specified. Supported games are: ${supportedGames.join(", ")}`;
@@ -107,16 +117,17 @@ module.exports = {
 
 		if (interaction) {
 			const discordData = {
-				embeds: [{
-					title: "Stamina",
-					description: formatStaminaMessage(staminaData, true)
-				}]
+				embeds: [
+					{
+						title: "Stamina",
+						description: formatStaminaMessage(staminaData, true)
+					}
+				]
 			};
 			return await interaction.reply({ embeds: discordData.embeds, ephemeral: true });
-		}
-		else {
+		} else {
 			const text = formatStaminaMessage(staminaData);
 			return { success: true, reply: text };
 		}
-	})
+	}
 };

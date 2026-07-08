@@ -37,7 +37,9 @@ const createEmbed = (type, diary, options = {}) => {
 					},
 					{
 						name: "**Current Month\nBreakdown**",
-						value: currentMonth.primo.actionPercentages.map(item => `${item.category}: ${item.total} (${item.percentage}%)`).join("\n"),
+						value: currentMonth.primo.actionPercentages
+							.map((item) => `${item.category}: ${item.total} (${item.percentage}%)`)
+							.join("\n"),
 						inline: true
 					},
 					{
@@ -47,7 +49,9 @@ const createEmbed = (type, diary, options = {}) => {
 					},
 					{
 						name: "**Last Month\nBreakdown**",
-						value: lastMonth.primo.actionPercentages.map(item => `${item.category}: ${item.total} (${item.percentage}%)`).join("\n"),
+						value: lastMonth.primo.actionPercentages
+							.map((item) => `${item.category}: ${item.total} (${item.percentage}%)`)
+							.join("\n"),
 						inline: true
 					}
 				],
@@ -60,8 +64,7 @@ const createEmbed = (type, diary, options = {}) => {
 		];
 
 		return embeds;
-	}
-	else if (type === "starrail") {
+	} else if (type === "starrail") {
 		const embeds = [
 			{
 				title: `**${account.nickname}**'s Diary`,
@@ -92,7 +95,9 @@ const createEmbed = (type, diary, options = {}) => {
 					},
 					{
 						name: "**Current Month\nBreakdown**",
-						value: currentMonth.jades.actionPercentages.map(item => `${item.category}: ${item.total} (${item.percentage}%)`).join("\n"),
+						value: currentMonth.jades.actionPercentages
+							.map((item) => `${item.category}: ${item.total} (${item.percentage}%)`)
+							.join("\n"),
 						inline: true
 					},
 					{
@@ -102,7 +107,9 @@ const createEmbed = (type, diary, options = {}) => {
 					},
 					{
 						name: "**Last Month\nBreakdown**",
-						value: lastMonth.jades.actionPercentages.map(item => `${item.category}: ${item.total} (${item.percentage}%)`).join("\n"),
+						value: lastMonth.jades.actionPercentages
+							.map((item) => `${item.category}: ${item.total} (${item.percentage}%)`)
+							.join("\n"),
 						inline: true
 					}
 				],
@@ -140,12 +147,15 @@ module.exports = {
 			accounts: true
 		}
 	],
-	run: (async function notes (context, game, uid) {
+	run: async function notes(context, game, uid) {
 		const { interaction } = context;
 
 		const account = app.HoyoLab.getAccountById(uid);
 		if (account.platform !== game) {
-			return interaction.reply({ content: "This account does not belong to the selected game.", ephemeral: true });
+			return interaction.reply({
+				content: "This account does not belong to the selected game.",
+				ephemeral: true
+			});
 		}
 
 		const platform = app.HoyoLab.get(account.platform);
@@ -159,5 +169,5 @@ module.exports = {
 
 		const embedData = createEmbed(account.platform, diary, { account, platform });
 		await interaction.editReply({ embeds: embedData, ephemeral: true });
-	})
+	}
 };

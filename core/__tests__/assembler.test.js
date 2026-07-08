@@ -15,7 +15,14 @@ const profile = (over = {}) => ({
 	tokenStatus: "active",
 	discordUserId: "u1",
 	games: [
-		{ key: "genshin", uid: "800", region: "os_asia", nickname: "T", active: true, settings: { stamina: { check: true } } }
+		{
+			key: "genshin",
+			uid: "800",
+			region: "os_asia",
+			nickname: "T",
+			active: true,
+			settings: { stamina: { check: true } }
+		}
 	],
 	...over
 });
@@ -44,12 +51,27 @@ test("one profile with two games yields two account groups sharing the cookie", 
 });
 
 test("skips expired profiles, inactive games, and duplicate ltuid per game", async () => {
-	const cfg = await assemble(fakeDb([
-		profile({ _id: "p1" }),
-		profile({ _id: "p2", guildId: "g2", label: "other" }),
-		profile({ _id: "p3", guildId: "g3", label: "dead", tokenStatus: "expired", ltuid: "333" }),
-		profile({ _id: "p4", guildId: "g4", label: "off", ltuid: "444", games: [{ key: "genshin", uid: "900", active: false, settings: {} }]})
-	]), ENV);
+	const cfg = await assemble(
+		fakeDb([
+			profile({ _id: "p1" }),
+			profile({ _id: "p2", guildId: "g2", label: "other" }),
+			profile({
+				_id: "p3",
+				guildId: "g3",
+				label: "dead",
+				tokenStatus: "expired",
+				ltuid: "333"
+			}),
+			profile({
+				_id: "p4",
+				guildId: "g4",
+				label: "off",
+				ltuid: "444",
+				games: [{ key: "genshin", uid: "900", active: false, settings: {} }]
+			})
+		]),
+		ENV
+	);
 	assert.equal(cfg.accounts.length, 1);
 	assert.equal(cfg.accounts[0].data.length, 1);
 	assert.equal(cfg.warnings.length, 1);
@@ -58,7 +80,9 @@ test("skips expired profiles, inactive games, and duplicate ltuid per game", asy
 
 test("builds discord platform from env", async () => {
 	const cfg = await assemble(fakeDb([]), ENV);
-	assert.deepEqual(cfg.platforms, [{ id: 1, active: true, type: "discord", botId: "999", token: "token.abc.def" }]);
+	assert.deepEqual(cfg.platforms, [
+		{ id: 1, active: true, type: "discord", botId: "999", token: "token.abc.def" }
+	]);
 	assert.equal(cfg.accounts.length, 0);
 	assert.equal(cfg.testNotification.enabled, false);
 });
