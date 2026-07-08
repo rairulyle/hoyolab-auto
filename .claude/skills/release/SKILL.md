@@ -47,6 +47,10 @@ Prints the target version based on Conventional Commits since the last tag
 override, use `--release-as X.Y.Z`. Note the target `X.Y.Z` — used everywhere
 below.
 
+For the **first** release there is no prior tag, so the tool analyzes the
+entire history and may compute a surprising bump — pass `--release-as X.Y.Z`
+explicitly (e.g. `--release-as 1.0.1`) to pin it.
+
 ### 2. Finalize the changelog
 
 `CHANGELOG.md` is hand-maintained; the bump tool is configured to skip it.
