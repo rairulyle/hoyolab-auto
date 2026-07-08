@@ -149,8 +149,8 @@ account. Four near-identical cards that differ only in owner and IGN is spam.
 - **Per-account row:** the owner mention + IGN, then only the fields that vary —
   reward, streak/threshold, result. Build rows in the embed `description` (or one
   field per account), not as a separate embed.
-- **Colour & footer:** the game's accent bar and the single timestamped footer
-  are unchanged; the footer text must not duplicate the title.
+- **Colour & footer:** keep the game's accent bar and a single footer; the
+  footer carries **no timestamp** and its text must not duplicate the title.
 - **Errors stay addressable:** a failed account (e.g. dead cookie) keeps its own
   row and still pings its owner via `content` (`<@id>`), never in the embed.
 - **Chunking:** if a group exceeds Discord's limits (25 fields / 6000 chars /
@@ -159,6 +159,32 @@ account. Four near-identical cards that differ only in owner and IGN is spam.
 
 Applies to check-in (group by game), reminders (group by game + reminder type),
 and redeem (group by code).
+
+## Embed text & labels
+
+Adapted from `nova-ph-bot` — our embeds are informational (short status lines),
+not dense data tables, so we take the rules that carry and leave the number-grid
+tooling behind.
+
+- **Case by structural role, not taste.** Embed **title** → Title Case. A field
+  `name` that labels a group (section header) → Title Case. A field `name` that
+  **is** an entity — an account IGN, a redeem code — keeps its **natural case**;
+  never `.toUpperCase()` a proper noun. A unit/descriptor trailing a value →
+  lowercase (`Day 7`, `already claimed`). A full sentence (footer note, error) →
+  Sentence case. `ALLCAPS` is reserved for **at most one** emphasis line per
+  embed (an alert banner) — never a name, never a sentence.
+- **Name the entity; don't repeat labels.** Prefer one field per account whose
+  `name` is the account (owner mention + IGN) and whose `value` carries the
+  varying data as inline descriptors, over a fixed `Profile / UID / Region /
+Reward / Result` grid duplicated on every card. Labels that read the same on
+  every row are noise — the differing values are the information.
+- **No footer timestamps.** Never set `timestamp` on an embed — Discord already
+  shows the message's send time next to the bot name, so an embed clock is
+  redundant. Footer **text** is fine; the timestamp is not.
+- **Spacers only when it crowds.** Discord puts no gap between stacked
+  (`inline: false`) fields; when a many-field embed crowds, add a blank spacer
+  field — a zero-width space (`​`) for both `name` and `value` — between
+  sections. A judgement call about readability, not a reflex.
 
 ## Game keys vs engine names
 
