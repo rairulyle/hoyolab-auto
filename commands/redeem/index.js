@@ -1,3 +1,7 @@
+const { classifyRedeem } = require("../../hoyolab-modules/redeem-status.js");
+const { gameKeyFromEngineName } = require("../../config/games.js");
+const { setTimeout: sleep } = require("node:timers/promises");
+
 module.exports = {
 	name: "redeem",
 	description: "Redeem provided codes for the specified game.",
@@ -29,6 +33,11 @@ module.exports = {
 	],
 	run: async function redeem(context, game, uid, code) {
 		const { interaction } = context;
+		if (interaction) {
+			game = interaction.options.getString("game");
+			uid = interaction.options.getString("account");
+			code = interaction.options.getString("code");
+		}
 		const supportedGames = app.HoyoLab.supportedGames({ blacklist: ["honkai", "tot"] });
 
 		if (supportedGames.length === 0) {
@@ -46,6 +55,12 @@ module.exports = {
 			// Single-code path (game + account + code required).
 			if (!game) {
 				const m = "Please specify a game.";
+				return interaction
+					? interaction.reply({ content: m, ephemeral: true })
+					: { success: false, reply: m };
+			}
+			if (!uid) {
+				const m = "Please specify an account.";
 				return interaction
 					? interaction.reply({ content: m, ephemeral: true })
 					: { success: false, reply: m };
@@ -68,10 +83,6 @@ module.exports = {
 			await interaction.deferReply({ ephemeral: true });
 		}
 
-		const { classifyRedeem } = require("../../hoyolab-modules/redeem-status.js");
-		const { gameKeyFromEngineName } = require("../../config/games.js");
-		const { setTimeout: sleep } = require("node:timers/promises");
-
 		const CACHE_KEYS = {
 			genshin: "genshin-code",
 			starrail: "starrail-code",
@@ -92,7 +103,10 @@ module.exports = {
 				continue;
 			}
 			const gameKey = gameKeyFromEngineName(engineGame) ?? engineGame;
-			const accounts = app.HoyoLab.getActiveAccounts({ whitelist: engineGame });
+			let accounts = app.HoyoLab.getActiveAccounts({ whitelist: engineGame });
+			if (uid) {
+				accounts = accounts.filter((account) => account.uid === uid);
+			}
 
 			for (const account of accounts) {
 				const profiles = await app.db.findProfilesByGameUid(gameKey, account.uid);
