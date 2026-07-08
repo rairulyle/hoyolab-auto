@@ -5,8 +5,7 @@ const botIdFromToken = (token) => {
 	try {
 		const decoded = Buffer.from(token.split(".")[0], "base64").toString("utf8");
 		return /^\d{15,21}$/.test(decoded) ? decoded : null;
-	}
-	catch {
+	} catch {
 		return null;
 	}
 };
@@ -22,7 +21,7 @@ const assemble = async (db, env = process.env) => {
 		throw new Error("Could not derive bot ID from DISCORD_TOKEN; set DISCORD_BOT_ID in .env.");
 	}
 
-	const profiles = (await db.listAllProfiles()).filter(p => p.tokenStatus !== "expired");
+	const profiles = (await db.listAllProfiles()).filter((p) => p.tokenStatus !== "expired");
 
 	const warnings = [];
 	const seen = new Set();
@@ -36,7 +35,9 @@ const assemble = async (db, env = process.env) => {
 
 			const identity = `${game.key}:${profile.ltuid}`;
 			if (seen.has(identity)) {
-				warnings.push(`Skipped duplicate account ${identity} (label "${profile.label}" in guild ${profile.guildId}); ltuid ${profile.ltuid} already assembled for ${game.key}`);
+				warnings.push(
+					`Skipped duplicate account ${identity} (label "${profile.label}" in guild ${profile.guildId}); ltuid ${profile.ltuid} already assembled for ${game.key}`
+				);
 				continue;
 			}
 			seen.add(identity);

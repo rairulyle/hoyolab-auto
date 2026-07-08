@@ -29,7 +29,7 @@ const detectGames = async (cookie, ltuid, got = defaultGot) => {
 	}
 
 	return (data?.list ?? [])
-		.map(card => {
+		.map((card) => {
 			const key = gameKeyFromRecordCardId(card.game_id);
 			if (!key) {
 				return null;

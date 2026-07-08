@@ -4,13 +4,13 @@ module.exports = class RealtimeNotes {
 	#logo;
 	#color;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 	}
 
-	async notes (accountData) {
+	async notes(accountData) {
 		const cachedData = await this.#instance.dataCache.get(accountData.uid);
 
 		const { threshold } = accountData.stamina;
@@ -29,11 +29,7 @@ module.exports = class RealtimeNotes {
 		}
 
 		const cookieData = app.HoyoLab.parseCookie(accountData.cookie, {
-			whitelist: [
-				"ltoken_v2",
-				"ltmid_v2",
-				"ltuid_v2"
-			]
+			whitelist: ["ltoken_v2", "ltmid_v2", "ltuid_v2"]
 		});
 
 		const res = await app.Got("HoYoLab", {
@@ -117,8 +113,8 @@ module.exports = class RealtimeNotes {
 			weeklies,
 			realm,
 			expedition: {
-				completed: data.expeditions.every(i => i.status.toLowerCase() === "finished"),
-				list: data.expeditions.map(i => ({
+				completed: data.expeditions.every((i) => i.status.toLowerCase() === "finished"),
+				list: data.expeditions.map((i) => ({
 					avatar: i.avatar_side_icon,
 					status: i.status,
 					remaining_time: i.remained_time
@@ -134,8 +130,8 @@ module.exports = class RealtimeNotes {
 				weeklies,
 				realm,
 				expedition: {
-					completed: data.expeditions.every(i => i.status.toLowerCase() === "finished"),
-					list: data.expeditions.map(i => ({
+					completed: data.expeditions.every((i) => i.status.toLowerCase() === "finished"),
+					list: data.expeditions.map((i) => ({
 						avatar: i.avatar_side_icon,
 						status: i.status,
 						remaining_time: i.remained_time

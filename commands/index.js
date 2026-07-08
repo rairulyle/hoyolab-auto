@@ -1,4 +1,4 @@
-const loadCommands = (async function () {
+const loadCommands = async function () {
 	const { platform } = require("node:os");
 	const fs = require("node:fs/promises");
 	const path = require("node:path");
@@ -21,8 +21,7 @@ const loadCommands = (async function () {
 
 		try {
 			def = require(defPath);
-		}
-		catch {
+		} catch {
 			failed.push(dir.name);
 		}
 
@@ -35,7 +34,7 @@ const loadCommands = (async function () {
 		definitions,
 		failed
 	};
-});
+};
 
 module.exports = {
 	loadCommands

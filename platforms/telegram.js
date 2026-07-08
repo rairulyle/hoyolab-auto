@@ -6,22 +6,16 @@ module.exports = class Telegram extends require("./template.js") {
 
 	handlingCallbackQuery = false;
 
-	static possibleCommands = [
-		"/stamina",
-		"/expedition",
-		"/notes",
-		"/redeem"
-	];
+	static possibleCommands = ["/stamina", "/expedition", "/notes", "/redeem"];
 
-	constructor (config) {
+	constructor(config) {
 		super("telegram", config);
 
 		if (!this.chatId) {
 			throw new app.Error({
 				message: "No chat ID provided for Telegram controller"
 			});
-		}
-		else if (!this.token) {
+		} else if (!this.token) {
 			throw new app.Error({
 				message: "Telegram token has not been configured for the bot"
 			});
@@ -31,7 +25,7 @@ module.exports = class Telegram extends require("./template.js") {
 		setInterval(() => this.connect(), 5000);
 	}
 
-	async connect () {
+	async connect() {
 		const res = await app.Got("API", {
 			url: `https://api.telegram.org/bot${this.token}/getUpdates`,
 			method: "POST",
@@ -67,7 +61,7 @@ module.exports = class Telegram extends require("./template.js") {
 		}
 	}
 
-	async send (message, options = {}) {
+	async send(message, options = {}) {
 		if (typeof message !== "string") {
 			throw new app.Error({
 				message: "Provided message is not a string",
@@ -108,7 +102,7 @@ module.exports = class Telegram extends require("./template.js") {
 		return true;
 	}
 
-	async handleCommand (data) {
+	async handleCommand(data) {
 		const { command, args, channelData, userData } = data;
 
 		if (command === "redeem") {
@@ -133,29 +127,20 @@ module.exports = class Telegram extends require("./template.js") {
 				]);
 			}
 
-			await this.send(
-				"Please select the account you want to redeem the code for:",
-				{
-					reply_markup: {
-						inline_keyboard: keyboard
-					}
+			await this.send("Please select the account you want to redeem the code for:", {
+				reply_markup: {
+					inline_keyboard: keyboard
 				}
-			);
+			});
 			return;
 		}
 
-		const execution = await app.Command.checkAndRun(
-			command,
-			args,
-			channelData,
-			userData,
-			{
-				platform: {
-					id: 2,
-					name: "Telegram"
-				}
+		const execution = await app.Command.checkAndRun(command, args, channelData, userData, {
+			platform: {
+				id: 2,
+				name: "Telegram"
 			}
-		);
+		});
 
 		if (!execution) {
 			return;
@@ -169,7 +154,7 @@ module.exports = class Telegram extends require("./template.js") {
 		}
 	}
 
-	async handleMessage (messageData, options = {}) {
+	async handleMessage(messageData, options = {}) {
 		if (messageData.callback_query) {
 			this.handlingCallbackQuery = true;
 
@@ -191,11 +176,9 @@ module.exports = class Telegram extends require("./template.js") {
 					if (code) {
 						if (game === "zzz") {
 							game = "nap";
-						}
-						else if (game === "hsr") {
+						} else if (game === "hsr") {
 							game = "starrail";
-						}
-						else if (game === "gi") {
+						} else if (game === "gi") {
 							game = "genshin";
 						}
 
@@ -203,15 +186,13 @@ module.exports = class Telegram extends require("./template.js") {
 						if (!res.success) {
 							const reason = this.prepareMessage(res.data.reason);
 							await this.send(`Failed to redeem code: ${reason}`);
-						}
-						else {
+						} else {
 							await this.send(`Successfully redeemed code: ${code}`);
 						}
 					}
 					return;
 				}
-			}
-			finally {
+			} finally {
 				this.handlingCallbackQuery = false;
 			}
 		}
@@ -222,21 +203,21 @@ module.exports = class Telegram extends require("./template.js") {
 		}
 	}
 
-	prepareMessage (messageData) {
+	prepareMessage(messageData) {
 		const escapedMessage = app.Utils.escapeCharacters(messageData);
 
 		return escapedMessage;
 	}
 
-	addMessageListener (listener) {
+	addMessageListener(listener) {
 		this.messageListeners.push(listener);
 	}
 
-	removeMessageListener (listener) {
+	removeMessageListener(listener) {
 		this.messageListeners = this.messageListeners.filter((l) => l !== listener);
 	}
 
-	async waitForUserInput (userId, callbackQuery) {
+	async waitForUserInput(userId, callbackQuery) {
 		return new Promise((resolve, reject) => {
 			const listener = async (msgData) => {
 				if (msgData.message && msgData.message.from.id === userId) {
@@ -249,12 +230,11 @@ module.exports = class Telegram extends require("./template.js") {
 		});
 	}
 
-	async processMessageUpdates (result) {
+	async processMessageUpdates(result) {
 		for (const update of result) {
 			if (update.callback_query && !this.handlingCallbackQuery) {
 				await this.handleMessage(update);
-			}
-			else if (update.message) {
+			} else if (update.message) {
 				const { message } = update;
 				let handled = false;
 

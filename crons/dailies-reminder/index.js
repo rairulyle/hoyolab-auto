@@ -34,7 +34,11 @@ RegionalTaskManager.registerTask("DailiesReminder", 21, 0, async (account) => {
 			{ name: "UID", value: account.uid, inline: true },
 			{ name: "Username", value: account.nickname, inline: true },
 			{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true },
-			{ name: "Completed Dailies", value: `${data.dailies.task}/${data.dailies.maxTask}`, inline: true },
+			{
+				name: "Completed Dailies",
+				value: `${data.dailies.task}/${data.dailies.maxTask}`,
+				inline: true
+			},
 			{ name: "Current Stamina", value: `${current}/${max} (${delta})`, inline: true }
 		],
 		timestamp: new Date(),
@@ -44,14 +48,16 @@ RegionalTaskManager.registerTask("DailiesReminder", 21, 0, async (account) => {
 		}
 	};
 
-	const telegramText = app.Utils.escapeCharacters([
-		`📢 Dailies Reminder, Don't Forget to Do Your Dailies!`,
-		`🎮 **Game**: ${data.assets.game}`,
-		`🆔 **UID**: ${account.uid} ${account.nickname}`,
-		`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
-		`📅 **Completed Dailies**: ${data.dailies.task}/${data.dailies.maxTask}`,
-		`🔋 **Current Stamina**: ${current}/${max} (${delta})`
-	].join("\n"));
+	const telegramText = app.Utils.escapeCharacters(
+		[
+			`📢 Dailies Reminder, Don't Forget to Do Your Dailies!`,
+			`🎮 **Game**: ${data.assets.game}`,
+			`🆔 **UID**: ${account.uid} ${account.nickname}`,
+			`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
+			`📅 **Completed Dailies**: ${data.dailies.task}/${data.dailies.maxTask}`,
+			`🔋 **Current Stamina**: ${current}/${max} (${delta})`
+		].join("\n")
+	);
 	await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 });
 
@@ -59,8 +65,8 @@ module.exports = {
 	name: "dailies-reminder",
 	expression: "*/5 * * * *",
 	description: "Reminds you to complete your dailies.",
-	code: (async function dailiesReminder () {
+	code: async function dailiesReminder() {
 		// eslint-disable-next-line object-curly-spacing
 		await RegionalTaskManager.executeTasks({ blacklist: ["honkai", "tot"] });
-	})
+	}
 };

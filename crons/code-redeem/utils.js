@@ -111,8 +111,7 @@ const fetchCodes = async () => {
 
 		if (result.status === "fulfilled" && Array.isArray(result.value)) {
 			acc[game.key] = result.value;
-		}
-		else {
+		} else {
 			acc[game.key] = [];
 		}
 
@@ -142,7 +141,7 @@ const checkAndRedeem = async (codes) => {
 		});
 
 		if (game.redeemable === false) {
-			const manualEligibleAccounts = accounts.filter(acc => acc.redeemCode !== false);
+			const manualEligibleAccounts = accounts.filter((acc) => acc.redeemCode !== false);
 			if (manualEligibleAccounts.length > 0) {
 				const sampleAccount = manualEligibleAccounts[0];
 				const platform = app.HoyoLab.get(sampleAccount.platform ?? game.accountFilter);
@@ -152,12 +151,20 @@ const checkAndRedeem = async (codes) => {
 				for (const code of pendingCodes) {
 					manual.push({
 						gameKey: game.key,
-						gameName: sampleAccount.game?.name ?? platformAssets.game ?? game.key.toUpperCase(),
+						gameName:
+							sampleAccount.game?.name ??
+							platformAssets.game ??
+							game.key.toUpperCase(),
 						platform: game.platform,
 						assets: {
-							color: accountAssets.color ?? platform?.color ?? platformAssets.color ?? 0x5865F2,
+							color:
+								accountAssets.color ??
+								platform?.color ??
+								platformAssets.color ??
+								0x5865f2,
 							author: accountAssets.author ?? platformAssets.author ?? "HoyoLab Auto",
-							logo: accountAssets.logo ?? platform?.logo ?? platformAssets.logo ?? null
+							logo:
+								accountAssets.logo ?? platform?.logo ?? platformAssets.logo ?? null
 						},
 						reason: game.manualReason ?? DEFAULT_MANUAL_REASON,
 						code
@@ -180,8 +187,7 @@ const checkAndRedeem = async (codes) => {
 				const result = await redeemCodes(account, code);
 				if (result.success) {
 					success.push({ account, code });
-				}
-				else {
+				} else {
 					failed.push({
 						account,
 						code,
@@ -208,9 +214,14 @@ const buildMessage = (status, data) => {
 	const account = data.account ?? {};
 	const assets = account.assets ?? data.assets ?? {};
 
-	const gameName = account.game?.name
-		?? data.gameName
-		?? (data.gameKey ? data.gameKey.toUpperCase() : (account.platform ? account.platform.toUpperCase() : "Unknown Game"));
+	const gameName =
+		account.game?.name ??
+		data.gameName ??
+		(data.gameKey
+			? data.gameKey.toUpperCase()
+			: account.platform
+				? account.platform.toUpperCase()
+				: "Unknown Game");
 
 	const redeemLinkBase = REDEMPTION_LINKS[data.gameKey ?? data.platform ?? account.platform];
 	const redeemLink = redeemLinkBase ? `${redeemLinkBase}?code=${data.code.code}` : null;
@@ -248,10 +259,7 @@ const buildMessage = (status, data) => {
 		? `[${gameName}]`
 		: `[${gameName}] (${account.uid ?? "Unknown UID"}) ${account.nickname ?? "Unknown"}`;
 
-	const messageParts = [
-		headerLine,
-		`\n${messageTitle}`
-	];
+	const messageParts = [headerLine, `\n${messageTitle}`];
 
 	for (const line of detailLines) {
 		messageParts.push(`\n${line}`);
@@ -270,7 +278,7 @@ const buildMessage = (status, data) => {
 	const embedDescriptionParts = [
 		isManual ? null : `(${account.uid ?? "Unknown UID"}) ${account.nickname ?? "Unknown"}`,
 		`\n${messageTitle}`,
-		...detailLines.map(line => `\n${line}`),
+		...detailLines.map((line) => `\n${line}`),
 		`\nCode: ${data.code.code}`
 	].filter(Boolean);
 
@@ -283,7 +291,7 @@ const buildMessage = (status, data) => {
 	}
 
 	const embed = {
-		color: assets.color ?? 0x5865F2,
+		color: assets.color ?? 0x5865f2,
 		title: `${gameName} Code Redeem`,
 		author: {
 			name: assets.author ?? "HoyoLab Auto",
@@ -316,9 +324,7 @@ const checkCachedCodes = async (codes) => {
 
 		const cachedCodes = await getCachedCodes(game.cacheKey);
 		if (cachedCodes.length === 0) {
-			const cachedValues = incomingCodes
-				.map(formatCodeValue)
-				.filter(Boolean);
+			const cachedValues = incomingCodes.map(formatCodeValue).filter(Boolean);
 
 			await app.Cache.set({
 				key: game.cacheKey,

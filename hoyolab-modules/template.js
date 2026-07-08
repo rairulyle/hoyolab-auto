@@ -16,15 +16,14 @@ module.exports = class HoyoLab {
 	static list = [];
 	static webAPI = "https://webapi-os.account.hoyoverse.com/Api/fetch_cookie_accountinfo";
 
-	constructor (name, config, defaults = {}) {
+	constructor(name, config, defaults = {}) {
 		this.#name = name;
 		this.#id = config.id;
 		if (!this.#id) {
 			throw new app.Error({
 				message: "No ID provided for HoyoLab."
 			});
-		}
-		else if (typeof this.#id !== "number") {
+		} else if (typeof this.#id !== "number") {
 			throw new app.Error({
 				message: "Invalid ID must be a number."
 			});
@@ -50,7 +49,8 @@ module.exports = class HoyoLab {
 		for (const account of accounts) {
 			if (typeof account.cookie === "object") {
 				throw new app.Error({
-					message: "This cookie method is deprecated, please follow the new cookie guide again: https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd"
+					message:
+						"This cookie method is deprecated, please follow the new cookie guide again: https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd"
 				});
 			}
 
@@ -129,7 +129,12 @@ module.exports = class HoyoLab {
 			}
 
 			const { stamina } = account;
-			if (!stamina || typeof stamina.check !== "boolean" || typeof stamina.threshold !== "number" || typeof stamina.persistent !== "boolean") {
+			if (
+				!stamina ||
+				typeof stamina.check !== "boolean" ||
+				typeof stamina.threshold !== "number" ||
+				typeof stamina.persistent !== "boolean"
+			) {
 				throw new app.Error({
 					message: "Invalid stamina object provided for HoyoLab.",
 					args: {
@@ -172,7 +177,8 @@ module.exports = class HoyoLab {
 			this.#data.push({
 				cookie: parsedCookie.cookie,
 				ltuid,
-				redeemCode: parsedCookie.codeRedeem !== false ? redeemCode : parsedCookie.codeRedeem,
+				redeemCode:
+					parsedCookie.codeRedeem !== false ? redeemCode : parsedCookie.codeRedeem,
 				shopStatus,
 				realm,
 				dailiesCheck,
@@ -196,16 +202,39 @@ module.exports = class HoyoLab {
 		HoyoLab.list.push(this);
 	}
 
-	get id () { return this.#id; }
-	get name () { return this.#name; }
-	get data () { return this.#data; }
-	get gameId () { return this.#gameId; }
-	get config () { return this.#config; }
-	get type () { return this.#name; }
-	get dataCache () { return this.#dataCache; }
-	get webAPI () { return HoyoLab.webAPI; }
+	get id() {
+		return this.#id;
+	}
 
-	get fullName () {
+	get name() {
+		return this.#name;
+	}
+
+	get data() {
+		return this.#data;
+	}
+
+	get gameId() {
+		return this.#gameId;
+	}
+
+	get config() {
+		return this.#config;
+	}
+
+	get type() {
+		return this.#name;
+	}
+
+	get dataCache() {
+		return this.#dataCache;
+	}
+
+	get webAPI() {
+		return HoyoLab.webAPI;
+	}
+
+	get fullName() {
 		const nameMap = {
 			honkai: "HonkaiImpact",
 			genshin: "GenshinImpact",
@@ -217,25 +246,19 @@ module.exports = class HoyoLab {
 		return nameMap[this.name] || this.name;
 	}
 
-	destroy () {}
+	destroy() {}
 
-	#parseCookie (cookie) {
+	#parseCookie(cookie) {
 		const cookies = cookie.split("; ");
 		const cookieMap = Object.fromEntries(
-			cookies.map(c => {
+			cookies.map((c) => {
 				const [key, value] = c.split("=");
 				return [key, value];
 			})
 		);
 
-		const {
-			ltoken_v2,
-			ltuid_v2,
-			ltmid_v2,
-			cookie_token_v2,
-			account_mid_v2,
-			account_id_v2
-		} = cookieMap;
+		const { ltoken_v2, ltuid_v2, ltmid_v2, cookie_token_v2, account_mid_v2, account_id_v2 } =
+			cookieMap;
 
 		if (!ltoken_v2 || !ltuid_v2 || !ltmid_v2) {
 			throw new app.Error({
@@ -252,7 +275,10 @@ module.exports = class HoyoLab {
 		}
 
 		if (this.name !== "honkai") {
-			app.Logger.warn("HoyoLab", `No cookie_token_v2 or account_mid_v2 found in cookie for ${this.name}. This will disable "redeemCode" functionality.`);
+			app.Logger.warn(
+				"HoyoLab",
+				`No cookie_token_v2 or account_mid_v2 found in cookie for ${this.name}. This will disable "redeemCode" functionality.`
+			);
 		}
 
 		return {
@@ -261,7 +287,7 @@ module.exports = class HoyoLab {
 		};
 	}
 
-	#buildCookie (cookie, options = {}) {
+	#buildCookie(cookie, options = {}) {
 		const { token } = options;
 
 		const cookieObj = {
@@ -281,12 +307,12 @@ module.exports = class HoyoLab {
 			.join("; ");
 	}
 
-	static parseCookie (cookie, options = {}) {
+	static parseCookie(cookie, options = {}) {
 		const { whitelist = [], blacklist = [], separator = ";" } = options;
 
-		const cookiesArray = cookie.split(separator).map(c => c.trim());
+		const cookiesArray = cookie.split(separator).map((c) => c.trim());
 		const cookieMap = Object.fromEntries(
-			cookiesArray.map(c => {
+			cookiesArray.map((c) => {
 				const [key, value] = c.split("=");
 				return [key, value];
 			})
@@ -294,15 +320,15 @@ module.exports = class HoyoLab {
 
 		if (whitelist.length !== 0) {
 			const filteredCookiesArray = Object.keys(cookieMap)
-				.filter(key => whitelist.includes(key))
-				.map(key => `${key}=${cookieMap[key]}`);
+				.filter((key) => whitelist.includes(key))
+				.map((key) => `${key}=${cookieMap[key]}`);
 
 			return filteredCookiesArray.join(`${separator} `);
 		}
 		if (blacklist.length !== 0) {
 			const filteredCookiesArray = Object.keys(cookieMap)
-				.filter(key => !blacklist.includes(key))
-				.map(key => `${key}=${cookieMap[key]}`);
+				.filter((key) => !blacklist.includes(key))
+				.map((key) => `${key}=${cookieMap[key]}`);
 
 			return filteredCookiesArray.join(`${separator} `);
 		}
@@ -310,8 +336,8 @@ module.exports = class HoyoLab {
 		return cookie;
 	}
 
-	update (account) {
-		const index = this.accounts.findIndex(i => i.uid === account.uid);
+	update(account) {
+		const index = this.accounts.findIndex((i) => i.uid === account.uid);
 		if (index === -1) {
 			throw new app.Error({
 				message: "Account not found in platform.",
@@ -324,7 +350,7 @@ module.exports = class HoyoLab {
 		this.accounts[index] = account;
 	}
 
-	static supportedGames (options = {}) {
+	static supportedGames(options = {}) {
 		let { whitelist, blacklist } = options;
 		if (whitelist && blacklist) {
 			throw new app.Error({
@@ -339,21 +365,22 @@ module.exports = class HoyoLab {
 			blacklist = [blacklist];
 		}
 
-		const platforms = HoyoLab.list.flatMap(i => {
-			if (whitelist && !whitelist.includes(i.name)) {
-				return null;
-			}
-			else if (blacklist && blacklist.includes(i.name)) {
-				return null;
-			}
+		const platforms = HoyoLab.list
+			.flatMap((i) => {
+				if (whitelist && !whitelist.includes(i.name)) {
+					return null;
+				} else if (blacklist && blacklist.includes(i.name)) {
+					return null;
+				}
 
-			return i.name;
-		}).filter(i => i !== null);
+				return i.name;
+			})
+			.filter((i) => i !== null);
 
 		return platforms;
 	}
 
-	static async redeemCode (game, uid, code) {
+	static async redeemCode(game, uid, code) {
 		// eslint-disable-next-line object-curly-spacing
 		const accountData = HoyoLab.getActiveAccounts({ whitelist: game, uid });
 		if (accountData.length === 0) {
@@ -365,7 +392,7 @@ module.exports = class HoyoLab {
 			};
 		}
 
-		const disabled = accountData.every(account => account.redeemCode === false);
+		const disabled = accountData.every((account) => account.redeemCode === false);
 		if (disabled) {
 			return {
 				success: false,
@@ -381,8 +408,7 @@ module.exports = class HoyoLab {
 		const res = await platform.redeemCode(account, code);
 		if (res.success) {
 			return { success: true };
-		}
-		else {
+		} else {
 			return {
 				success: false,
 				data: {
@@ -393,7 +419,7 @@ module.exports = class HoyoLab {
 		}
 	}
 
-	static getActiveAccounts (options = {}) {
+	static getActiveAccounts(options = {}) {
 		let { whitelist, blacklist } = options;
 
 		if (whitelist && blacklist) {
@@ -415,30 +441,31 @@ module.exports = class HoyoLab {
 			blacklist = [blacklist];
 		}
 
-		const accounts = HoyoLab.list.flatMap(i => {
-			if (whitelist && !whitelist.includes(i.name)) {
-				return null;
-			}
-			else if (blacklist && blacklist.includes(i.name)) {
-				return null;
-			}
+		const accounts = HoyoLab.list
+			.flatMap((i) => {
+				if (whitelist && !whitelist.includes(i.name)) {
+					return null;
+				} else if (blacklist && blacklist.includes(i.name)) {
+					return null;
+				}
 
-			return i.accounts;
-		}).filter(i => i !== null);
+				return i.accounts;
+			})
+			.filter((i) => i !== null);
 
 		if (options.uid) {
-			const account = accounts.find(account => account.uid === options.uid);
+			const account = accounts.find((account) => account.uid === options.uid);
 			return account ? [account] : [];
 		}
 
 		return accounts;
 	}
 
-	static getActivePlatform () {
-		return HoyoLab.list.map(platform => platform.name);
+	static getActivePlatform() {
+		return HoyoLab.list.map((platform) => platform.name);
 	}
 
-	static getAccountById (uid) {
+	static getAccountById(uid) {
 		if (typeof uid !== "string") {
 			throw new app.Error({
 				message: "Invalid UID provided for getAccountById expected string.",
@@ -449,11 +476,11 @@ module.exports = class HoyoLab {
 			});
 		}
 
-		const accounts = HoyoLab.list.flatMap(platform => platform.accounts);
-		return accounts.find(account => account.uid === uid) ?? null;
+		const accounts = HoyoLab.list.flatMap((platform) => platform.accounts);
+		return accounts.find((account) => account.uid === uid) ?? null;
 	}
 
-	static getRegion (region) {
+	static getRegion(region) {
 		switch (region) {
 			case "os_cht":
 			case "prod_gf_sg":
@@ -478,7 +505,7 @@ module.exports = class HoyoLab {
 		}
 	}
 
-	static errorMessage (type, code) {
+	static errorMessage(type, code) {
 		if (!type || !code) {
 			throw new app.Error({
 				message: "Invalid type or code provided for HoyoError.",
@@ -492,17 +519,14 @@ module.exports = class HoyoLab {
 		return CustomHoyoError(type, code);
 	}
 
-	static get (identifier) {
+	static get(identifier) {
 		if (identifier instanceof HoyoLab) {
 			return identifier;
-		}
-		else if (typeof identifier === "number") {
-			return HoyoLab.list.find(i => i.id === identifier) ?? null;
-		}
-		else if (typeof identifier === "string") {
-			return HoyoLab.list.find(i => i.name === identifier) ?? null;
-		}
-		else {
+		} else if (typeof identifier === "number") {
+			return HoyoLab.list.find((i) => i.id === identifier) ?? null;
+		} else if (typeof identifier === "string") {
+			return HoyoLab.list.find((i) => i.name === identifier) ?? null;
+		} else {
 			throw new app.Error({
 				message: "Unrecognized identifier type.",
 				args: typeof identifier
@@ -514,7 +538,7 @@ module.exports = class HoyoLab {
 	 * @abstract
 	 */
 	// eslint-disable-next-line no-unused-vars
-	async notes (accountData) {
+	async notes(accountData) {
 		throw new app.Error({
 			message: "This method is not implemented by the derived class."
 		});
@@ -523,13 +547,13 @@ module.exports = class HoyoLab {
 	/**
 	 * @abstract
 	 */
-	async checkIn () {
+	async checkIn() {
 		throw new app.Error({
 			message: "This method is not implemented by the derived class."
 		});
 	}
 
-	async updateCookie (accountData) {
+	async updateCookie(accountData) {
 		const res = await app.Got("HoYoLab", {
 			url: this.webAPI,
 			responseType: "json",
@@ -580,12 +604,11 @@ module.exports = class HoyoLab {
 		};
 	}
 
-	static create (type, config) {
+	static create(type, config) {
 		try {
 			const InstancePlatform = require(`./${type}/index.js`);
 			return new InstancePlatform(config);
-		}
-		catch (e) {
+		} catch (e) {
 			console.log(`Failed to create platform ${type}.`);
 			console.error(e);
 		}

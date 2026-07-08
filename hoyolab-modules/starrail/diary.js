@@ -6,13 +6,13 @@ module.exports = class Diary {
 	#logo;
 	#color;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 	}
 
-	async diary (accountData) {
+	async diary(accountData) {
 		const cachedData = await app.Cache.get(`${this.#instance.name}:${accountData.uid}:diary`);
 		if (cachedData) {
 			return {
@@ -85,7 +85,7 @@ module.exports = class Diary {
 				return acc;
 			}, {});
 
-			const actionPercentages = Object.keys(actionCounts).map(category => ({
+			const actionPercentages = Object.keys(actionCounts).map((category) => ({
 				category,
 				total: actionCounts[category].total,
 				percentage: ((actionCounts[category].total / totalNum) * 100).toFixed(0)
@@ -103,7 +103,10 @@ module.exports = class Diary {
 		const lastMonthJades = calculateTotalsAndPercentages(jadesData.lastMonthResults);
 		const lastMonthPass = calculateTotalNum(passData.lastMonthResults);
 
-		const jadeIncomeDecreasePercentage = (((lastMonthJades.totalNum - currentMonthJades.totalNum) / lastMonthJades.totalNum) * 100).toFixed(0);
+		const jadeIncomeDecreasePercentage = (
+			((lastMonthJades.totalNum - currentMonthJades.totalNum) / lastMonthJades.totalNum) *
+			100
+		).toFixed(0);
 
 		const diaryData = {
 			currentMonth: {
@@ -136,7 +139,7 @@ module.exports = class Diary {
 		};
 	}
 
-	async fetchResultsForType (accountData, type) {
+	async fetchResultsForType(accountData, type) {
 		const today = new Date();
 		const currentMonth = today.getFullYear() * 100 + (today.getMonth() + 1);
 		const lastMonth = today.getFullYear() * 100 + today.getMonth();
@@ -177,7 +180,10 @@ module.exports = class Diary {
 
 				if (res.body.retcode !== 0) {
 					if (res.body.retcode === -500001 && retryCount < maxRetries) {
-						app.Logger.debug(`${this.#instance.fullName}:Diary`, `Rate limited, retrying in ${retryDelay / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`);
+						app.Logger.debug(
+							`${this.#instance.fullName}:Diary`,
+							`Rate limited, retrying in ${retryDelay / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`
+						);
 						await sleep(retryDelay);
 						return fetchMonthData(month, retryCount + 1);
 					}

@@ -4,7 +4,7 @@ module.exports = class Config extends require("./template.js") {
 
 	static data = new Map();
 
-	constructor (data) {
+	constructor(data) {
 		super();
 
 		this.#name = data.name;
@@ -12,16 +12,21 @@ module.exports = class Config extends require("./template.js") {
 		this.#value = data.value;
 	}
 
-	get name () { return this.#name; }
-	get value () { return this.#value; }
+	get name() {
+		return this.#name;
+	}
 
-	static async initialize () {
+	get value() {
+		return this.#value;
+	}
+
+	static async initialize() {
 		Config.data = new Map();
 		await Config.loadData();
 		return Config;
 	}
 
-	static async load (data) {
+	static async load(data) {
 		const loaded = new Set();
 
 		for (const [name, value] of Object.entries(data)) {
@@ -32,13 +37,13 @@ module.exports = class Config extends require("./template.js") {
 		}
 	}
 
-	static has (name) {
+	static has(name) {
 		const target = Config.get(name);
 
 		return target !== undefined;
 	}
 
-	static get (name) {
+	static get(name) {
 		const target = Config.data.get(name);
 
 		if (!target) {

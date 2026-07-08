@@ -1,12 +1,12 @@
 services:
-  instance:
-    container_name: hoyolab-auto
-    image: ghcr.io/rairulyle/hoyolab-auto:latest
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+    instance:
+        container_name: hoyolab-auto
+        image: ghcr.io/rairulyle/hoyolab-auto:latest
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            PUID: ${PUID}
+            PGID: ${PGID}
+        volumes:
+            - ./data:/app/data
+            - ./logs:/app/logs

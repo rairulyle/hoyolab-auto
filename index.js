@@ -28,8 +28,7 @@ const { assemble } = require("./core/assembler.js");
 	let config;
 	try {
 		config = await assemble(db);
-	}
-	catch (e) {
+	} catch (e) {
 		console.error(e.message);
 		process.exit(1);
 	}
@@ -65,13 +64,18 @@ const { assemble } = require("./core/assembler.js");
 		HoyoLab
 	};
 
-	const platforms = config.platforms.map(definition => Platform.create(definition.type, definition));
-	await Promise.all(platforms.map(platform => platform.connect()));
+	const platforms = config.platforms.map((definition) =>
+		Platform.create(definition.type, definition)
+	);
+	await Promise.all(platforms.map((platform) => platform.connect()));
 
 	const { reload } = require("./core/reload.js");
 	const result = await reload();
 	if (result.accountCount === 0) {
-		app.Logger.warn("Client", "No profiles linked yet — use /link add in your server to get started");
+		app.Logger.warn(
+			"Client",
+			"No profiles linked yet — use /link add in your server to get started"
+		);
 	}
 
 	const end = process.hrtime.bigint();

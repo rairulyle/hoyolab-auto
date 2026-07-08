@@ -1,24 +1,25 @@
 const { parseCookie } = require("../../core/cookie.js");
 const { detectGames } = require("../../core/hoyolab-api.js");
 
-const buildGames = (detected) => detected.map(d => ({
-	key: d.key,
-	uid: d.uid,
-	region: d.region,
-	nickname: d.nickname,
-	active: true,
-	settings: {}
-}));
+const buildGames = (detected) =>
+	detected.map((d) => ({
+		key: d.key,
+		uid: d.uid,
+		region: d.region,
+		nickname: d.nickname,
+		active: true,
+		settings: {}
+	}));
 
 const mergeGames = (oldGames, newGames) => {
-	const newKeys = new Set(newGames.map(g => g.key));
-	const merged = newGames.map(game => {
-		const previous = (oldGames ?? []).find(g => g.key === game.key);
+	const newKeys = new Set(newGames.map((g) => g.key));
+	const merged = newGames.map((game) => {
+		const previous = (oldGames ?? []).find((g) => g.key === game.key);
 		return previous
 			? { ...game, active: previous.active, settings: previous.settings ?? {} }
 			: game;
 	});
-	const retained = (oldGames ?? []).filter(g => !newKeys.has(g.key));
+	const retained = (oldGames ?? []).filter((g) => !newKeys.has(g.key));
 	return [...merged, ...retained];
 };
 

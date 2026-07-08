@@ -2,7 +2,7 @@ module.exports = {
 	name: "check-in",
 	expression: "0 0 0 * * *",
 	description: "Run daily check-in every day at midnight or your specified time",
-	code: (async function checkIn () {
+	code: async function checkIn() {
 		const accounts = app.HoyoLab.getActiveAccounts();
 		if (accounts.length === 0) {
 			app.Logger.warn("Cron:CheckIn", "No active accounts found for HoyoLab");
@@ -11,12 +11,15 @@ module.exports = {
 
 		const messages = [];
 		const activeGameAccounts = app.HoyoLab.getActivePlatform();
-		for (const name	of activeGameAccounts) {
+		for (const name of activeGameAccounts) {
 			const platform = app.HoyoLab.get(name);
 
 			const execution = await platform.checkIn();
 			if (execution.length === 0) {
-				app.Logger.info("Cron:CheckIn", "All accounts either signed in or failed to sign in");
+				app.Logger.info(
+					"Cron:CheckIn",
+					"All accounts either signed in or failed to sign in"
+				);
 				continue;
 			}
 
@@ -44,9 +47,9 @@ module.exports = {
 			].join("\n");
 
 			const escapedMessage = app.Utils.escapeCharacters(messageText);
-			for (const telegram of platforms.filter(p => p.name === "telegram")) {
+			for (const telegram of platforms.filter((p) => p.name === "telegram")) {
 				await telegram.send(escapedMessage);
 			}
 		}
-	})
+	}
 };

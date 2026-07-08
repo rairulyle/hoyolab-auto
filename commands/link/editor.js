@@ -49,66 +49,89 @@ const TOGGLES = {
 
 const getPath = (object, dotted) => dotted.split(".").reduce((acc, key) => acc?.[key], object);
 
-const setPath = (dotted, value) => dotted
-	.split(".")
-	.reverse()
-	.reduce((acc, key) => ({ [key]: acc }), value);
+const setPath = (dotted, value) =>
+	dotted
+		.split(".")
+		.reverse()
+		.reduce((acc, key) => ({ [key]: acc }), value);
 
 const effectiveState = (gameEntry, path) => {
 	if (path === "active") {
 		return Boolean(gameEntry.active);
 	}
-	const merged = defaults.mergeSettings(defaults.gameSettings[gameEntry.key] ?? {}, gameEntry.settings ?? {});
+	const merged = defaults.mergeSettings(
+		defaults.gameSettings[gameEntry.key] ?? {},
+		gameEntry.settings ?? {}
+	);
 	return Boolean(getPath(merged, path));
 };
 
 const buildGamePanel = (profile, gameKey) => {
-	const gameEntry = profile.games.find(g => g.key === gameKey);
+	const gameEntry = profile.games.find((g) => g.key === gameKey);
 	const rows = [];
 
 	const toggles = TOGGLES[gameKey] ?? [];
 	for (let i = 0; i < toggles.length; i += 5) {
-		rows.push(new ActionRowBuilder().addComponents(
-			toggles.slice(i, i + 5).map(toggle => new ButtonBuilder()
-				.setCustomId(`hle:toggle:${profile._id}:${gameKey}:${toggle.path}`)
-				.setLabel(toggle.label)
-				.setStyle(effectiveState(gameEntry, toggle.path) ? ButtonStyle.Success : ButtonStyle.Secondary))
-		));
+		rows.push(
+			new ActionRowBuilder().addComponents(
+				toggles.slice(i, i + 5).map((toggle) =>
+					new ButtonBuilder()
+						.setCustomId(`hle:toggle:${profile._id}:${gameKey}:${toggle.path}`)
+						.setLabel(toggle.label)
+						.setStyle(
+							effectiveState(gameEntry, toggle.path)
+								? ButtonStyle.Success
+								: ButtonStyle.Secondary
+						)
+				)
+			)
+		);
 	}
 
 	const hasThreshold = ["genshin", "starrail", "zenless"].includes(gameKey);
 	if (hasThreshold) {
-		rows.push(new ActionRowBuilder().addComponents(
-			new ButtonBuilder()
-				.setCustomId(`hle:values:${profile._id}:${gameKey}`)
-				.setLabel("Edit values…")
-				.setStyle(ButtonStyle.Primary)
-		));
+		rows.push(
+			new ActionRowBuilder().addComponents(
+				new ButtonBuilder()
+					.setCustomId(`hle:values:${profile._id}:${gameKey}`)
+					.setLabel("Edit values…")
+					.setStyle(ButtonStyle.Primary)
+			)
+		);
 	}
 
-	const merged = defaults.mergeSettings(defaults.gameSettings[gameKey] ?? {}, gameEntry.settings ?? {});
+	const merged = defaults.mergeSettings(
+		defaults.gameSettings[gameKey] ?? {},
+		gameEntry.settings ?? {}
+	);
 	return {
-		embeds: [{
-			color: 0x9B59B6,
-			title: `${GAMES[gameKey].name} — ${profile.label}`,
-			description: [
-				gameEntry.uid ? `UID \`${gameEntry.uid}\` ${gameEntry.nickname ?? ""}` : "No in-game UID (check-in only)",
-				hasThreshold ? `Stamina threshold: **${merged.stamina.threshold}**` : null,
-				"Green = enabled. Click a button to toggle."
-			].filter(Boolean).join("\n")
-		}],
+		embeds: [
+			{
+				color: 0x9b59b6,
+				title: `${GAMES[gameKey].name} — ${profile.label}`,
+				description: [
+					gameEntry.uid
+						? `UID \`${gameEntry.uid}\` ${gameEntry.nickname ?? ""}`
+						: "No in-game UID (check-in only)",
+					hasThreshold ? `Stamina threshold: **${merged.stamina.threshold}**` : null,
+					"Green = enabled. Click a button to toggle."
+				]
+					.filter(Boolean)
+					.join("\n")
+			}
+		],
 		components: rows
 	};
 };
 
 const buildGameSelect = (profile) => {
-	const options = profile.games.map(g => ({
+	const options = profile.games.map((g) => ({
 		label: GAMES[g.key].name,
 		value: g.key,
 		description: g.uid ? `UID ${g.uid}` : undefined
 	}));
 
-	if (!profile.games.some(g => g.key === "termis")) {
+	if (!profile.games.some((g) => g.key === "termis")) {
 		options.push({
 			label: `Enable ${GAMES.termis.name}`,
 			value: "termis",
@@ -117,27 +140,35 @@ const buildGameSelect = (profile) => {
 	}
 
 	return {
-		embeds: [{
-			color: 0x9B59B6,
-			title: `Edit profile: ${profile.label}`,
-			description: "Pick a game to configure."
-		}],
-		components: [new ActionRowBuilder().addComponents(
-			new StringSelectMenuBuilder()
-				.setCustomId(`hle:game:${profile._id}:-`)
-				.setPlaceholder("Select a game")
-				.addOptions(options)
-		)]
+		embeds: [
+			{
+				color: 0x9b59b6,
+				title: `Edit profile: ${profile.label}`,
+				description: "Pick a game to configure."
+			}
+		],
+		components: [
+			new ActionRowBuilder().addComponents(
+				new StringSelectMenuBuilder()
+					.setCustomId(`hle:game:${profile._id}:-`)
+					.setPlaceholder("Select a game")
+					.addOptions(options)
+			)
+		]
 	};
 };
 
-const getProfileById = async (profileId) => await app.db.collections.profiles.findOneAsync({ _id: profileId });
+const getProfileById = async (profileId) =>
+	await app.db.collections.profiles.findOneAsync({ _id: profileId });
 
 const openEditor = async (interaction) => {
 	const label = interaction.options.getString("label");
 	const profile = await app.db.getProfile(interaction.guildId, label);
 	if (!profile) {
-		return await interaction.reply({ content: `No profile named **${label}** in this server.`, ephemeral: true });
+		return await interaction.reply({
+			content: `No profile named **${label}** in this server.`,
+			ephemeral: true
+		});
 	}
 	return await interaction.reply({ ...buildGameSelect(profile), ephemeral: true });
 };
@@ -146,21 +177,31 @@ const handleComponent = async (interaction) => {
 	const [, action, profileId, gameKey, field] = interaction.customId.split(":");
 	const profile = await getProfileById(profileId);
 	if (!profile || profile.guildId !== interaction.guildId) {
-		return await interaction.reply({ content: "This editor session is no longer valid.", ephemeral: true });
+		return await interaction.reply({
+			content: "This editor session is no longer valid.",
+			ephemeral: true
+		});
 	}
 
 	if (action === "game") {
 		const selected = interaction.values[0];
 		let current = profile;
-		if (!profile.games.some(g => g.key === selected)) {
-			current = await app.db.addGameEntry(profileId, { key: selected, uid: null, region: null, nickname: null, active: true, settings: {} });
+		if (!profile.games.some((g) => g.key === selected)) {
+			current = await app.db.addGameEntry(profileId, {
+				key: selected,
+				uid: null,
+				region: null,
+				nickname: null,
+				active: true,
+				settings: {}
+			});
 			scheduleReload();
 		}
 		return await interaction.update(buildGamePanel(current, selected));
 	}
 
 	if (action === "toggle") {
-		const gameEntry = profile.games.find(g => g.key === gameKey);
+		const gameEntry = profile.games.find((g) => g.key === gameKey);
 		const next = !effectiveState(gameEntry, field);
 		const patch = field === "active" ? { active: next } : { settings: setPath(field, next) };
 		await app.db.updateGameEntry(profileId, gameKey, patch);
@@ -169,19 +210,24 @@ const handleComponent = async (interaction) => {
 	}
 
 	if (action === "values") {
-		const gameEntry = profile.games.find(g => g.key === gameKey);
-		const merged = defaults.mergeSettings(defaults.gameSettings[gameKey] ?? {}, gameEntry.settings ?? {});
+		const gameEntry = profile.games.find((g) => g.key === gameKey);
+		const merged = defaults.mergeSettings(
+			defaults.gameSettings[gameKey] ?? {},
+			gameEntry.settings ?? {}
+		);
 		const modal = new ModalBuilder()
 			.setCustomId(`hle:modal:${profileId}:${gameKey}`)
 			.setTitle(`${GAMES[gameKey].name} values`)
-			.addComponents(new ActionRowBuilder().addComponents(
-				new TextInputBuilder()
-					.setCustomId("staminaThreshold")
-					.setLabel("Stamina alert threshold")
-					.setStyle(TextInputStyle.Short)
-					.setValue(String(merged.stamina.threshold))
-					.setRequired(true)
-			));
+			.addComponents(
+				new ActionRowBuilder().addComponents(
+					new TextInputBuilder()
+						.setCustomId("staminaThreshold")
+						.setLabel("Stamina alert threshold")
+						.setStyle(TextInputStyle.Short)
+						.setValue(String(merged.stamina.threshold))
+						.setRequired(true)
+				)
+			);
 		return await interaction.showModal(modal);
 	}
 
@@ -189,11 +235,17 @@ const handleComponent = async (interaction) => {
 		const raw = interaction.fields.getTextInputValue("staminaThreshold");
 		const threshold = Number(raw);
 		if (!Number.isInteger(threshold) || threshold < 0) {
-			return await interaction.reply({ content: `\`${raw}\` is not a valid number.`, ephemeral: true });
+			return await interaction.reply({
+				content: `\`${raw}\` is not a valid number.`,
+				ephemeral: true
+			});
 		}
 		await app.db.updateGameEntry(profileId, gameKey, { settings: { stamina: { threshold } } });
 		scheduleReload();
-		return await interaction.reply({ content: `Stamina threshold set to **${threshold}**.`, ephemeral: true });
+		return await interaction.reply({
+			content: `Stamina threshold set to **${threshold}**.`,
+			ephemeral: true
+		});
 	}
 };
 

@@ -19,7 +19,7 @@ module.exports = class HonkaiImpact extends require("../template.js") {
 	#logo;
 	#color;
 
-	constructor (config) {
+	constructor(config) {
 		super("honkai", config, {
 			gameId: 1,
 			config: DEFAULT_CONSTANTS
@@ -37,7 +37,7 @@ module.exports = class HonkaiImpact extends require("../template.js") {
 		}
 	}
 
-	async login () {
+	async login() {
 		const accounts = this.data;
 
 		for (const account of accounts) {
@@ -57,7 +57,10 @@ module.exports = class HonkaiImpact extends require("../template.js") {
 			});
 
 			if (statusCode !== 200) {
-				app.Logger.warn(`${this.fullName}:Login`, `HTTP ${statusCode} for ltuid ${ltuid}; skipping this account this cycle`);
+				app.Logger.warn(
+					`${this.fullName}:Login`,
+					`HTTP ${statusCode} for ltuid ${ltuid}; skipping this account this cycle`
+				);
 				this.failedAccounts.push({ ltuid, auth: false });
 				continue;
 			}
@@ -65,27 +68,36 @@ module.exports = class HonkaiImpact extends require("../template.js") {
 			const res = body;
 			if (res.retcode !== 0) {
 				const auth = [-100, 10001, 10102].includes(res.retcode);
-				app.Logger.warn(`${this.fullName}:Login`, `retcode ${res.retcode} (${res.message ?? "no message"}) for ltuid ${ltuid}; skipping account`);
+				app.Logger.warn(
+					`${this.fullName}:Login`,
+					`retcode ${res.retcode} (${res.message ?? "no message"}) for ltuid ${ltuid}; skipping account`
+				);
 				this.failedAccounts.push({ ltuid, auth });
 				continue;
 			}
 
 			if (typeof res.data !== "object" || !Array.isArray(res.data.list)) {
-				app.Logger.warn(`${this.fullName}:Login`, `invalid data for ltuid ${ltuid}; skipping account`);
+				app.Logger.warn(
+					`${this.fullName}:Login`,
+					`invalid data for ltuid ${ltuid}; skipping account`
+				);
 				this.failedAccounts.push({ ltuid, auth: false });
 				continue;
 			}
 
 			const { list } = res.data;
-			const data = list.find(account => account.game_id === this.gameId);
+			const data = list.find((account) => account.game_id === this.gameId);
 			if (!data) {
-				app.Logger.warn(`${this.fullName}:Login`, `no ${this.fullName} character for ltuid ${ltuid}; skipping account`);
+				app.Logger.warn(
+					`${this.fullName}:Login`,
+					`no ${this.fullName} character for ltuid ${ltuid}; skipping account`
+				);
 				this.failedAccounts.push({ ltuid, auth: false });
 				continue;
 			}
 
 			this.#logo = data.logo;
-			this.#color = 0xF7E000;
+			this.#color = 0xf7e000;
 
 			const offset = app.HoyoLab.getRegion(data.region);
 			this.accounts.push({
@@ -100,14 +112,22 @@ module.exports = class HonkaiImpact extends require("../template.js") {
 			});
 
 			const region = app.HoyoLab.getRegion(data.region);
-			app.Logger.info(this.fullName, `Logged into (${data.game_role_id}) ${data.nickname} (${region})`);
+			app.Logger.info(
+				this.fullName,
+				`Logged into (${data.game_role_id}) ${data.nickname} (${region})`
+			);
 		}
 	}
 
-	get logo () { return this.#logo; }
-	get color () { return this.#color; }
+	get logo() {
+		return this.#logo;
+	}
 
-	async checkIn (accountData) {
+	get color() {
+		return this.#color;
+	}
+
+	async checkIn(accountData) {
 		const ci = new CheckIn(this, {
 			logo: this.#logo,
 			color: this.#color

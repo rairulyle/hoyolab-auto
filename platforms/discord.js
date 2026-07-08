@@ -17,22 +17,21 @@ const ignoredChannels = [
 ];
 
 module.exports = class DiscordController extends require("./template.js") {
-	constructor (config) {
+	constructor(config) {
 		super("discord", config);
 
 		if (!this.botId) {
 			throw new app.Error({
 				message: "No bot ID provided for Discord controller"
 			});
-		}
-		else if (!this.token) {
+		} else if (!this.token) {
 			throw new app.Error({
 				message: "Discord token has not been configured for the bot"
 			});
 		}
 	}
 
-	async connect () {
+	async connect() {
 		this.client = new Client({
 			intents: [
 				GatewayIntentBits.Guilds,
@@ -47,22 +46,21 @@ module.exports = class DiscordController extends require("./template.js") {
 		await this.registerSlashCommands();
 	}
 
-	initListeners () {
+	initListeners() {
 		/** @type {Client} */
 		const client = this.client;
 
 		client.on("messageCreate", async (messageData) => {
-			if (messageData.content.length === 0 && Array.isArray(messageData.embeds) && messageData.embeds.length > 0) {
+			if (
+				messageData.content.length === 0 &&
+				Array.isArray(messageData.embeds) &&
+				messageData.embeds.length > 0
+			) {
 				return;
 			}
 
-			const {
-				message,
-				channelType,
-				discordID,
-				author,
-				commandArgs
-			} = this.parseMessage(messageData);
+			const { message, channelType, discordID, author, commandArgs } =
+				this.parseMessage(messageData);
 
 			if (ignoredChannels.includes(channelType)) {
 				return;
@@ -80,9 +78,8 @@ module.exports = class DiscordController extends require("./template.js") {
 			if (app.Command.is(message)) {
 				const commandPrefix = app.Command.prefix;
 				const command = message.replace(commandPrefix, "").split(" ").find(Boolean);
-				const args = (commandArgs[0] === commandPrefix)
-					? commandArgs.slice(2)
-					: commandArgs.slice(1);
+				const args =
+					commandArgs[0] === commandPrefix ? commandArgs.slice(2) : commandArgs.slice(1);
 
 				await this.handleCommand({
 					command,
@@ -94,14 +91,19 @@ module.exports = class DiscordController extends require("./template.js") {
 		});
 
 		client.on("interactionCreate", async (interaction) => {
-			const isComponent = interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit();
+			const isComponent =
+				interaction.isButton() ||
+				interaction.isStringSelectMenu() ||
+				interaction.isModalSubmit();
 			if (isComponent && interaction.customId?.startsWith("hle:")) {
 				const { handleComponent } = require("../commands/link/editor.js");
 				try {
 					await handleComponent(interaction);
-				}
-				catch (e) {
-					app.Logger.error("Discord", { message: "Editor interaction failed", error: e.message });
+				} catch (e) {
+					app.Logger.error("Discord", {
+						message: "Editor interaction failed",
+						error: e.message
+					});
 				}
 				return;
 			}
@@ -111,9 +113,11 @@ module.exports = class DiscordController extends require("./template.js") {
 				if (command?.autocomplete) {
 					try {
 						await command.autocomplete(interaction);
-					}
-					catch (e) {
-						app.Logger.error("Discord", { message: "Autocomplete failed", error: e.message });
+					} catch (e) {
+						app.Logger.error("Discord", {
+							message: "Autocomplete failed",
+							error: e.message
+						});
 					}
 				}
 				return;
@@ -126,7 +130,7 @@ module.exports = class DiscordController extends require("./template.js") {
 			const commandName = interaction.commandName;
 			const options = interaction.options;
 
-			const args = options.data.map(i => i.value);
+			const args = options.data.map((i) => i.value);
 
 			const channelData = interaction.channel;
 			const userData = interaction.user;
@@ -141,7 +145,7 @@ module.exports = class DiscordController extends require("./template.js") {
 		});
 	}
 
-	async send (message, channel, options = {}) {
+	async send(message, channel, options = {}) {
 		const channelData = await this.client.channels.fetch(channel.id);
 		if (!channelData) {
 			return;
@@ -152,11 +156,9 @@ module.exports = class DiscordController extends require("./template.js") {
 			sendTarget = {
 				embeds: options.embeds
 			};
-		}
-		else if (typeof message === "string") {
+		} else if (typeof message === "string") {
 			sendTarget = message;
-		}
-		else {
+		} else {
 			throw new app.Error({
 				message: "Invalid Discord message provided",
 				args: {
@@ -168,8 +170,7 @@ module.exports = class DiscordController extends require("./template.js") {
 
 		try {
 			await channelData.send(sendTarget);
-		}
-		catch (e) {
+		} catch (e) {
 			if (e instanceof DiscordAPIError) {
 				app.Logger.log("Discord", {
 					message: sendTarget,
@@ -178,8 +179,7 @@ module.exports = class DiscordController extends require("./template.js") {
 					guildID: channelData.guild.id ?? null,
 					guildName: channelData.guild.name ?? null
 				});
-			}
-			else {
+			} else {
 				throw new app.Error({
 					message: "Failed to send message to Discord channel",
 					args: {
@@ -195,7 +195,7 @@ module.exports = class DiscordController extends require("./template.js") {
 		}
 	}
 
-	async sendToChannel (channelId, options = {}) {
+	async sendToChannel(channelId, options = {}) {
 		const channelData = await this.client.channels.fetch(channelId);
 		if (!channelData) {
 			throw new app.Error({ message: "Discord channel not found", args: { channelId } });
@@ -207,14 +207,8 @@ module.exports = class DiscordController extends require("./template.js") {
 		});
 	}
 
-	async handleCommand (data) {
-		const {
-			interaction,
-			command,
-			args,
-			channelData,
-			userData
-		} = data;
+	async handleCommand(data) {
+		const { interaction, command, args, channelData, userData } = data;
 
 		const execution = await app.Command.checkAndRun(command, args, channelData, userData, {
 			interaction,
@@ -228,7 +222,7 @@ module.exports = class DiscordController extends require("./template.js") {
 			return;
 		}
 
-		const { reply }	= execution;
+		const { reply } = execution;
 		const embeds = execution.discord?.embeds ?? [];
 		if (!reply && embeds.length === 0) {
 			return;
@@ -238,13 +232,12 @@ module.exports = class DiscordController extends require("./template.js") {
 			await this.send(null, channelData, {
 				embeds
 			});
-		}
-		else {
+		} else {
 			await this.send(reply, channelData);
 		}
 	}
 
-	async registerSlashCommands () {
+	async registerSlashCommands() {
 		const commands = [];
 
 		for (const command of app.Command.data) {
@@ -255,34 +248,41 @@ module.exports = class DiscordController extends require("./template.js") {
 		const rest = new REST({ version: "10" }).setToken(this.token);
 
 		try {
-			const existingCommands = await rest.get(
-				Routes.applicationCommands(this.botId)
+			const existingCommands = await rest.get(Routes.applicationCommands(this.botId));
+
+			const localCommandNames = commands.map((c) => c.name);
+			const existingCommandNames = existingCommands.map((c) => c.name);
+
+			const commandsToRemove = existingCommandNames.filter(
+				(name) => !localCommandNames.includes(name)
+			);
+			const commandsToAdd = localCommandNames.filter(
+				(name) => !existingCommandNames.includes(name)
 			);
 
-			const localCommandNames = commands.map(c => c.name);
-			const existingCommandNames = existingCommands.map(c => c.name);
-
-			const commandsToRemove = existingCommandNames.filter(name => !localCommandNames.includes(name));
-			const commandsToAdd = localCommandNames.filter(name => !existingCommandNames.includes(name));
-
 			if (commandsToRemove.length > 0) {
-				app.Logger.info("Discord", `Cleaning up ${commandsToRemove.length} stale command(s): ${commandsToRemove.join(", ")}`);
+				app.Logger.info(
+					"Discord",
+					`Cleaning up ${commandsToRemove.length} stale command(s): ${commandsToRemove.join(", ")}`
+				);
 			}
 
 			if (commandsToAdd.length > 0) {
-				app.Logger.info("Discord", `Adding ${commandsToAdd.length} new command(s): ${commandsToAdd.join(", ")}`);
+				app.Logger.info(
+					"Discord",
+					`Adding ${commandsToAdd.length} new command(s): ${commandsToAdd.join(", ")}`
+				);
 			}
 
 			app.Logger.info("Discord", `Syncing ${commands.length} application command(s)...`);
 
-			await rest.put(
-				Routes.applicationCommands(this.botId),
-				{ body: commands }
-			);
+			await rest.put(Routes.applicationCommands(this.botId), { body: commands });
 
-			app.Logger.info("Discord", `Successfully registered ${commands.length} application command(s).`);
-		}
-		catch (e) {
+			app.Logger.info(
+				"Discord",
+				`Successfully registered ${commands.length} application command(s).`
+			);
+		} catch (e) {
 			app.Logger.error("Discord", {
 				message: "Failed to register application commands",
 				error: e.message
@@ -291,7 +291,7 @@ module.exports = class DiscordController extends require("./template.js") {
 		}
 	}
 
-	parseMessage (messageData) {
+	parseMessage(messageData) {
 		const content = messageData.content.replace(/<(https?:\/\/.+?)>/g, "$1");
 		const args = content.split(" ");
 

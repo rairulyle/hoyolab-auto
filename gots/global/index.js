@@ -1,11 +1,17 @@
 const definition = {
 	name: "Global",
 	optionsType: "function",
-	options: (() => {
+	options: () => {
 		const retryConfig = app.Config.get("retry") ?? {};
-		const retryAttempts = Number.isFinite(retryConfig.attempts) ? Math.max(0, retryConfig.attempts) : 0;
-		const retryDelayMs = Number.isFinite(retryConfig.delayMs) ? Math.max(0, retryConfig.delayMs) : 1000;
-		const requestTimeoutMs = Number.isFinite(retryConfig.timeoutMs) ? Math.max(0, retryConfig.timeoutMs) : 30000;
+		const retryAttempts = Number.isFinite(retryConfig.attempts)
+			? Math.max(0, retryConfig.attempts)
+			: 0;
+		const retryDelayMs = Number.isFinite(retryConfig.delayMs)
+			? Math.max(0, retryConfig.delayMs)
+			: 1000;
+		const requestTimeoutMs = Number.isFinite(retryConfig.timeoutMs)
+			? Math.max(0, retryConfig.timeoutMs)
+			: 30000;
 
 		return {
 			responseType: "json",
@@ -45,14 +51,17 @@ const definition = {
 							}
 						});
 
-						app.Logger.error("GotRequest", `Request failed (${method} ${endpoint ?? "UNKNOWN"}) code=${code ?? "N/A"} after ${retryAttempts} retries`);
+						app.Logger.error(
+							"GotRequest",
+							`Request failed (${method} ${endpoint ?? "UNKNOWN"}) code=${code ?? "N/A"} after ${retryAttempts} retries`
+						);
 
 						return err;
 					}
 				]
 			}
 		};
-	}),
+	},
 	parent: null
 };
 

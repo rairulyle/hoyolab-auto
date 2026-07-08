@@ -34,11 +34,13 @@ RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 		}
 	};
 
-	const telegramText = app.Utils.escapeCharacters([
-		`${region} Server - ${account.nickname}`,
-		`📰 Howl's News Stand`,
-		`You haven't scratched the card at Howl's News Stand yet!`
-	].join("\n"));
+	const telegramText = app.Utils.escapeCharacters(
+		[
+			`${region} Server - ${account.nickname}`,
+			`📰 Howl's News Stand`,
+			`You haven't scratched the card at Howl's News Stand yet!`
+		].join("\n")
+	);
 	await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
 });
 
@@ -46,7 +48,7 @@ module.exports = {
 	name: "howl-scratch-card",
 	expression: "*/5 * * * *",
 	description: "Reminds you if you haven't scratched the card at Howl's News Stand.",
-	code: (async function howlScratchCard () {
+	code: async function howlScratchCard() {
 		await RegionalTaskManager.executeTasks({ whitelist: "nap" });
-	})
+	}
 };

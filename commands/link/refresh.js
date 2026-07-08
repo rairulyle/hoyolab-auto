@@ -6,8 +6,10 @@ const run = async (interaction) => {
 	await interaction.deferReply({ ephemeral: true });
 
 	const label = interaction.options.getString("label");
-	if (!await app.db.getProfile(interaction.guildId, label)) {
-		return await interaction.editReply({ content: `No profile named **${label}** in this server.` });
+	if (!(await app.db.getProfile(interaction.guildId, label))) {
+		return await interaction.editReply({
+			content: `No profile named **${label}** in this server.`
+		});
 	}
 
 	try {
@@ -20,15 +22,16 @@ const run = async (interaction) => {
 		});
 		scheduleReload();
 		return await interaction.editReply({
-			embeds: [{
-				color: 0x2ECC71,
-				title: `Refreshed profile: ${profile.label}`,
-				description: summarize(profile),
-				footer: { text: "Settings are editable via /link edit" }
-			}]
+			embeds: [
+				{
+					color: 0x2ecc71,
+					title: `Refreshed profile: ${profile.label}`,
+					description: summarize(profile),
+					footer: { text: "Settings are editable via /link edit" }
+				}
+			]
 		});
-	}
-	catch (e) {
+	} catch (e) {
 		return await interaction.editReply({ content: `❌ ${e.message}` });
 	}
 };

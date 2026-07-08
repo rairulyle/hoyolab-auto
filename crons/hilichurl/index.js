@@ -4,12 +4,16 @@ const { notifyAccount } = require("../../core/notify.js");
 module.exports = {
 	name: "hilichurl",
 	expression: "0 0 11 * * *",
-	description: "This will run the Hilichurl Machine Workshop automation for Genshin Impact - completing tasks, claiming rewards, and exchanging for Primogems.",
-	code: (async function hilichurl () {
+	description:
+		"This will run the Hilichurl Machine Workshop automation for Genshin Impact - completing tasks, claiming rewards, and exchanging for Primogems.",
+	code: async function hilichurl() {
 		const jitterSeconds = app.Config.get("crons")?.hilichurlJitter ?? 0;
 		if (jitterSeconds > 0) {
 			const jitterMs = Math.floor(Math.random() * jitterSeconds * 1000);
-			app.Logger.info("Cron:Hilichurl", `Applying ${(jitterMs / 1000).toFixed(1)}s jitter before starting...`);
+			app.Logger.info(
+				"Cron:Hilichurl",
+				`Applying ${(jitterMs / 1000).toFixed(1)}s jitter before starting...`
+			);
 			await sleep(jitterMs);
 		}
 
@@ -27,7 +31,10 @@ module.exports = {
 
 		for (const account of accounts) {
 			if (account.hilichurl?.check === false) {
-				app.Logger.debug("Cron:Hilichurl", `(${account.uid}) Hilichurl check disabled, skipping`);
+				app.Logger.debug(
+					"Cron:Hilichurl",
+					`(${account.uid}) Hilichurl check disabled, skipping`
+				);
 				continue;
 			}
 
@@ -46,14 +53,18 @@ module.exports = {
 
 				const { data } = result;
 
-				const hasActivity = data.tasksClaimed.length > 0
-					|| data.freeItemsClaimed?.length > 0
-					|| data.itemsExchanged.length > 0
-					|| data.codesRedeemed.length > 0
-					|| data.codesObtained?.length > 0;
+				const hasActivity =
+					data.tasksClaimed.length > 0 ||
+					data.freeItemsClaimed?.length > 0 ||
+					data.itemsExchanged.length > 0 ||
+					data.codesRedeemed.length > 0 ||
+					data.codesObtained?.length > 0;
 
 				if (!hasActivity) {
-					app.Logger.debug("Cron:Hilichurl", `(${account.uid}) Genshin Impact: No new Hilichurl activity.`);
+					app.Logger.debug(
+						"Cron:Hilichurl",
+						`(${account.uid}) Genshin Impact: No new Hilichurl activity.`
+					);
 					continue;
 				}
 
@@ -62,21 +73,30 @@ module.exports = {
 
 				if (data.tasksClaimed.length > 0) {
 					const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-					fields.push({
-						name: "🎯 Tasks Claimed",
-						value: data.tasksClaimed.map(t => `• ${t.name} (+${t.points})`).join("\n").slice(0, 1024),
-						inline: false
-					}, {
-						name: "💰 Points Earned",
-						value: `+${totalPoints} pts`,
-						inline: true
-					});
+					fields.push(
+						{
+							name: "🎯 Tasks Claimed",
+							value: data.tasksClaimed
+								.map((t) => `• ${t.name} (+${t.points})`)
+								.join("\n")
+								.slice(0, 1024),
+							inline: false
+						},
+						{
+							name: "💰 Points Earned",
+							value: `+${totalPoints} pts`,
+							inline: true
+						}
+					);
 				}
 
 				if (data.freeItemsClaimed?.length > 0) {
 					fields.push({
 						name: "🆓 Free Items Claimed",
-						value: data.freeItemsClaimed.map(i => `• ${i}`).join("\n").slice(0, 1024),
+						value: data.freeItemsClaimed
+							.map((i) => `• ${i}`)
+							.join("\n")
+							.slice(0, 1024),
 						inline: false
 					});
 				}
@@ -84,7 +104,10 @@ module.exports = {
 				if (data.itemsExchanged.length > 0) {
 					fields.push({
 						name: "🎁 Items Exchanged",
-						value: data.itemsExchanged.map(i => `• ${i.name} (-${i.cost} pts)`).join("\n").slice(0, 1024),
+						value: data.itemsExchanged
+							.map((i) => `• ${i.name} (-${i.cost} pts)`)
+							.join("\n")
+							.slice(0, 1024),
 						inline: false
 					});
 				}
@@ -100,7 +123,10 @@ module.exports = {
 				if (data.codesObtained?.length > 0) {
 					fields.push({
 						name: "🎫 Codes Obtained (Not Auto-Redeemed)",
-						value: data.codesObtained.map(c => `\`${c}\``).join("\n").slice(0, 1024),
+						value: data.codesObtained
+							.map((c) => `\`${c}\``)
+							.join("\n")
+							.slice(0, 1024),
 						inline: false
 					});
 				}
@@ -111,9 +137,11 @@ module.exports = {
 					inline: true
 				});
 
-				const currencyItem = data.shopStatus.find(i => i.name.toLowerCase().includes("primogem"));
+				const currencyItem = data.shopStatus.find((i) =>
+					i.name.toLowerCase().includes("primogem")
+				);
 				if (currencyItem && currencyItem.nextRefreshTime > 0) {
-					const restockDate = new Date(Date.now() + (currencyItem.nextRefreshTime * 1000));
+					const restockDate = new Date(Date.now() + currencyItem.nextRefreshTime * 1000);
 					fields.push({
 						name: "⏰ Next Primogem Restock",
 						value: `<t:${Math.floor(restockDate.getTime() / 1000)}:R>`,
@@ -148,7 +176,9 @@ module.exports = {
 
 				if (data.tasksClaimed.length > 0) {
 					const totalPoints = data.tasksClaimed.reduce((sum, t) => sum + t.points, 0);
-					lines.push(`🎯 Tasks Claimed: ${data.tasksClaimed.length} (+${totalPoints} pts)`);
+					lines.push(
+						`🎯 Tasks Claimed: ${data.tasksClaimed.length} (+${totalPoints} pts)`
+					);
 				}
 
 				if (data.freeItemsClaimed?.length > 0) {
@@ -156,7 +186,9 @@ module.exports = {
 				}
 
 				if (data.itemsExchanged.length > 0) {
-					lines.push(`🎁 Items Exchanged: ${data.itemsExchanged.map(i => i.name).join(", ")}`);
+					lines.push(
+						`🎁 Items Exchanged: ${data.itemsExchanged.map((i) => i.name).join(", ")}`
+					);
 				}
 
 				if (data.codesRedeemed.length > 0) {
@@ -173,15 +205,23 @@ module.exports = {
 				lines.push(`💎 Current Points: ${data.points}`);
 
 				const telegramText = app.Utils.escapeCharacters(lines.join("\n"));
-				const hasSignificantActivity = data.freeItemsClaimed?.length > 0
-					|| data.itemsExchanged.length > 0
-					|| data.codesRedeemed.length > 0
-					|| data.codesObtained?.length > 0;
-				await notifyAccount(account, { embeds: [embed], telegramText, ping: hasSignificantActivity, kind: "reminder" });
+				const hasSignificantActivity =
+					data.freeItemsClaimed?.length > 0 ||
+					data.itemsExchanged.length > 0 ||
+					data.codesRedeemed.length > 0 ||
+					data.codesObtained?.length > 0;
+				await notifyAccount(account, {
+					embeds: [embed],
+					telegramText,
+					ping: hasSignificantActivity,
+					kind: "reminder"
+				});
 
-				app.Logger.info("Cron:Hilichurl", `(${account.uid}) Genshin Impact: Hilichurl automation completed.`);
-			}
-			catch (e) {
+				app.Logger.info(
+					"Cron:Hilichurl",
+					`(${account.uid}) Genshin Impact: Hilichurl automation completed.`
+				);
+			} catch (e) {
 				app.Logger.error("Cron:Hilichurl", {
 					message: "Error running Hilichurl automation",
 					uid: account.uid,
@@ -189,5 +229,5 @@ module.exports = {
 				});
 			}
 		}
-	})
+	}
 };

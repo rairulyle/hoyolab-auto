@@ -15,7 +15,7 @@ const isValidInteger = (value) => {
 module.exports = class Cache {
 	#store;
 
-	constructor () {
+	constructor() {
 		this.#store = new Keyv({
 			store: new KeyvFile({
 				filename: "./data/cache.json",
@@ -25,7 +25,7 @@ module.exports = class Cache {
 		});
 	}
 
-	async set (data = {}) {
+	async set(data = {}) {
 		if (typeof data.value === "undefined") {
 			throw new app.Error({
 				message: "Provided value must not be undefined"
@@ -51,32 +51,31 @@ module.exports = class Cache {
 		return await this.#store.set(key, data.value);
 	}
 
-	async get (keyIdentifier) {
+	async get(keyIdentifier) {
 		const key = Cache.resolveKey(keyIdentifier);
 		return await this.#store.get(key);
 	}
 
-	async delete (keyIdentifier) {
+	async delete(keyIdentifier) {
 		const key = Cache.resolveKey(keyIdentifier);
 		return await this.#store.delete(key);
 	}
 
-	async getByPrefix (prefix, options = {}) {
+	async getByPrefix(prefix, options = {}) {
 		const extraKeys = options.keys ?? {};
 		const key = Cache.resolvePrefix(prefix, extraKeys);
 
 		return await this.get(key);
 	}
 
-	async getKeysByPrefix (prefix, options = {}) {
+	async getKeysByPrefix(prefix, options = {}) {
 		const prefixKey = [prefix];
 		const extraKeys = options.keys ?? {};
 
 		for (const [key, value] of Object.entries(extraKeys)) {
 			if (value === null || value === undefined) {
 				prefixKey.push(key, ITEM_DELIMITER, "*");
-			}
-			else {
+			} else {
 				prefixKey.push(key, ITEM_DELIMITER, String(value));
 			}
 		}
@@ -86,13 +85,13 @@ module.exports = class Cache {
 		// Keyv doesn't have a scan function, so this will retrieve all keys
 		// and then filter based on the prefix.
 		const allKeys = await this.#store.keys();
-		const filteredKeys = allKeys.filter(key => key.startsWith(searchKey));
+		const filteredKeys = allKeys.filter((key) => key.startsWith(searchKey));
 		return filteredKeys;
 	}
 
-	async getKeyValuesByPrefix (prefix, options) {
+	async getKeyValuesByPrefix(prefix, options) {
 		const keys = await this.getKeysByPrefix(prefix, options);
-		const promises = keys.map(async i => await this.get(i));
+		const promises = keys.map(async (i) => await this.get(i));
 
 		return await Promise.all(promises);
 	}
@@ -100,11 +99,11 @@ module.exports = class Cache {
 	/**
 	 * Cleans up and destroys the singleton caching instance
 	 */
-	destroy () {
+	destroy() {
 		this.#store = null;
 	}
 
-	static resolveKey (value) {
+	static resolveKey(value) {
 		if (value === null || typeof value === "undefined") {
 			throw new app.Error({
 				message: "Cannot use null or undefined as key"
@@ -113,11 +112,9 @@ module.exports = class Cache {
 
 		if (typeof value?.getCacheKey === "function") {
 			return value.getCacheKey();
-		}
-		else if (typeof value !== "object") {
+		} else if (typeof value !== "object") {
 			return String(value);
-		}
-		else {
+		} else {
 			throw new app.Error({
 				message: "Cannot stringify a non-primitive value",
 				args: {
@@ -127,7 +124,7 @@ module.exports = class Cache {
 		}
 	}
 
-	static resolvePrefix (mainKey, keys) {
+	static resolvePrefix(mainKey, keys) {
 		keys = Object.entries(keys);
 		if (keys.length === 0) {
 			return mainKey;
@@ -141,8 +138,7 @@ module.exports = class Cache {
 					message: "Cache prefix keys cannot contain reserved characters",
 					args: { key, value }
 				});
-			}
-			else if (value.includes(GROUP_DELIMITER) || value.includes(ITEM_DELIMITER)) {
+			} else if (value.includes(GROUP_DELIMITER) || value.includes(ITEM_DELIMITER)) {
 				throw new app.Error({
 					message: "Cache prefix vaolues cannot contain reserved characters",
 					args: { key, value }

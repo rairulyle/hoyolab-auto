@@ -32,13 +32,17 @@ const getExpeditionEmbedData = async (accounts, game, platformId) => {
 			}));
 
 			const embed = {
-				color: 0x0099FF,
+				color: 0x0099ff,
 				title: "Expedition Reminder",
 				description: "Current expedition status",
 				fields: [
 					{ name: "UID", value: expedition.uid, inline: true },
 					{ name: "Username", value: expedition.username, inline: true },
-					{ name: "Region", value: app.HoyoLab.getRegion(expedition.region), inline: true },
+					{
+						name: "Region",
+						value: app.HoyoLab.getRegion(expedition.region),
+						inline: true
+					},
 					...expeditionList
 				],
 				timestamp: new Date()
@@ -47,13 +51,13 @@ const getExpeditionEmbedData = async (accounts, game, platformId) => {
 			embedData.push(embed);
 		}
 		return embedData;
-	}
-	else {
+	} else {
 		let reply = "";
 		for (const expedition of data) {
-			const expeditionList = expedition.list.map((expedition) => (
-				`${expedition?.name ?? "Expedition"}: ${expedition.status} - Remaining Time: ${app.Utils.formatTime(expedition.remaining_time)}`
-			));
+			const expeditionList = expedition.list.map(
+				(expedition) =>
+					`${expedition?.name ?? "Expedition"}: ${expedition.status} - Remaining Time: ${app.Utils.formatTime(expedition.remaining_time)}`
+			);
 
 			reply += `${[
 				`UID: ${expedition.uid}`,
@@ -81,16 +85,13 @@ module.exports = {
 			required: true
 		}
 	],
-	run: (async function expedition (context, game) {
+	run: async function expedition(context, game) {
 		const { interaction } = context;
-		const supportedGames = app.HoyoLab.supportedGames({ blacklist: [
-			"honkai",
-			"tot",
-			"nap"
-		]});
+		const supportedGames = app.HoyoLab.supportedGames({ blacklist: ["honkai", "tot", "nap"] });
 
 		if (supportedGames.length === 0) {
-			const message = "There are no accounts available for checking expeditions or the game is not supported.";
+			const message =
+				"There are no accounts available for checking expeditions or the game is not supported.";
 			return interaction
 				? interaction.reply({ content: message, ephemeral: true })
 				: { success: false, reply: message };
@@ -127,19 +128,16 @@ module.exports = {
 					content: "No expedition data found for this type of account.",
 					ephemeral: true
 				});
-			}
-			else {
+			} else {
 				return await interaction.reply({
 					embeds: result,
 					ephemeral: true
 				});
 			}
-		}
-		else if (result === "") {
+		} else if (result === "") {
 			return { success: false, reply: "No expedition data found for this type of account" };
-		}
-		else {
+		} else {
 			return { success: true, reply: result };
 		}
-	})
+	}
 };

@@ -14,44 +14,73 @@ module.exports = {
 	name: "link",
 	description: "Manage HoYoLAB profiles for this server.",
 	params: [],
-	buildSlashData: () => new SlashCommandBuilder()
-		.setName("link")
-		.setDescription("Manage HoYoLAB profiles for this server.")
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.setDMPermission(false)
-		.addSubcommand(sub => sub
-			.setName("add")
-			.setDescription("Link a HoYoLAB account by cookie; games are auto-detected.")
-			.addStringOption(opt => opt.setName("cookie").setDescription("Your HoYoLAB cookie string").setRequired(true))
-			.addStringOption(opt => opt.setName("label").setDescription("Profile name (defaults to your username)")))
-		.addSubcommand(sub => sub
-			.setName("list")
-			.setDescription("List this server's profiles."))
-		.addSubcommand(sub => sub
-			.setName("edit")
-			.setDescription("Edit a profile's per-game settings.")
-			.addStringOption(opt => opt
-				.setName("label")
-				.setDescription("Profile name")
-				.setRequired(true)
-				.setAutocomplete(true)))
-		.addSubcommand(sub => sub
-			.setName("remove")
-			.setDescription("Remove a profile from this server.")
-			.addStringOption(opt => opt
-				.setName("label")
-				.setDescription("Profile name")
-				.setRequired(true)
-				.setAutocomplete(true)))
-		.addSubcommand(sub => sub
-			.setName("refresh")
-			.setDescription("Replace a profile's cookie.")
-			.addStringOption(opt => opt
-				.setName("label")
-				.setDescription("Profile name")
-				.setRequired(true)
-				.setAutocomplete(true))
-			.addStringOption(opt => opt.setName("cookie").setDescription("The new cookie string").setRequired(true))),
+	buildSlashData: () =>
+		new SlashCommandBuilder()
+			.setName("link")
+			.setDescription("Manage HoYoLAB profiles for this server.")
+			.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+			.setDMPermission(false)
+			.addSubcommand((sub) =>
+				sub
+					.setName("add")
+					.setDescription("Link a HoYoLAB account by cookie; games are auto-detected.")
+					.addStringOption((opt) =>
+						opt
+							.setName("cookie")
+							.setDescription("Your HoYoLAB cookie string")
+							.setRequired(true)
+					)
+					.addStringOption((opt) =>
+						opt
+							.setName("label")
+							.setDescription("Profile name (defaults to your username)")
+					)
+			)
+			.addSubcommand((sub) =>
+				sub.setName("list").setDescription("List this server's profiles.")
+			)
+			.addSubcommand((sub) =>
+				sub
+					.setName("edit")
+					.setDescription("Edit a profile's per-game settings.")
+					.addStringOption((opt) =>
+						opt
+							.setName("label")
+							.setDescription("Profile name")
+							.setRequired(true)
+							.setAutocomplete(true)
+					)
+			)
+			.addSubcommand((sub) =>
+				sub
+					.setName("remove")
+					.setDescription("Remove a profile from this server.")
+					.addStringOption((opt) =>
+						opt
+							.setName("label")
+							.setDescription("Profile name")
+							.setRequired(true)
+							.setAutocomplete(true)
+					)
+			)
+			.addSubcommand((sub) =>
+				sub
+					.setName("refresh")
+					.setDescription("Replace a profile's cookie.")
+					.addStringOption((opt) =>
+						opt
+							.setName("label")
+							.setDescription("Profile name")
+							.setRequired(true)
+							.setAutocomplete(true)
+					)
+					.addStringOption((opt) =>
+						opt
+							.setName("cookie")
+							.setDescription("The new cookie string")
+							.setRequired(true)
+					)
+			),
 	autocomplete: async (interaction) => {
 		const focused = interaction.options.getFocused(true);
 		if (focused.name !== "label" || !interaction.inGuild()) {
@@ -60,19 +89,19 @@ module.exports = {
 
 		const query = focused.value.toLowerCase();
 		const choices = (await app.db.listProfiles(interaction.guildId))
-			.map(profile => profile.label)
-			.filter(label => label.toLowerCase().includes(query))
+			.map((profile) => profile.label)
+			.filter((label) => label.toLowerCase().includes(query))
 			.slice(0, 25)
-			.map(label => ({ name: label, value: label }));
+			.map((label) => ({ name: label, value: label }));
 
 		return await interaction.respond(choices);
 	},
-	run: (async function link (context) {
+	run: async function link(context) {
 		const { interaction } = context;
 		if (!interaction) {
 			return { success: false, reply: "This command is only available as a slash command." };
 		}
-		if (!await requireGuildAdmin(interaction)) {
+		if (!(await requireGuildAdmin(interaction))) {
 			return;
 		}
 
@@ -81,5 +110,5 @@ module.exports = {
 			return;
 		}
 		return await leaf(interaction);
-	})
+	}
 };

@@ -4,7 +4,7 @@ module.exports = {
 	name: "stamina",
 	expression: "0 */30 * * * *",
 	description: "Check for your stamina and notify you when it's within the set threshold.",
-	code: (async function stamina () {
+	code: async function stamina() {
 		// eslint-disable-next-line object-curly-spacing
 		const accountsList = app.HoyoLab.getActiveAccounts({ blacklist: ["honkai", "tot"] });
 		if (accountsList.length === 0) {
@@ -15,7 +15,7 @@ module.exports = {
 		const activeGameAccounts = app.HoyoLab.getActivePlatform();
 		for (const name of activeGameAccounts) {
 			const platform = app.HoyoLab.get(name);
-			const accounts = accountsList.filter(account => account.platform === name);
+			const accounts = accountsList.filter((account) => account.platform === name);
 
 			for (const account of accounts) {
 				const staminaCheck = account.stamina.check;
@@ -49,9 +49,10 @@ module.exports = {
 				account.stamina.fired = true;
 				platform.update(account);
 
-				const description = (stamina.currentStamina === stamina.maxStamina)
-					? "Your stamina is full!"
-					: "Your stamina is within the set threshold!";
+				const description =
+					stamina.currentStamina === stamina.maxStamina
+						? "Your stamina is full!"
+						: "Your stamina is within the set threshold!";
 
 				const embed = {
 					color: data.assets.color,
@@ -64,7 +65,11 @@ module.exports = {
 					fields: [
 						{ name: "UID", value: account.uid, inline: true },
 						{ name: "Username", value: account.nickname, inline: true },
-						{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true },
+						{
+							name: "Region",
+							value: app.HoyoLab.getRegion(account.region),
+							inline: true
+						},
 						{ name: "Stamina", value: `${current}/${max}`, inline: true },
 						{ name: "Recovery Time", value: delta, inline: true }
 					],
@@ -75,16 +80,23 @@ module.exports = {
 					}
 				};
 
-				const telegramText = app.Utils.escapeCharacters([
-					`📢 Stamina Reminder, ${description}`,
-					`🎮 **Game**: ${data.assets.game}`,
-					`🆔 **UID**: ${account.uid} ${account.nickname}`,
-					`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
-					`🔋 **Stamina**: ${current}/${max}`,
-					`🕒 **Recovery Time**: ${delta}`
-				].join("\n"));
-				await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+				const telegramText = app.Utils.escapeCharacters(
+					[
+						`📢 Stamina Reminder, ${description}`,
+						`🎮 **Game**: ${data.assets.game}`,
+						`🆔 **UID**: ${account.uid} ${account.nickname}`,
+						`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
+						`🔋 **Stamina**: ${current}/${max}`,
+						`🕒 **Recovery Time**: ${delta}`
+					].join("\n")
+				);
+				await notifyAccount(account, {
+					embeds: [embed],
+					telegramText,
+					ping: true,
+					kind: "reminder"
+				});
 			}
 		}
-	})
+	}
 };

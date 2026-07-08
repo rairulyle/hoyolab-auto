@@ -4,13 +4,13 @@ module.exports = class RealtimeNotes {
 	#logo;
 	#color;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 	}
 
-	async notes (accountData) {
+	async notes(accountData) {
 		const cachedData = await this.#instance.dataCache.get(accountData.uid);
 
 		const { threshold } = accountData.stamina;
@@ -29,11 +29,7 @@ module.exports = class RealtimeNotes {
 		}
 
 		const cookieData = app.HoyoLab.parseCookie(accountData.cookie, {
-			whitelist: [
-				"ltoken_v2",
-				"ltmid_v2",
-				"ltuid_v2"
-			]
+			whitelist: ["ltoken_v2", "ltmid_v2", "ltuid_v2"]
 		});
 
 		const res = await app.Got("HoYoLab", {
@@ -85,10 +81,15 @@ module.exports = class RealtimeNotes {
 		}
 
 		// Howl daily scratch card.
-		const cardSign = (data.card_sign && data.card_sign === "CardSignDone") ? "Completed" : "Not Completed";
+		const cardSign =
+			data.card_sign && data.card_sign === "CardSignDone" ? "Completed" : "Not Completed";
 
 		const stamina = data.energy
-			? { currentStamina: data.energy.progress?.current ?? 0, maxStamina: data.energy.progress?.max ?? 0, recoveryTime: data.energy.restore ?? 0 }
+			? {
+					currentStamina: data.energy.progress?.current ?? 0,
+					maxStamina: data.energy.progress?.max ?? 0,
+					recoveryTime: data.energy.restore ?? 0
+				}
 			: null;
 
 		const dailies = data.vitality
@@ -108,7 +109,9 @@ module.exports = class RealtimeNotes {
 			SaleStateDone: "Finished"
 		};
 
-		const shop = data.vhs_sale ? { state: ShopState[data.vhs_sale.sale_state] ?? "Unknown" } : null;
+		const shop = data.vhs_sale
+			? { state: ShopState[data.vhs_sale.sale_state] ?? "Unknown" }
+			: null;
 
 		if (!stamina || !dailies || !weeklies) {
 			app.Logger.warn(`${this.#instance.fullName}:Notes`, {

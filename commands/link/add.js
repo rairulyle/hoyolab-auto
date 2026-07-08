@@ -17,15 +17,16 @@ const run = async (interaction) => {
 		});
 		scheduleReload();
 		return await interaction.editReply({
-			embeds: [{
-				color: 0x2ECC71,
-				title: `Linked profile: ${profile.label}`,
-				description: summarize(profile),
-				footer: { text: "Settings are editable via /link edit" }
-			}]
+			embeds: [
+				{
+					color: 0x2ecc71,
+					title: `Linked profile: ${profile.label}`,
+					description: summarize(profile),
+					footer: { text: "Settings are editable via /link edit" }
+				}
+			]
 		});
-	}
-	catch (e) {
+	} catch (e) {
 		return await interaction.editReply({ content: `❌ ${e.message}` });
 	}
 };

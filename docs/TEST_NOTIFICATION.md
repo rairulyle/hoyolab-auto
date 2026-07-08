@@ -12,19 +12,19 @@ The test notification feature can be controlled through the `config.json5` file:
 
 ```json5
 {
-    // Test notification settings
-    testNotification: {
-        enabled: true, // Set to false if you don't want to receive test notifications on startup
-    },
-    // ... rest of your configuration
+	// Test notification settings
+	testNotification: {
+		enabled: true // Set to false if you don't want to receive test notifications on startup
+	}
+	// ... rest of your configuration
 }
 ```
 
 ### Options
 
 - `enabled` (boolean): Controls whether test notifications are sent on application startup
-  - `true` (default): Send test notifications on startup
-  - `false`: Skip test notifications
+    - `true` (default): Send test notifications on startup
+    - `false`: Skip test notifications
 
 ## What Gets Sent
 
@@ -67,17 +67,17 @@ $test-notification Custom message here
 ### Common Issues
 
 1. **Webhook URL Invalid**
-   - Ensure your Discord webhook URL is correct and active
-   - Check that the webhook hasn't been deleted from Discord
+    - Ensure your Discord webhook URL is correct and active
+    - Check that the webhook hasn't been deleted from Discord
 
 2. **Telegram Bot Issues**
-   - Verify your bot token is correct
-   - Ensure the bot has been started by sending `/start` in the chat
-   - Check that the chat ID is correct
+    - Verify your bot token is correct
+    - Ensure the bot has been started by sending `/start` in the chat
+    - Check that the chat ID is correct
 
 3. **Discord Bot Issues**
-   - Ensure the bot has proper permissions in your server
-   - Bot needs `Send Messages` permission in channels where it will post
+    - Ensure the bot has proper permissions in your server
+    - Bot needs `Send Messages` permission in channels where it will post
 
 ### Logs
 

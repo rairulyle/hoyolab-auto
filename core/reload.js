@@ -42,12 +42,14 @@ const rebuildAccounts = async (config) => {
 				for (const profile of profiles) {
 					if (profile.tokenStatus !== "expired") {
 						await app.db.setTokenStatus(profile._id, "expired");
-						app.Logger.warn("Reload", `Marked profile "${profile.label}" (guild ${profile.guildId}) token expired — cookie rejected by HoYoLAB`);
+						app.Logger.warn(
+							"Reload",
+							`Marked profile "${profile.label}" (guild ${profile.guildId}) token expired — cookie rejected by HoYoLAB`
+						);
 					}
 				}
 			}
-		}
-		catch (e) {
+		} catch (e) {
 			app.Logger.error("Reload", {
 				message: `Login failed for ${definition.type}; dropping its accounts this cycle`,
 				error: e.message ?? String(e)
@@ -63,18 +65,23 @@ const rebuildAccounts = async (config) => {
 
 const scheduleGuildJobs = async () => {
 	const guildIds = new Set([
-		...(await app.db.listGuilds()).map(g => g._id),
-		...(await app.db.listAllProfiles()).map(p => p.guildId)
+		...(await app.db.listGuilds()).map((g) => g._id),
+		...(await app.db.listAllProfiles()).map((p) => p.guildId)
 	]);
 
 	for (const guildId of guildIds) {
 		const guild = await app.db.getGuild(guildId);
 		const timezone = guild?.timezone ?? defaults.guild.timezone;
-		const checkinCron = isValidCron(guild?.checkinCron) ? guild.checkinCron : defaults.guild.checkinCron;
+		const checkinCron = isValidCron(guild?.checkinCron)
+			? guild.checkinCron
+			: defaults.guild.checkinCron;
 
 		const job = new CronJob(
 			checkinCron,
-			() => runGuildCheckIn(guildId).catch(e => app.Logger.error("GuildCheckIn", { guildId, error: e.message })),
+			() =>
+				runGuildCheckIn(guildId).catch((e) =>
+					app.Logger.error("GuildCheckIn", { guildId, error: e.message })
+				),
 			null,
 			true,
 			timezone
@@ -97,14 +104,19 @@ const reload = async () => {
 	globalCrons = initCrons(config.crons);
 	const guildJobCount = await scheduleGuildJobs();
 
-	app.Logger.info("Reload", `Reloaded: ${accountCount} account(s), ${guildJobCount} guild job(s)`);
+	app.Logger.info(
+		"Reload",
+		`Reloaded: ${accountCount} account(s), ${guildJobCount} guild job(s)`
+	);
 	return { warnings: config.warnings, accountCount, guildJobCount };
 };
 
 const scheduleReload = (delayMs = 3000) => {
 	clearTimeout(reloadTimer);
 	reloadTimer = setTimeout(() => {
-		reload().catch(e => app.Logger.error("Reload", { message: "Deferred reload failed", error: e.message }));
+		reload().catch((e) =>
+			app.Logger.error("Reload", { message: "Deferred reload failed", error: e.message })
+		);
 	}, delayMs);
 };
 

@@ -37,22 +37,22 @@ module.exports = class TravelingMimo {
 	#gameId;
 	#isGenshin;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 		this.#gameId = instance.gameId;
-		this.#isGenshin = (instance.gameId === 2);
+		this.#isGenshin = instance.gameId === 2;
 	}
 
-	#buildEndpoint (endpoint) {
+	#buildEndpoint(endpoint) {
 		if (this.#isGenshin) {
 			return `${MIMO_BASE_URL}/qiuqiu/${endpoint.replace(/-/g, "_")}`;
 		}
 		return `${MIMO_BASE_URL}/${endpoint}`;
 	}
 
-	async #request (endpoint, options = {}) {
+	async #request(endpoint, options = {}) {
 		const { method = "GET", params = {}, data = null, cookie } = options;
 
 		const url = this.#buildEndpoint(endpoint);
@@ -68,8 +68,7 @@ module.exports = class TravelingMimo {
 
 		if (method === "GET") {
 			requestOptions.searchParams = params;
-		}
-		else {
+		} else {
 			requestOptions.method = "POST";
 			requestOptions.json = data || params;
 		}
@@ -86,20 +85,27 @@ module.exports = class TravelingMimo {
 			// - retcode -500004 = VisitsTooFrequently (JSON response)
 			// - HTTP 429 = Too Many Requests
 			// - Body contains "Too Many Requests" string
-			const isRateLimited = res.body?.retcode === -500004
-				|| res.statusCode === 429
-				|| (typeof res.body === "string" && res.body.includes("Too Many Requests"));
+			const isRateLimited =
+				res.body?.retcode === -500004 ||
+				res.statusCode === 429 ||
+				(typeof res.body === "string" && res.body.includes("Too Many Requests"));
 
 			if (isRateLimited) {
 				if (attempt === maxRetries) {
-					app.Logger.warn(`${this.#instance.fullName}:Mimo`, `Rate limited after ${maxRetries} attempts, giving up`);
+					app.Logger.warn(
+						`${this.#instance.fullName}:Mimo`,
+						`Rate limited after ${maxRetries} attempts, giving up`
+					);
 					return res;
 				}
 
-				const maxWait = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+				const maxWait = Math.min(baseDelay * 2 ** attempt, maxDelay);
 				const totalDelay = Math.floor(baseDelay + Math.random() * (maxWait - baseDelay));
 
-				app.Logger.info(`${this.#instance.fullName}:Mimo`, `Rate limited, retrying in ${totalDelay}ms (attempt ${attempt}/${maxRetries})`);
+				app.Logger.info(
+					`${this.#instance.fullName}:Mimo`,
+					`Rate limited, retrying in ${totalDelay}ms (attempt ${attempt}/${maxRetries})`
+				);
 				await sleep(totalDelay);
 				continue;
 			}
@@ -108,7 +114,7 @@ module.exports = class TravelingMimo {
 		}
 	}
 
-	async getGameInfo (accountData) {
+	async getGameInfo(accountData) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("index", {
@@ -123,20 +129,22 @@ module.exports = class TravelingMimo {
 			});
 			return {
 				success: false,
-				message: app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) || res.body.message || "Failed to fetch Mimo game info"
+				message:
+					app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) ||
+					res.body.message ||
+					"Failed to fetch Mimo game info"
 			};
 		}
 
 		// Handle different response structures for Genshin vs other games
 		let gameList;
 		if (this.#isGenshin && res.body.data.act_list) {
-			gameList = res.body.data.act_list.map(item => item.act_info);
-		}
-		else {
+			gameList = res.body.data.act_list.map((item) => item.act_info);
+		} else {
 			gameList = res.body.data.list;
 		}
 
-		const game = gameList?.find(g => g.game_id === this.#gameId);
+		const game = gameList?.find((g) => g.game_id === this.#gameId);
 		if (!game) {
 			return { success: false, message: `${this.#instance.fullName} Mimo event not active` };
 		}
@@ -153,7 +161,7 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	async getTasks (accountData, versionId) {
+	async getTasks(accountData, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("task-list", {
@@ -172,13 +180,16 @@ module.exports = class TravelingMimo {
 			});
 			return {
 				success: false,
-				message: app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) || res.body.message || "Failed to fetch Mimo tasks"
+				message:
+					app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) ||
+					res.body.message ||
+					"Failed to fetch Mimo tasks"
 			};
 		}
 
 		return {
 			success: true,
-			data: res.body.data.task_list.map(task => ({
+			data: res.body.data.task_list.map((task) => ({
 				id: task.task_id,
 				name: task.task_name,
 				timeType: task.time_type, // 0=permanent, 1=daily, 2=weekly
@@ -193,7 +204,7 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	async finishTask (accountData, taskId, versionId) {
+	async finishTask(accountData, taskId, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("finish-task", {
@@ -218,7 +229,7 @@ module.exports = class TravelingMimo {
 		return { success: true };
 	}
 
-	async claimTaskReward (accountData, taskId, versionId) {
+	async claimTaskReward(accountData, taskId, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		// Genshin uses POST for receive-point, others use GET
@@ -247,7 +258,7 @@ module.exports = class TravelingMimo {
 		return { success: true };
 	}
 
-	async getShopItems (accountData, versionId) {
+	async getShopItems(accountData, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("exchange-list", {
@@ -266,13 +277,16 @@ module.exports = class TravelingMimo {
 			});
 			return {
 				success: false,
-				message: app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) || res.body.message || "Failed to fetch Mimo shop items"
+				message:
+					app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) ||
+					res.body.message ||
+					"Failed to fetch Mimo shop items"
 			};
 		}
 
 		return {
 			success: true,
-			data: res.body.data.exchange_award_list.map(item => ({
+			data: res.body.data.exchange_award_list.map((item) => ({
 				id: item.award_id,
 				name: item.name,
 				icon: item.icon,
@@ -286,7 +300,7 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	async exchangeItem (accountData, awardId, versionId) {
+	async exchangeItem(accountData, awardId, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("exchange", {
@@ -316,7 +330,7 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	async getLotteryInfo (accountData, versionId) {
+	async getLotteryInfo(accountData, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("lottery-info", {
@@ -331,7 +345,10 @@ module.exports = class TravelingMimo {
 		if (res.statusCode !== 200 || res.body.retcode !== 0) {
 			return {
 				success: false,
-				message: app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) || res.body.message || "Failed to fetch Mimo lottery info"
+				message:
+					app.HoyoLab.errorMessage(this.#instance.name, res.body.retcode) ||
+					res.body.message ||
+					"Failed to fetch Mimo lottery info"
 			};
 		}
 
@@ -347,7 +364,7 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	async drawLottery (accountData, versionId) {
+	async drawLottery(accountData, versionId) {
 		const cookieData = this.#getCookieData(accountData);
 
 		const res = await this.#request("lottery", {
@@ -378,16 +395,20 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	#getPremiumCurrencyName () {
+	#getPremiumCurrencyName() {
 		switch (this.#gameId) {
-			case 2: return "primogem";
-			case 6: return "stellar jade";
-			case 8: return "polychrome";
-			default: return "currency";
+			case 2:
+				return "primogem";
+			case 6:
+				return "stellar jade";
+			case 8:
+				return "polychrome";
+			default:
+				return "currency";
 		}
 	}
 
-	async run (accountData) {
+	async run(accountData) {
 		const results = {
 			tasksFinished: [],
 			tasksClaimed: [],
@@ -408,17 +429,26 @@ module.exports = class TravelingMimo {
 		const { versionId } = gameInfo.data;
 		results.points = gameInfo.data.points;
 
-		app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Starting Mimo automation - Current points: ${results.points}`);
+		app.Logger.info(
+			`${this.#instance.fullName}:Mimo`,
+			`(${accountData.uid}) Starting Mimo automation - Current points: ${results.points}`
+		);
 
 		const tasks = await this.getTasks(accountData, versionId);
 		if (tasks.success) {
 			for (const task of tasks.data) {
-				if (task.status === MimoTaskStatus.ONGOING && FinishableTaskTypes.includes(task.taskType)) {
+				if (
+					task.status === MimoTaskStatus.ONGOING &&
+					FinishableTaskTypes.includes(task.taskType)
+				) {
 					const finishResult = await this.finishTask(accountData, task.id, versionId);
 					if (finishResult.success) {
 						results.tasksFinished.push(task.name);
 						task.status = MimoTaskStatus.FINISHED;
-						app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Finished task: ${task.name}`);
+						app.Logger.info(
+							`${this.#instance.fullName}:Mimo`,
+							`(${accountData.uid}) Finished task: ${task.name}`
+						);
 					}
 					await sleep(1000);
 				}
@@ -427,7 +457,10 @@ module.exports = class TravelingMimo {
 					if (claimResult.success) {
 						results.tasksClaimed.push({ name: task.name, points: task.point });
 						results.points += task.point;
-						app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Claimed ${task.point} points for: ${task.name}`);
+						app.Logger.info(
+							`${this.#instance.fullName}:Mimo`,
+							`(${accountData.uid}) Claimed ${task.point} points for: ${task.name}`
+						);
 					}
 					await sleep(1000);
 				}
@@ -444,10 +477,10 @@ module.exports = class TravelingMimo {
 			const currencyName = this.#getPremiumCurrencyName();
 
 			const currencyItems = shopItems.data
-				.filter(item => item.name.toLowerCase().includes(currencyName))
+				.filter((item) => item.name.toLowerCase().includes(currencyName))
 				.sort((a, b) => b.cost - a.cost);
 
-			results.shopStatus = shopItems.data.map(item => ({
+			results.shopStatus = shopItems.data.map((item) => ({
 				name: item.name,
 				cost: item.cost,
 				stock: item.stock,
@@ -470,26 +503,36 @@ module.exports = class TravelingMimo {
 					results.itemsExchanged.push({ name: item.name, cost: item.cost, code });
 					results.points -= item.cost;
 
-					app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Exchanged ${item.name} for code: ${code}`);
+					app.Logger.info(
+						`${this.#instance.fullName}:Mimo`,
+						`(${accountData.uid}) Exchanged ${item.name} for code: ${code}`
+					);
 
 					// Check if auto-redeem is enabled (mimo.redeem defaults to true for backward compatibility)
-					const shouldRedeem = accountData.redeemCode && (accountData.mimo?.redeem !== false);
+					const shouldRedeem =
+						accountData.redeemCode && accountData.mimo?.redeem !== false;
 
 					if (shouldRedeem) {
 						await sleep(5000);
 						const redeemResult = await this.#instance.redeemCode(accountData, code);
 						if (redeemResult.success) {
 							results.codesRedeemed.push(code);
-							app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Redeemed code: ${code}`);
+							app.Logger.info(
+								`${this.#instance.fullName}:Mimo`,
+								`(${accountData.uid}) Redeemed code: ${code}`
+							);
+						} else {
+							results.errors.push(
+								`Failed to redeem code ${code}: ${redeemResult.message}`
+							);
 						}
-						else {
-							results.errors.push(`Failed to redeem code ${code}: ${redeemResult.message}`);
-						}
-					}
-					else {
+					} else {
 						// Code obtained but not auto-redeemed
 						results.codesObtained.push(code);
-						app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Code obtained (not auto-redeemed): ${code}`);
+						app.Logger.info(
+							`${this.#instance.fullName}:Mimo`,
+							`(${accountData.uid}) Code obtained (not auto-redeemed): ${code}`
+						);
 					}
 				}
 
@@ -506,7 +549,7 @@ module.exports = class TravelingMimo {
 				const { cost, currentCount, limitCount } = lotteryInfo.data;
 				let drawsRemaining = limitCount - currentCount;
 
-				while (drawsRemaining > 0 && (results.points - reservePoints) >= cost) {
+				while (drawsRemaining > 0 && results.points - reservePoints >= cost) {
 					const drawResult = await this.drawLottery(accountData, versionId);
 					if (!drawResult.success) {
 						break;
@@ -523,22 +566,32 @@ module.exports = class TravelingMimo {
 					}
 					drawsRemaining--;
 
-					app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Lottery draw: ${drawResult.data.name}`);
+					app.Logger.info(
+						`${this.#instance.fullName}:Mimo`,
+						`(${accountData.uid}) Lottery draw: ${drawResult.data.name}`
+					);
 
 					if (drawResult.data.code) {
-						const shouldRedeemDraw = accountData.redeemCode && (accountData.mimo?.redeemDraw !== false);
+						const shouldRedeemDraw =
+							accountData.redeemCode && accountData.mimo?.redeemDraw !== false;
 						if (shouldRedeemDraw) {
 							await sleep(5000);
-							const redeemResult = await this.#instance.redeemCode(accountData, drawResult.data.code);
+							const redeemResult = await this.#instance.redeemCode(
+								accountData,
+								drawResult.data.code
+							);
 							if (redeemResult.success) {
 								results.codesRedeemed.push(drawResult.data.code);
-								app.Logger.info(`${this.#instance.fullName}:Mimo`, `(${accountData.uid}) Redeemed lottery code: ${drawResult.data.code}`);
+								app.Logger.info(
+									`${this.#instance.fullName}:Mimo`,
+									`(${accountData.uid}) Redeemed lottery code: ${drawResult.data.code}`
+								);
+							} else {
+								results.errors.push(
+									`Failed to redeem lottery code ${drawResult.data.code}: ${redeemResult.message}`
+								);
 							}
-							else {
-								results.errors.push(`Failed to redeem lottery code ${drawResult.data.code}: ${redeemResult.message}`);
-							}
-						}
-						else {
+						} else {
 							results.codesObtained.push(drawResult.data.code);
 						}
 					}
@@ -561,7 +614,7 @@ module.exports = class TravelingMimo {
 		};
 	}
 
-	async getNextRestockTime (accountData) {
+	async getNextRestockTime(accountData) {
 		const gameInfo = await this.getGameInfo(accountData);
 		if (!gameInfo.success) {
 			return { success: false, message: gameInfo.message || "Failed to get Mimo game info" };
@@ -569,11 +622,16 @@ module.exports = class TravelingMimo {
 
 		const shopItems = await this.getShopItems(accountData, gameInfo.data.versionId);
 		if (!shopItems.success) {
-			return { success: false, message: shopItems.message || "Failed to fetch Mimo shop items" };
+			return {
+				success: false,
+				message: shopItems.message || "Failed to fetch Mimo shop items"
+			};
 		}
 
 		const currencyName = this.#getPremiumCurrencyName();
-		const currencyItem = shopItems.data.find(i => i.name.toLowerCase().includes(currencyName));
+		const currencyItem = shopItems.data.find((i) =>
+			i.name.toLowerCase().includes(currencyName)
+		);
 		if (!currencyItem) {
 			return { success: false, message: `No ${currencyName} items found` };
 		}
@@ -582,14 +640,15 @@ module.exports = class TravelingMimo {
 			success: true,
 			data: {
 				nextRefreshTime: currencyItem.nextRefreshTime,
-				nextRefreshDate: currencyItem.nextRefreshTime > 0
-					? new Date(Date.now() + (currencyItem.nextRefreshTime * 1000))
-					: null
+				nextRefreshDate:
+					currencyItem.nextRefreshTime > 0
+						? new Date(Date.now() + currencyItem.nextRefreshTime * 1000)
+						: null
 			}
 		};
 	}
 
-	#getCookieData (accountData) {
+	#getCookieData(accountData) {
 		return app.HoyoLab.parseCookie(accountData.cookie, {
 			whitelist: [
 				"ltoken_v2",

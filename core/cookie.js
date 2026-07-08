@@ -5,9 +5,9 @@ const parseCookie = (raw) => {
 	const map = Object.fromEntries(
 		String(raw ?? "")
 			.split(";")
-			.map(part => part.trim())
+			.map((part) => part.trim())
 			.filter(Boolean)
-			.map(part => {
+			.map((part) => {
 				const eq = part.indexOf("=");
 				return eq === -1 ? [part, ""] : [part.slice(0, eq), part.slice(eq + 1)];
 			})
@@ -19,9 +19,9 @@ const parseCookie = (raw) => {
 		}
 	}
 
-	const codeRedeem = REDEEM.every(key => Boolean(map[key]));
+	const codeRedeem = REDEEM.every((key) => Boolean(map[key]));
 	const keys = codeRedeem ? [...REQUIRED, ...REDEEM] : REQUIRED;
-	const cookie = keys.map(key => `${key}=${map[key]}`).join("; ");
+	const cookie = keys.map((key) => `${key}=${map[key]}`).join("; ");
 
 	return { cookie, ltuid: map.ltuid_v2, codeRedeem };
 };

@@ -4,8 +4,7 @@ const isValidTimezone = (tz) => {
 	try {
 		Intl.DateTimeFormat("en", { timeZone: tz });
 		return true;
-	}
-	catch {
+	} catch {
 		return false;
 	}
 };
@@ -13,8 +12,7 @@ const isValidTimezone = (tz) => {
 const isValidCron = (expression) => {
 	try {
 		return Boolean(new CronTime(expression));
-	}
-	catch {
+	} catch {
 		return false;
 	}
 };

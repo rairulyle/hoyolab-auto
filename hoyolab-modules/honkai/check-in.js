@@ -4,13 +4,13 @@ module.exports = class CheckIn {
 	#logo;
 	#color;
 
-	constructor (instance, options = {}) {
+	constructor(instance, options = {}) {
 		this.#instance = instance;
 		this.#logo = options.logo;
 		this.#color = options.color;
 	}
 
-	async checkAndExecute (accountData) {
+	async checkAndExecute(accountData) {
 		const accounts = accountData ? [accountData].flat() : this.#instance.accounts;
 		if (accounts.length === 0) {
 			app.Logger.warn("No active accounts found for Honkai Impact");
@@ -44,7 +44,10 @@ module.exports = class CheckIn {
 			};
 
 			if (data.isSigned) {
-				app.Logger.info(`${this.#instance.fullName}:CheckIn`, `${account.nickname} already signed in today`);
+				app.Logger.info(
+					`${this.#instance.fullName}:CheckIn`,
+					`${account.nickname} already signed in today`
+				);
 
 				success.push({
 					uid: account.uid,
@@ -69,7 +72,10 @@ module.exports = class CheckIn {
 				continue;
 			}
 
-			app.Logger.info(`${this.#instance.fullName}:CheckIn`, `(${account.uid}) ${account.nickname} Today's Reward: ${awardObject.name} x${awardObject.count}`);
+			app.Logger.info(
+				`${this.#instance.fullName}:CheckIn`,
+				`(${account.uid}) ${account.nickname} Today's Reward: ${awardObject.name} x${awardObject.count}`
+			);
 
 			success.push({
 				uid: account.uid,
@@ -91,7 +97,7 @@ module.exports = class CheckIn {
 		return success;
 	}
 
-	async #sign (cookieData) {
+	async #sign(cookieData) {
 		const res = await app.Got("HoYoLab", {
 			url: this.#instance.config.url.sign,
 			method: "POST",
@@ -136,7 +142,7 @@ module.exports = class CheckIn {
 		};
 	}
 
-	async #getSignInfo (cookieData) {
+	async #getSignInfo(cookieData) {
 		const res = await app.Got("HoYoLab", {
 			url: this.#instance.config.url.info,
 			responseType: "json",
@@ -186,7 +192,7 @@ module.exports = class CheckIn {
 		};
 	}
 
-	async #getAwardsData (cookieData) {
+	async #getAwardsData(cookieData) {
 		const res = await app.Got("HoYoLab", {
 			url: this.#instance.config.url.home,
 			responseType: "json",
