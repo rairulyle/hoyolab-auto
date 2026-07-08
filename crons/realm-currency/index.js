@@ -58,11 +58,7 @@ module.exports = {
 					thumbnail: {
 						url: data.assets.logo
 					},
-					timestamp: new Date(),
-					footer: {
-						text: "Realm Currency",
-						icon_url: data.assets.logo
-					}
+					timestamp: new Date()
 				};
 
 				const telegramText = app.Utils.escapeCharacters(

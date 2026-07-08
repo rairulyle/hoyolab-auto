@@ -27,11 +27,7 @@ RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 		thumbnail: {
 			url: data.assets.logo
 		},
-		timestamp: new Date(),
-		footer: {
-			text: "Howl's News Stand",
-			icon_url: data.assets.logo
-		}
+		timestamp: new Date()
 	};
 
 	const telegramText = app.Utils.escapeCharacters(

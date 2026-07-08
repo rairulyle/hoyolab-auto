@@ -65,11 +65,7 @@ module.exports = {
 							inline: true
 						}
 					],
-					timestamp: new Date(),
-					footer: {
-						text: "Expedition Reminder",
-						icon_url: data.assets.logo
-					}
+					timestamp: new Date()
 				};
 
 				const telegramText = app.Utils.escapeCharacters(

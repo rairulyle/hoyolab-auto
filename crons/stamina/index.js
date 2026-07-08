@@ -73,11 +73,7 @@ module.exports = {
 						{ name: "Stamina", value: `${current}/${max}`, inline: true },
 						{ name: "Recovery Time", value: delta, inline: true }
 					],
-					timestamp: new Date(),
-					footer: {
-						text: "Stamina Reminder",
-						icon_url: data.assets.logo
-					}
+					timestamp: new Date()
 				};
 
 				const telegramText = app.Utils.escapeCharacters(
