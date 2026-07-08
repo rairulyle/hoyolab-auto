@@ -1,0 +1,8 @@
+{
+	"bumpFiles": [
+		{ "filename": "package.json", "type": "json" },
+		{ "filename": "version", "updater": "scripts/version-updater.js" }
+	],
+	"skip": { "changelog": true },
+	"tagPrefix": "v"
+}

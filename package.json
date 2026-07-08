@@ -1,5 +1,6 @@
 {
 	"name": "hoyolab-auto",
+	"version": "1.0.0",
 	"module": "index.js",
 	"type": "commonjs",
 	"scripts": {
@@ -10,7 +11,8 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"test": "node --test \"**/__tests__/**/*.test.js\"",
-		"prepare": "husky"
+		"prepare": "husky",
+		"release": "commit-and-tag-version"
 	},
 	"engines": {
 		"node": ">=24"
@@ -21,6 +23,7 @@
 		"@commitlint/cli": "^21.2.0",
 		"@commitlint/config-conventional": "^21.2.0",
 		"@types/bun": "latest",
+		"commit-and-tag-version": "^12.7.3",
 		"eslint": "8.56.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-unicorn": "^43.0.2",
