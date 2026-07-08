@@ -17,7 +17,7 @@ const runGuildCheckIn = async (guildId) => {
 		return;
 	}
 
-	const embeds = [];
+	const groups = new Map();
 	const pings = new Set();
 
 	for (const profile of profiles) {
@@ -67,58 +67,69 @@ const runGuildCheckIn = async (guildId) => {
 				message
 			});
 
+			if (!groups.has(game.key)) {
+				groups.set(game.key, { name: GAMES[game.key].name, assets: null, rows: [] });
+			}
+			const group = groups.get(game.key);
+			if (!group.assets && resultMessage?.assets) {
+				group.assets = resultMessage.assets;
+			}
+
+			const owner = profile.discordUserId ? `<@${profile.discordUserId}>` : profile.label;
+			const ign = resultMessage?.username ?? game.nickname ?? profile.label;
+
 			if (status === "error") {
 				if (profile.discordUserId) {
 					pings.add(`<@${profile.discordUserId}>`);
 				}
-				embeds.push({
-					color: 0xff0000,
-					title: `${GAMES[game.key].name} Check-In Failed`,
-					description: `**${profile.label}** (${game.uid ?? "unknown uid"}): ${message}`,
-					timestamp: new Date()
-				});
-			} else if (resultMessage) {
-				embeds.push({
-					color: resultMessage.assets.color,
-					title: resultMessage.assets.game,
-					author: {
-						name: resultMessage.assets.author,
-						icon_url: resultMessage.assets.logo
-					},
-					thumbnail: { url: resultMessage.award?.icon },
-					fields: [
-						{
-							name: "Profile",
-							value: profile.discordUserId
-								? `<@${profile.discordUserId}>`
-								: profile.label,
-							inline: true
-						},
-						{
-							name: "IGN",
-							value: resultMessage.username ?? game.nickname ?? "—",
-							inline: true
-						},
-						{ name: "Region", value: resultMessage.region, inline: true },
-						{
-							name: "Today's Reward",
-							value: resultMessage.award
-								? `${resultMessage.award.name} x${resultMessage.award.count}`
-								: "—",
-							inline: true
-						},
-						{
-							name: "Total Sign-ins",
-							value: String(resultMessage.total),
-							inline: true
-						},
-						{ name: "Result", value: resultMessage.result, inline: true }
-					],
-					timestamp: new Date(),
-					footer: { text: "HoyoLab Auto Check-In", icon_url: resultMessage.assets.logo }
+				group.rows.push({ status, ign, owner, region: null, detail: message });
+			} else {
+				group.rows.push({
+					status,
+					ign,
+					owner,
+					region: resultMessage?.region ?? null,
+					detail: resultMessage?.award
+						? `${resultMessage.award.name} ×${resultMessage.award.count}`
+						: null,
+					day: resultMessage?.total ?? null
 				});
 			}
 		}
+	}
+
+	const dot = { ok: "🟢", already: "⚪", error: "🔴" };
+	const embeds = [];
+	for (const group of groups.values()) {
+		if (group.rows.length === 0) {
+			continue;
+		}
+		const regions = [...new Set(group.rows.map((r) => r.region).filter(Boolean))];
+		const head = [
+			regions.length === 1 ? `Region **${regions[0]}**` : null,
+			`**${group.rows.length}** account${group.rows.length === 1 ? "" : "s"}`
+		]
+			.filter(Boolean)
+			.join(" · ");
+		const lines = group.rows.map((r) => {
+			const who = `${dot[r.status]} **${r.ign}** ${r.owner}`;
+			if (r.status === "error") {
+				return `${who} — ${r.detail}`;
+			}
+			const region = regions.length > 1 && r.region ? ` _(${r.region})_` : "";
+			const rest = [r.detail, r.day !== null ? `day ${r.day}` : null]
+				.filter(Boolean)
+				.join(" · ");
+			return `${who}${region}${rest ? ` — ${rest}` : ""}`;
+		});
+		embeds.push({
+			color: group.assets?.color ?? 0x5865f2,
+			...(group.assets
+				? { author: { name: group.assets.author, icon_url: group.assets.logo } }
+				: {}),
+			title: `${group.name} · Daily Check-In`,
+			description: `${head}\n\n${lines.join("\n")}`
+		});
 	}
 
 	for (let i = 0; i < embeds.length; i += 10) {
