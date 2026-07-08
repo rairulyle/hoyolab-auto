@@ -87,8 +87,18 @@ const runGuildCheckIn = async (guildId) => {
 					},
 					thumbnail: { url: resultMessage.award?.icon },
 					fields: [
-						{ name: "Profile", value: profile.label, inline: true },
-						{ name: "UID", value: String(resultMessage.uid), inline: true },
+						{
+							name: "Profile",
+							value: profile.discordUserId
+								? `<@${profile.discordUserId}>`
+								: profile.label,
+							inline: true
+						},
+						{
+							name: "IGN",
+							value: resultMessage.username ?? game.nickname ?? "—",
+							inline: true
+						},
 						{ name: "Region", value: resultMessage.region, inline: true },
 						{
 							name: "Today's Reward",
