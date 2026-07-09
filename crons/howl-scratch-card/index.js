@@ -1,6 +1,7 @@
-const { notifyAccount } = require("../../core/notify.js");
+const { notifyGroupedReminder } = require("../../core/notify.js");
 
 const RegionalTaskManager = new app.RegionalTaskManager();
+const entries = [];
 
 RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 	const platform = app.HoyoLab.get(account.platform);
@@ -16,19 +17,6 @@ RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 	}
 
 	const region = app.HoyoLab.getRegion(account.region);
-	const embed = {
-		color: data.assets.color,
-		title: "Howl's News Stand",
-		author: {
-			name: `${region} Server - ${account.nickname}`,
-			icon_url: data.assets.logo
-		},
-		description: "You haven't scratched the card at Howl's News Stand yet!",
-		thumbnail: {
-			url: data.assets.logo
-		}
-	};
-
 	const telegramText = app.Utils.escapeCharacters(
 		[
 			`${region} Server - ${account.nickname}`,
@@ -36,7 +24,16 @@ RegionalTaskManager.registerTask("HowlScratchCard", 21, 0, async (account) => {
 			`You haven't scratched the card at Howl's News Stand yet!`
 		].join("\n")
 	);
-	await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+
+	entries.push({
+		account,
+		assets: data.assets,
+		gameName: data.assets.game,
+		level: "warn",
+		text: "card not scratched yet",
+		ping: true,
+		telegramText
+	});
 });
 
 module.exports = {
@@ -44,6 +41,16 @@ module.exports = {
 	expression: "*/5 * * * *",
 	description: "Reminds you if you haven't scratched the card at Howl's News Stand.",
 	code: async function howlScratchCard() {
+		entries.length = 0;
 		await RegionalTaskManager.executeTasks({ whitelist: "nap" });
+
+		if (entries.length > 0) {
+			await notifyGroupedReminder({
+				kind: "reminder",
+				titleSuffix: "Howl's News Stand",
+				description: "The scratch card hasn't been used today.",
+				entries
+			});
+		}
 	}
 };

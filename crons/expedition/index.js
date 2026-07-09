@@ -1,4 +1,4 @@
-const { notifyAccount } = require("../../core/notify.js");
+const { notifyGroupedReminder } = require("../../core/notify.js");
 
 module.exports = {
 	name: "expedition",
@@ -16,6 +16,7 @@ module.exports = {
 			return;
 		}
 
+		const entries = [];
 		const activeGameAccounts = app.HoyoLab.getActivePlatform();
 		for (const name of activeGameAccounts) {
 			const platform = app.HoyoLab.get(name);
@@ -48,39 +49,31 @@ module.exports = {
 					continue;
 				}
 
-				const embed = {
-					color: data.assets.color,
-					title: "Expedition Reminder",
-					author: {
-						name: data.assets.author,
-						icon_url: data.assets.logo
-					},
-					description: "All expeditions are completed!",
-					fields: [
-						{ name: "UID", value: account.uid, inline: true },
-						{ name: "Username", value: account.nickname, inline: true },
-						{
-							name: "Region",
-							value: app.HoyoLab.getRegion(account.region),
-							inline: true
-						}
-					]
-				};
-
-				const telegramText = app.Utils.escapeCharacters(
-					[
-						`📢 Expedition Reminder, All Expeditions are Completed!`,
-						`🎮 **Game**: ${data.assets.game}`,
-						`🆔 **UID**: ${account.uid} ${account.nickname}`
-					].join("\n")
-				);
-				await notifyAccount(account, {
-					embeds: [embed],
-					telegramText,
+				entries.push({
+					account,
+					assets: data.assets,
+					gameName: data.assets.game,
+					level: "ok",
+					text: "all expeditions complete",
 					ping: true,
-					kind: "reminder"
+					telegramText: app.Utils.escapeCharacters(
+						[
+							`📢 Expedition Reminder, All Expeditions are Completed!`,
+							`🎮 **Game**: ${data.assets.game}`,
+							`🆔 **UID**: ${account.uid} ${account.nickname}`
+						].join("\n")
+					)
 				});
 			}
+		}
+
+		if (entries.length > 0) {
+			await notifyGroupedReminder({
+				kind: "reminder",
+				titleSuffix: "Expeditions",
+				description: "Expeditions are finished — redeploy them.",
+				entries
+			});
 		}
 	}
 };

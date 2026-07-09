@@ -1,4 +1,4 @@
-const { notifyAccount } = require("../../core/notify.js");
+const { notifyGroupedReminder } = require("../../core/notify.js");
 
 module.exports = {
 	name: "shop-status",
@@ -13,6 +13,7 @@ module.exports = {
 		}
 
 		const platform = app.HoyoLab.get("nap");
+		const entries = [];
 		for (const account of accounts) {
 			if (account.shop.check === false) {
 				continue;
@@ -39,34 +40,31 @@ module.exports = {
 				account.shop.fired = true;
 				platform.update(account);
 
-				const region = app.HoyoLab.getRegion(account.region);
-				const embed = {
-					color: data.assets.color,
-					title: "Shop Status",
-					author: {
-						name: `${region} Server - ${account.nickname}`,
-						icon_url: data.assets.logo
-					},
-					description: "Your shop has finished selling videos!",
-					thumbnail: {
-						url: data.assets.logo
-					}
-				};
-
-				const telegramText = app.Utils.escapeCharacters(
-					[
-						`🛒 Shop Status`,
-						`UID: ${account.uid} ${account.nickname}`,
-						`Your shop has finished selling videos!`
-					].join("\n")
-				);
-				await notifyAccount(account, {
-					embeds: [embed],
-					telegramText,
+				entries.push({
+					account,
+					assets: data.assets,
+					gameName: data.assets.game,
+					level: "ok",
+					text: "video shop sold out",
 					ping: true,
-					kind: "reminder"
+					telegramText: app.Utils.escapeCharacters(
+						[
+							`🛒 Shop Status`,
+							`UID: ${account.uid} ${account.nickname}`,
+							`Your shop has finished selling videos!`
+						].join("\n")
+					)
 				});
 			}
+		}
+
+		if (entries.length > 0) {
+			await notifyGroupedReminder({
+				kind: "reminder",
+				titleSuffix: "Shop Status",
+				description: "The video shop has finished selling.",
+				entries
+			});
 		}
 	}
 };
