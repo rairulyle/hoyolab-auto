@@ -4,7 +4,23 @@ All notable changes to this project are documented here. The format follows [Kee
 
 Entries are written **one line per paragraph and bullet** (no hard-wrapping) so that a section pasted into GitHub release notes reflows to full width instead of breaking at the source wrap points.
 
-## [Unreleased]
+## [1.3.0] - 2026-07-10
+
+### Added
+
+- `/link add` takes an optional `mention` (Discord user picker) to choose who gets @mentioned in a profile's notifications; when omitted, no one is pinged. The `label` is now required and should be unique — it identifies the profile for `/link edit`, `/link remove`, and `/link refresh`.
+- `/link edit` takes an optional `mention` to set the ping target, and its editor panel has a **Remove mention** button to clear it.
+
+### Changed
+
+- `/link add` refuses to overwrite a label already linked to a different account, preventing accidental profile replacement; re-adding the same account still updates it.
+- Notifications @mention the recipient only once, in the message content, instead of repeating the mention on every embed row.
+- `/link edit` wording uses "label" throughout — the panel title is the label, and the rename control is "Rename label".
+- `/link list` shows "no ping set" for a profile with no mention target.
+
+### Fixed
+
+- `/link refresh` no longer resets a profile's notification mention to whoever ran the refresh — it preserves the existing target.
 
 ## [1.2.0] - 2026-07-09
 
