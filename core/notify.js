@@ -116,8 +116,7 @@ const notifyGroupedReminder = async ({ kind = "reminder", titleSuffix, descripti
 					});
 				}
 				const group = games.get(gameKey);
-				const owner = profile.discordUserId ? `<@${profile.discordUserId}>` : profile.label;
-				group.rows.push({ level, ign: account.nickname ?? profile.label, owner, text });
+				group.rows.push({ level, ign: account.nickname ?? profile.label, text });
 				if (ping && profile.discordUserId) {
 					group.pings.add(`<@${profile.discordUserId}>`);
 				}
@@ -195,8 +194,7 @@ const notifyGroupedRedeem = async ({ entries }) => {
 					});
 				}
 				const group = codes.get(key);
-				const owner = profile.discordUserId ? `<@${profile.discordUserId}>` : profile.label;
-				group.rows.push({ success, ign: account.nickname ?? profile.label, owner, reason });
+				group.rows.push({ success, ign: account.nickname ?? profile.label, reason });
 			}
 		}
 
