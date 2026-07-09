@@ -6,6 +6,11 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+### Changed
+
+- `/redeem` bulk mode now replies with one embed per game (🟢/🔴/⚪ row per account, codes-checked footer) instead of plain text, and the single-code path replies with a code embed.
+- `/checkin` now replies with one embed per game listing each account as a row; failures appear as 🔴 rows in their game's embed instead of a separate error embed.
+
 ## [1.3.0] - 2026-07-10
 
 ### Added
