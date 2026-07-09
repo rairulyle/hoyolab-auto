@@ -61,6 +61,11 @@ module.exports = {
 							.setRequired(true)
 							.setAutocomplete(true)
 					)
+					.addUserOption((opt) =>
+						opt
+							.setName("mention")
+							.setDescription("Set who to @mention in this profile's notifications.")
+					)
 			)
 			.addSubcommand((sub) =>
 				sub

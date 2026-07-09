@@ -183,7 +183,13 @@ const openEditor = async (interaction) => {
 			ephemeral: true
 		});
 	}
-	return await interaction.reply({ ...buildGameSelect(profile), ephemeral: true });
+	const mention = interaction.options.getUser("mention");
+	let current = profile;
+	if (mention) {
+		current = await app.db.setProfileOwner(profile._id, mention.id);
+		scheduleReload();
+	}
+	return await interaction.reply({ ...buildGameSelect(current), ephemeral: true });
 };
 
 const handleComponent = async (interaction) => {
@@ -261,15 +267,21 @@ const handleComponent = async (interaction) => {
 		});
 	}
 
+	if (action === "clearping") {
+		await app.db.setProfileOwner(profileId, null);
+		scheduleReload();
+		return await interaction.update(buildGameSelect(await getProfileById(profileId)));
+	}
+
 	if (action === "rename") {
 		const modal = new ModalBuilder()
 			.setCustomId(`hle:renameModal:${profileId}:-`)
-			.setTitle("Rename profile")
+			.setTitle("Rename label")
 			.addComponents(
 				new ActionRowBuilder().addComponents(
 					new TextInputBuilder()
 						.setCustomId("label")
-						.setLabel("New profile label")
+						.setLabel("New label")
 						.setStyle(TextInputStyle.Short)
 						.setValue(profile.label)
 						.setRequired(true)
@@ -285,7 +297,7 @@ const handleComponent = async (interaction) => {
 			const updated = await app.db.renameProfile(profileId, nextLabel);
 			scheduleReload();
 			return await interaction.reply({
-				content: `Renamed profile to **${updated.label}**.`,
+				content: `Renamed label to **${updated.label}**.`,
 				ephemeral: true
 			});
 		} catch (e) {
