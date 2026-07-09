@@ -1,4 +1,4 @@
-const { notifyAccount } = require("../../core/notify.js");
+const { notifyGroupedReminder } = require("../../core/notify.js");
 
 module.exports = {
 	name: "realm-currency",
@@ -12,6 +12,7 @@ module.exports = {
 		}
 
 		const platform = app.HoyoLab.get("genshin");
+		const entries = [];
 		for (const account of accountList) {
 			const realm = account.realm;
 			if (realm.check === false) {
@@ -39,46 +40,31 @@ module.exports = {
 				realm.fired = true;
 				platform.update(account);
 
-				const region = app.HoyoLab.getRegion(account.region);
-				const embed = {
-					color: data.assets.color,
-					title: "Realm Currency",
-					author: {
-						name: `${region} Server - ${account.nickname}`,
-						icon_url: data.assets.logo
-					},
-					description: "Your realm currency is full!",
-					fields: [
-						{
-							name: "Current Realm Currency",
-							value: `${coins.currentCoin}/${coins.maxCoin}`,
-							inline: true
-						}
-					],
-					thumbnail: {
-						url: data.assets.logo
-					},
-					timestamp: new Date(),
-					footer: {
-						text: "Realm Currency",
-						icon_url: data.assets.logo
-					}
-				};
-
-				const telegramText = app.Utils.escapeCharacters(
-					[
-						`💰 Realm Currency`,
-						`UID: ${account.uid} ${account.nickname}`,
-						`Your realm currency is full!`
-					].join("\n")
-				);
-				await notifyAccount(account, {
-					embeds: [embed],
-					telegramText,
+				entries.push({
+					account,
+					assets: data.assets,
+					gameName: data.assets.game,
+					level: "alert",
+					text: `${coins.currentCoin}/${coins.maxCoin} realm currency`,
 					ping: true,
-					kind: "reminder"
+					telegramText: app.Utils.escapeCharacters(
+						[
+							`💰 Realm Currency`,
+							`UID: ${account.uid} ${account.nickname}`,
+							`Your realm currency is full!`
+						].join("\n")
+					)
 				});
 			}
+		}
+
+		if (entries.length > 0) {
+			await notifyGroupedReminder({
+				kind: "reminder",
+				titleSuffix: "Realm Currency",
+				description: "Realm currency is at or near cap — collect it.",
+				entries
+			});
 		}
 	}
 };

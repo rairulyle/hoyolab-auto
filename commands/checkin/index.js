@@ -45,7 +45,7 @@ module.exports = {
 		}
 
 		if (interaction) {
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply();
 		}
 
 		const results = [];
@@ -82,7 +82,7 @@ module.exports = {
 		}
 
 		if (platform.id === 1) {
-			const embeds = results.map((message, i) => {
+			const embeds = results.map((message) => {
 				let fields = [
 					{ name: "UID", value: message.uid, inline: true },
 					{ name: "Username", value: message.username, inline: true },
@@ -111,12 +111,7 @@ module.exports = {
 					thumbnail: {
 						url: message.award.icon
 					},
-					fields,
-					timestamp: new Date(),
-					footer: {
-						text: `Manual Check-In (${i + 1}/${results.length})`,
-						icon_url: message.assets.logo
-					}
+					fields
 				};
 			});
 
@@ -124,8 +119,7 @@ module.exports = {
 				embeds.push({
 					color: 0xff0000,
 					title: "❌ Check-In Errors",
-					description: errors.map((e) => `**${e.game}**: ${e.error}`).join("\n"),
-					timestamp: new Date()
+					description: errors.map((e) => `**${e.game}**: ${e.error}`).join("\n")
 				});
 			}
 

@@ -159,11 +159,6 @@ module.exports = {
 					fields,
 					thumbnail: {
 						url: data.assets.logo
-					},
-					timestamp: new Date(),
-					footer: {
-						text: "Hilichurl Workshop Automation",
-						icon_url: data.assets.logo
 					}
 				};
 

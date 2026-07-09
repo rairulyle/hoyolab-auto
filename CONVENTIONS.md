@@ -137,6 +137,59 @@ loops into crons.
 - `notifyGuildsForGame(gameKey, …)` handles game-level notifications with no
   account (e.g. manual redeem codes).
 
+## Notification embeds: group by subject, not by account
+
+When a cron produces the **same** notification for several accounts in one run,
+emit **one embed per grouping subject** (per game for check-in/reminders, per
+code for redeem) and list the accounts inside it — never one message per
+account. Four near-identical cards that differ only in owner and IGN is spam.
+
+- **Header (shared once):** game name / author / thumbnail, region, notification
+  type, and a count. Fields whose value is identical across the group live here.
+- **Per-account row:** the owner mention + IGN, then only the fields that vary —
+  reward, streak/threshold, result. Build rows in the embed `description` (or one
+  field per account), not as a separate embed.
+- **Colour:** keep the game's accent bar. A footer is optional — add one only
+  when it carries information (see "Footers earn their place" below), never one
+  that just restates the bot or the title.
+- **Errors stay addressable:** a failed account (e.g. dead cookie) keeps its own
+  row and still pings its owner via `content` (`<@id>`), never in the embed.
+- **Chunking:** if a group exceeds Discord's limits (25 fields / 6000 chars /
+  4096-char description), split into more embeds **of the same subject** — never
+  fall back to per-account.
+
+Applies to check-in (group by game), reminders (group by game + reminder type),
+and redeem (group by code).
+
+## Embed text & labels
+
+Adapted from `nova-ph-bot` — our embeds are informational (short status lines),
+not dense data tables, so we take the rules that carry and leave the number-grid
+tooling behind.
+
+- **Case by structural role, not taste.** Embed **title** → Title Case. A field
+  `name` that labels a group (section header) → Title Case. A field `name` that
+  **is** an entity — an account IGN, a redeem code — keeps its **natural case**;
+  never `.toUpperCase()` a proper noun. A unit/descriptor trailing a value →
+  lowercase (`Day 7`, `already claimed`). A full sentence (footer note, error) →
+  Sentence case. `ALLCAPS` is reserved for **at most one** emphasis line per
+  embed (an alert banner) — never a name, never a sentence.
+- **Name the entity; don't repeat labels.** Prefer one field per account whose
+  `name` is the account (owner mention + IGN) and whose `value` carries the
+  varying data as inline descriptors, over a fixed `Profile / UID / Region /
+Reward / Result` grid duplicated on every card. Labels that read the same on
+  every row are noise — the differing values are the information.
+- **Footers earn their place; no timestamps.** Never set `timestamp` on an embed
+  — Discord already shows the message's send time next to the bot name. Drop
+  footer **text**, too, when it only restates the bot or context
+  (`HoyoLab Auto · Check-in` merely echoes the author and title). Keep a footer
+  only when it tells the reader something they need — a legend
+  (`🔴 = re-link with /link refresh`), a freshness note, or a manual-action link.
+- **Spacers only when it crowds.** Discord puts no gap between stacked
+  (`inline: false`) fields; when a many-field embed crowds, add a blank spacer
+  field — a zero-width space (`​`) for both `name` and `value` — between
+  sections. A judgement call about readability, not a reflex.
+
 ## Game keys vs engine names
 
 Profiles/DB use the keys `genshin | starrail | zenless | honkai | termis`. The

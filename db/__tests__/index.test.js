@@ -142,6 +142,28 @@ test("setTokenStatus flips status", async () => {
 	assert.equal((await db.getProfile("g1", "main")).tokenStatus, "expired");
 });
 
+test("renameProfile re-keys label and key, preserving _id", async () => {
+	const inserted = await db.upsertProfile(profile({ label: "main" }));
+	const renamed = await db.renameProfile(inserted._id, "Alt");
+	assert.equal(renamed._id, inserted._id);
+	assert.equal(renamed.label, "Alt");
+	assert.equal(renamed.key, "g1:alt");
+	assert.ok(await db.getProfile("g1", "Alt"));
+	assert.equal(await db.getProfile("g1", "main"), null);
+});
+
+test("renameProfile rejects a label already used in the same guild", async () => {
+	const a = await db.upsertProfile(profile({ label: "main" }));
+	await db.upsertProfile(profile({ label: "alt" }));
+	await assert.rejects(() => db.renameProfile(a._id, "ALT"), /already exists/);
+});
+
+test("renameProfile rejects empty label and unknown id", async () => {
+	const a = await db.upsertProfile(profile({ label: "main" }));
+	await assert.rejects(() => db.renameProfile(a._id, "   "), /empty/);
+	await assert.rejects(() => db.renameProfile("nope", "x"), /not found/);
+});
+
 test("recordRedeem appends", async () => {
 	const saved = await db.upsertProfile(profile());
 	await db.recordRedeem({
@@ -164,4 +186,35 @@ test("recordRedeem appends", async () => {
 	});
 	const rows = await db.collections.redeemResults.findAsync({ code: "CODE1" });
 	assert.equal(rows.length, 2);
+});
+
+test("getRedeemStatuses returns statuses for a profile+game+code", async () => {
+	await db.recordRedeem({
+		profileId: "p1",
+		guildId: "g1",
+		game: "genshin",
+		code: "ABC",
+		source: "manual",
+		status: "error"
+	});
+	await db.recordRedeem({
+		profileId: "p1",
+		guildId: "g1",
+		game: "genshin",
+		code: "ABC",
+		source: "manual",
+		status: "ok"
+	});
+	await db.recordRedeem({
+		profileId: "p1",
+		guildId: "g1",
+		game: "genshin",
+		code: "XYZ",
+		source: "manual",
+		status: "ok"
+	});
+
+	const statuses = await db.getRedeemStatuses("p1", "genshin", "ABC");
+	assert.deepEqual(statuses.sort(), ["error", "ok"]);
+	assert.deepEqual(await db.getRedeemStatuses("p1", "genshin", "NONE"), []);
 });

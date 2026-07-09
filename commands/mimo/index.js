@@ -100,11 +100,6 @@ const createEmbed = (result) => {
 		fields,
 		thumbnail: {
 			url: result.assets?.logo
-		},
-		timestamp: new Date().toISOString(),
-		footer: {
-			text: gameNames[result.game] || result.game,
-			icon_url: result.assets?.logo
 		}
 	};
 };

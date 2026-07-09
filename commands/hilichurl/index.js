@@ -90,11 +90,6 @@ const createEmbed = (result) => {
 		fields,
 		thumbnail: {
 			url: result.assets?.logo
-		},
-		timestamp: new Date().toISOString(),
-		footer: {
-			text: "Genshin Impact",
-			icon_url: result.assets?.logo
 		}
 	};
 };

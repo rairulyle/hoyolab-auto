@@ -1,6 +1,8 @@
-const { notifyAccount } = require("../../core/notify.js");
+const { notifyGroupedReminder } = require("../../core/notify.js");
 
 const RegionalTaskManager = new app.RegionalTaskManager();
+
+let entries = [];
 
 RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 	const weekliesCheck = account.weekliesCheck;
@@ -17,26 +19,6 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 	const { data } = notes;
 	const weeklies = data.weeklies;
 
-	const embed = {
-		color: data.assets.color,
-		title: "Weeklies Reminder",
-		author: {
-			name: data.assets.author,
-			icon_url: data.assets.logo
-		},
-		description: "Don't forget to complete your weeklies!",
-		fields: [
-			{ name: "UID", value: account.uid, inline: true },
-			{ name: "Username", value: account.nickname, inline: true },
-			{ name: "Region", value: app.HoyoLab.getRegion(account.region), inline: true }
-		],
-		timestamp: new Date(),
-		footer: {
-			text: "Weeklies Reminder",
-			icon_url: data.assets.logo
-		}
-	};
-
 	const message = [
 		"📅 **Weeklies Reminder**",
 		"",
@@ -47,18 +29,15 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 		"",
 		"📊 **Progress**"
 	];
+	const textParts = [];
 
 	if (platform.type === "genshin") {
 		const resin = weeklies.resinDiscount;
 		const limit = weeklies.resinDiscountLimit;
 
 		if (resin !== 0) {
-			embed.fields.push({
-				name: "Resin Discount",
-				value: `${resin}/${limit} Available`,
-				inline: true
-			});
 			message.push(`- **Resin Discount**: ${resin}/${limit} Available`);
+			textParts.push(`${resin}/${limit} resin discount`);
 		}
 	}
 	if (platform.type === "starrail") {
@@ -70,32 +49,20 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 		}
 
 		if (!bossCompleted) {
-			embed.fields.push({
-				name: "Weekly Boss",
-				value: `${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`,
-				inline: true
-			});
 			message.push(
 				`- **Weekly Boss**: ${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} Completed`
 			);
+			textParts.push(`${weeklies.weeklyBoss}/${weeklies.weeklyBossLimit} weekly boss`);
 		}
 		if (!simCompleted) {
-			embed.fields.push({
-				name: "Simulated Universe",
-				value: `${weeklies.rogueScore}/${weeklies.maxScore}`,
-				inline: true
-			});
 			message.push(`- **Simulated Universe**: ${weeklies.rogueScore}/${weeklies.maxScore}`);
+			textParts.push(`${weeklies.rogueScore}/${weeklies.maxScore} simulated universe`);
 		}
 		if (!divergent) {
-			embed.fields.push({
-				name: "Divergent Universe",
-				value: `${weeklies.tournScore}/${weeklies.tournMaxScore}`,
-				inline: true
-			});
 			message.push(
 				`- **Divergent Universe**: ${weeklies.tournScore}/${weeklies.tournMaxScore}`
 			);
+			textParts.push(`${weeklies.tournScore}/${weeklies.tournMaxScore} divergent universe`);
 		}
 	}
 	if (platform.type === "nap") {
@@ -106,27 +73,30 @@ RegionalTaskManager.registerTask("WeekliesReminder", 21, 0, async (account) => {
 		}
 
 		if (!bountiesCompleted) {
-			embed.fields.push({
-				name: "Bounty Commission",
-				value: `${weeklies.bounty}/${weeklies.bountyTotal}`,
-				inline: true
-			});
 			message.push(`- **Bounty Commission**: ${weeklies.bounty}/${weeklies.bountyTotal}`);
+			textParts.push(`${weeklies.bounty}/${weeklies.bountyTotal} bounty commission`);
 		}
 		if (!surveyCompleted) {
-			embed.fields.push({
-				name: "Survey Points",
-				value: `${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`,
-				inline: true
-			});
 			message.push(
 				`- **Survey Points**: ${weeklies.surveyPoints}/${weeklies.surveyPointsTotal}`
 			);
+			textParts.push(`${weeklies.surveyPoints}/${weeklies.surveyPointsTotal} survey points`);
 		}
 	}
 
-	const telegramText = app.Utils.escapeCharacters(message.join("\n"));
-	await notifyAccount(account, { embeds: [embed], telegramText, ping: true, kind: "reminder" });
+	if (textParts.length === 0) {
+		return;
+	}
+
+	entries.push({
+		account,
+		assets: data.assets,
+		gameName: data.assets.game,
+		level: "warn",
+		text: textParts.join(" · "),
+		ping: true,
+		telegramText: app.Utils.escapeCharacters(message.join("\n"))
+	});
 });
 
 module.exports = {
@@ -134,7 +104,17 @@ module.exports = {
 	expression: "*/5 * * * 0",
 	description: "Reminds you to complete your weeklies.",
 	code: async function weekliesReminder() {
+		entries = [];
 		// eslint-disable-next-line object-curly-spacing
 		await RegionalTaskManager.executeTasks();
+
+		if (entries.length > 0) {
+			await notifyGroupedReminder({
+				kind: "reminder",
+				titleSuffix: "Weeklies",
+				description: "These accounts still have weekly tasks to finish.",
+				entries
+			});
+		}
 	}
 };

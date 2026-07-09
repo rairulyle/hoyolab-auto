@@ -32,12 +32,7 @@ const getNotesEmbedData = async (accounts, game, platformId) => {
 							`\nFull in:\n${app.Utils.formatTime(stamina.recoveryTime)}`,
 						inline: true
 					}
-				],
-				timestamp: new Date(),
-				footer: {
-					text: `HoyoLab Notes - ${platform.fullName}`,
-					icon_url: data.assets.logo
-				}
+				]
 			};
 
 			if (platform.gameId === 2) {

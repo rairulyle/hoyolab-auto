@@ -17,7 +17,9 @@ const run = async (interaction) => {
 				title: `Profiles in this server (${profiles.length})`,
 				fields: profiles.map((p) => ({
 					name: `${p.tokenStatus === "expired" ? "🔴" : "🟢"} ${p.label}`,
-					value: summarize(p) || "(no games)"
+					value: `${summarize(p) || "(no games)"}\nLinked by ${
+						p.discordUserId ? `<@${p.discordUserId}>` : "_unknown_"
+					}`
 				}))
 			}
 		]

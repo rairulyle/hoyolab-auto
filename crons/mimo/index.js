@@ -60,12 +60,7 @@ module.exports = {
 									name: `${region} Server - ${account.nickname}`,
 									icon_url: account.assets?.logo
 								},
-								description: `**Automation Failed:** ${result.message}`,
-								timestamp: new Date(),
-								footer: {
-									text: "Traveling Mimo Automation",
-									icon_url: account.assets?.logo
-								}
+								description: `**Automation Failed:** ${result.message}`
 							};
 
 							const telegramText = app.Utils.escapeCharacters(
@@ -215,11 +210,6 @@ module.exports = {
 						fields,
 						thumbnail: {
 							url: data.assets.logo
-						},
-						timestamp: new Date(),
-						footer: {
-							text: "Traveling Mimo Automation",
-							icon_url: data.assets.logo
 						}
 					};
 

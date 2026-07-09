@@ -153,6 +153,12 @@ const buildGameSelect = (profile) => {
 					.setCustomId(`hle:game:${profile._id}:-`)
 					.setPlaceholder("Select a game")
 					.addOptions(options)
+			),
+			new ActionRowBuilder().addComponents(
+				new ButtonBuilder()
+					.setCustomId(`hle:rename:${profile._id}:-`)
+					.setLabel("Rename profile…")
+					.setStyle(ButtonStyle.Secondary)
 			)
 		]
 	};
@@ -246,6 +252,38 @@ const handleComponent = async (interaction) => {
 			content: `Stamina threshold set to **${threshold}**.`,
 			ephemeral: true
 		});
+	}
+
+	if (action === "rename") {
+		const modal = new ModalBuilder()
+			.setCustomId(`hle:renameModal:${profileId}:-`)
+			.setTitle("Rename profile")
+			.addComponents(
+				new ActionRowBuilder().addComponents(
+					new TextInputBuilder()
+						.setCustomId("label")
+						.setLabel("New profile label")
+						.setStyle(TextInputStyle.Short)
+						.setValue(profile.label)
+						.setRequired(true)
+						.setMaxLength(80)
+				)
+			);
+		return await interaction.showModal(modal);
+	}
+
+	if (action === "renameModal") {
+		const nextLabel = interaction.fields.getTextInputValue("label");
+		try {
+			const updated = await app.db.renameProfile(profileId, nextLabel);
+			scheduleReload();
+			return await interaction.reply({
+				content: `Renamed profile to **${updated.label}**.`,
+				ephemeral: true
+			});
+		} catch (e) {
+			return await interaction.reply({ content: `❌ ${e.message}`, ephemeral: true });
+		}
 	}
 };
 

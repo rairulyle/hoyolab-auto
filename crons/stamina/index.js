@@ -1,4 +1,4 @@
-const { notifyAccount } = require("../../core/notify.js");
+const { notifyGroupedReminder } = require("../../core/notify.js");
 
 module.exports = {
 	name: "stamina",
@@ -12,14 +12,14 @@ module.exports = {
 			return;
 		}
 
+		const entries = [];
 		const activeGameAccounts = app.HoyoLab.getActivePlatform();
 		for (const name of activeGameAccounts) {
 			const platform = app.HoyoLab.get(name);
 			const accounts = accountsList.filter((account) => account.platform === name);
 
 			for (const account of accounts) {
-				const staminaCheck = account.stamina.check;
-				if (staminaCheck === false) {
+				if (account.stamina.check === false) {
 					continue;
 				}
 
@@ -45,58 +45,40 @@ module.exports = {
 
 				const max = stamina.maxStamina;
 				const delta = app.Utils.formatTime(stamina.recoveryTime);
+				const full = current >= max;
 
 				account.stamina.fired = true;
 				platform.update(account);
 
-				const description =
-					stamina.currentStamina === stamina.maxStamina
-						? "Your stamina is full!"
-						: "Your stamina is within the set threshold!";
-
-				const embed = {
-					color: data.assets.color,
-					title: "Stamina Reminder",
-					author: {
-						name: data.assets.author,
-						icon_url: data.assets.logo
-					},
-					description,
-					fields: [
-						{ name: "UID", value: account.uid, inline: true },
-						{ name: "Username", value: account.nickname, inline: true },
-						{
-							name: "Region",
-							value: app.HoyoLab.getRegion(account.region),
-							inline: true
-						},
-						{ name: "Stamina", value: `${current}/${max}`, inline: true },
-						{ name: "Recovery Time", value: delta, inline: true }
-					],
-					timestamp: new Date(),
-					footer: {
-						text: "Stamina Reminder",
-						icon_url: data.assets.logo
-					}
-				};
-
-				const telegramText = app.Utils.escapeCharacters(
-					[
-						`📢 Stamina Reminder, ${description}`,
-						`🎮 **Game**: ${data.assets.game}`,
-						`🆔 **UID**: ${account.uid} ${account.nickname}`,
-						`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
-						`🔋 **Stamina**: ${current}/${max}`,
-						`🕒 **Recovery Time**: ${delta}`
-					].join("\n")
-				);
-				await notifyAccount(account, {
-					embeds: [embed],
-					telegramText,
+				entries.push({
+					account,
+					assets: data.assets,
+					gameName: data.assets.game,
+					level: full ? "alert" : "warn",
+					text: full ? `${max}/${max} · capped` : `${current}/${max} · full in ${delta}`,
 					ping: true,
-					kind: "reminder"
+					telegramText: app.Utils.escapeCharacters(
+						[
+							`📢 Stamina Reminder`,
+							`🎮 **Game**: ${data.assets.game}`,
+							`🆔 **UID**: ${account.uid} ${account.nickname}`,
+							`🌍 **Region**: ${app.HoyoLab.getRegion(account.region)}`,
+							`🔋 **Stamina**: ${current}/${max}`,
+							`🕒 **Recovery Time**: ${delta}`
+						].join("\n")
+					)
 				});
 			}
+		}
+
+		if (entries.length > 0) {
+			await notifyGroupedReminder({
+				kind: "reminder",
+				titleSuffix: "Stamina",
+				description:
+					"These accounts are at or above the set threshold — spend before it caps.",
+				entries
+			});
 		}
 	}
 };

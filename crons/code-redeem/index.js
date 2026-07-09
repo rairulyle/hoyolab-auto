@@ -1,8 +1,8 @@
 const { fetchCodes, checkAndRedeem, buildMessage } = require("./utils");
-const { notifyAccount, notifyGuildsForGame } = require("../../core/notify.js");
+const { notifyGroupedRedeem, notifyGuildsForGame } = require("../../core/notify.js");
 const { gameKeyFromEngineName } = require("../../config/games.js");
 
-const recordAndNotify = async (data, message, status) => {
+const recordRedeem = async (data, status) => {
 	const gameKey = gameKeyFromEngineName(data.account.platform);
 	const profiles = await app.db.findProfilesByGameUid(gameKey, data.account.uid);
 	for (const profile of profiles) {
@@ -16,12 +16,18 @@ const recordAndNotify = async (data, message, status) => {
 			message: status === "ok" ? "" : (data.reason ?? "")
 		});
 	}
-	await notifyAccount(data.account, {
-		embeds: [message.embed],
-		telegramText: app.Utils.escapeCharacters(message.telegram),
-		kind: "redeem"
-	});
 };
+
+const toEntry = (data, success) => ({
+	account: data.account,
+	code: data.code.code ?? String(data.code),
+	rewards: data.code.rewards ?? null,
+	success,
+	reason: data.reason,
+	telegramText: app.Utils.escapeCharacters(
+		buildMessage(success ? "success" : "failed", data).telegram
+	)
+});
 
 module.exports = {
 	name: "code-redeem",
@@ -61,14 +67,17 @@ module.exports = {
 			return;
 		}
 
+		const entries = [];
 		for (const data of success) {
-			const message = buildMessage("success", data);
-			await recordAndNotify(data, message, "ok");
+			await recordRedeem(data, "ok");
+			entries.push(toEntry(data, true));
 		}
-
 		for (const data of failed) {
-			const message = buildMessage("failed", data);
-			await recordAndNotify(data, message, "error");
+			await recordRedeem(data, "error");
+			entries.push(toEntry(data, false));
+		}
+		if (entries.length > 0) {
+			await notifyGroupedRedeem({ entries });
 		}
 
 		for (const data of manual) {

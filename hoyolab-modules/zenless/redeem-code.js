@@ -45,7 +45,8 @@ module.exports = class RedeemCode {
 			});
 
 			return {
-				success: false
+				success: false,
+				retcode: null
 			};
 		}
 		if (res.body.retcode !== 0) {
@@ -60,6 +61,7 @@ module.exports = class RedeemCode {
 
 			return {
 				success: false,
+				retcode: res.body.retcode,
 				message: res.body.message
 			};
 		}

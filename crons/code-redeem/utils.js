@@ -297,12 +297,7 @@ const buildMessage = (status, data) => {
 			name: assets.author ?? "HoyoLab Auto",
 			icon_url: assets.logo ?? null
 		},
-		description: embedDescriptionParts.join(""),
-		timestamp: new Date(),
-		footer: {
-			text: `${data.code.code}`,
-			icon_url: assets.logo ?? null
-		}
+		description: embedDescriptionParts.join("")
 	};
 
 	return {

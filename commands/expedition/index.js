@@ -44,8 +44,7 @@ const getExpeditionEmbedData = async (accounts, game, platformId) => {
 						inline: true
 					},
 					...expeditionList
-				],
-				timestamp: new Date()
+				]
 			};
 
 			embedData.push(embed);
