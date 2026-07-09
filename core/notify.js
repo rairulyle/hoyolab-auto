@@ -153,11 +153,81 @@ const notifyGroupedReminder = async ({ kind = "reminder", titleSuffix, descripti
 	}
 };
 
+const buildRedeemEmbed = (group) => {
+	const head = [`\`${group.code}\``, group.rewards?.length ? group.rewards.join(", ") : null]
+		.filter(Boolean)
+		.join(" — ");
+	const rows = group.rows.map((r) =>
+		r.success
+			? `🟢 **${r.ign}** ${r.owner} — redeemed`
+			: `🔴 **${r.ign}** ${r.owner} — ${r.reason ?? "failed"}`
+	);
+	return {
+		color: group.assets?.color ?? 0x5865f2,
+		...(group.assets
+			? { author: { name: group.assets.author, icon_url: group.assets.logo } }
+			: {}),
+		title: `${group.gameName} · Code Redeemed`,
+		description: `${head}\n\n${rows.join("\n")}`
+	};
+};
+
+// One embed per code (per guild) listing which accounts redeemed it.
+// entries: [{ account, code, rewards?, success, reason?, telegramText? }]
+const notifyGroupedRedeem = async ({ entries }) => {
+	try {
+		const byGuild = new Map();
+		for (const { account, code, rewards, success, reason } of entries) {
+			const gameKey = gameKeyFromEngineName(account.platform) ?? account.platform;
+			const profiles = await app.db.findProfilesByGameUid(gameKey, account.uid);
+			for (const profile of profiles) {
+				if (profile.tokenStatus === "expired") {
+					continue;
+				}
+				if (!byGuild.has(profile.guildId)) {
+					byGuild.set(profile.guildId, new Map());
+				}
+				const codes = byGuild.get(profile.guildId);
+				const key = `${gameKey}:${code}`;
+				if (!codes.has(key)) {
+					codes.set(key, {
+						gameName: account.game?.name ?? account.assets?.game ?? gameKey,
+						assets: account.assets ?? null,
+						code,
+						rewards: rewards ?? null,
+						rows: []
+					});
+				}
+				const group = codes.get(key);
+				const owner = profile.discordUserId ? `<@${profile.discordUserId}>` : profile.label;
+				group.rows.push({ success, ign: account.nickname ?? profile.label, owner, reason });
+			}
+		}
+
+		for (const [guildId, codes] of byGuild) {
+			const embeds = [...codes.values()].map(buildRedeemEmbed);
+			for (let i = 0; i < embeds.length; i += 10) {
+				await sendToGuildChannel(guildId, "redeem", { embeds: embeds.slice(i, i + 10) });
+			}
+		}
+
+		for (const { account, telegramText } of entries) {
+			if (telegramText) {
+				await sendTelegram(app.Platform.getForAccount(account), { telegramText });
+			}
+		}
+	} catch (e) {
+		app.Logger.error("Notify", { message: "notifyGroupedRedeem failed", error: e.message });
+	}
+};
+
 module.exports = {
 	sendToGuildChannel,
 	resolveChannelId,
 	notifyAccount,
 	notifyGuildsForGame,
 	notifyGroupedReminder,
-	buildGroupedEmbed
+	notifyGroupedRedeem,
+	buildGroupedEmbed,
+	buildRedeemEmbed
 };
