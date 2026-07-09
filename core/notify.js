@@ -85,9 +85,7 @@ const buildGroupedEmbed = (group, { titleSuffix, description }) => ({
 	title: `${group.name} · ${titleSuffix}`,
 	description: [
 		description,
-		group.rows
-			.map((r) => `${LEVEL_DOT[r.level] ?? "•"} **${r.ign}** ${r.owner} — ${r.text}`)
-			.join("\n")
+		group.rows.map((r) => `${LEVEL_DOT[r.level] ?? "•"} **${r.ign}** — ${r.text}`).join("\n")
 	]
 		.filter(Boolean)
 		.join("\n\n")
@@ -158,9 +156,7 @@ const buildRedeemEmbed = (group) => {
 		.filter(Boolean)
 		.join(" — ");
 	const rows = group.rows.map((r) =>
-		r.success
-			? `🟢 **${r.ign}** ${r.owner} — redeemed`
-			: `🔴 **${r.ign}** ${r.owner} — ${r.reason ?? "failed"}`
+		r.success ? `🟢 **${r.ign}** — redeemed` : `🔴 **${r.ign}** — ${r.reason ?? "failed"}`
 	);
 	return {
 		color: group.assets?.color ?? 0x5865f2,

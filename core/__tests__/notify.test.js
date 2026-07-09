@@ -36,7 +36,7 @@ test("buildGroupedEmbed renders one row per account with level dots", () => {
 	assert.equal(embed.author.name, "Paimon");
 	assert.equal(
 		embed.description,
-		"At or above the set threshold.\n\n🟡 **Rairu** <@1> — 176/180 · full in 20m\n🔴 **Lumine** <@2> — 180/180 · capped"
+		"At or above the set threshold.\n\n🟡 **Rairu** — 176/180 · full in 20m\n🔴 **Lumine** — 180/180 · capped"
 	);
 });
 
@@ -51,7 +51,7 @@ test("buildGroupedEmbed omits author and empty description, uses fallback colour
 	);
 	assert.equal(embed.author, undefined);
 	assert.equal(embed.color, 0x5865f2);
-	assert.equal(embed.description, "🟢 **Nova** main — done");
+	assert.equal(embed.description, "🟢 **Nova** — done");
 });
 
 test("buildRedeemEmbed lists accounts under the code with rewards", () => {
@@ -68,7 +68,7 @@ test("buildRedeemEmbed lists accounts under the code with rewards", () => {
 	assert.equal(embed.title, "Genshin Impact · Code Redeemed");
 	assert.equal(
 		embed.description,
-		"`GENSHINGIFT` — 50 Primogems, 3 Hero's Wit\n\n🟢 **Rairu** <@1> — redeemed\n🔴 **Lumine** <@2> — already claimed"
+		"`GENSHINGIFT` — 50 Primogems, 3 Hero's Wit\n\n🟢 **Rairu** — redeemed\n🔴 **Lumine** — already claimed"
 	);
 });
 
@@ -80,5 +80,5 @@ test("buildRedeemEmbed omits the reward suffix when there are none", () => {
 		rewards: null,
 		rows: [{ success: true, ign: "Mosou", owner: "main" }]
 	});
-	assert.equal(embed.description, "`ZZZCODE`\n\n🟢 **Mosou** main — redeemed");
+	assert.equal(embed.description, "`ZZZCODE`\n\n🟢 **Mosou** — redeemed");
 });
