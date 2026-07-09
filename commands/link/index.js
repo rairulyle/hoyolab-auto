@@ -26,14 +26,25 @@ module.exports = {
 					.setDescription("Link a HoYoLAB account by cookie; games are auto-detected.")
 					.addStringOption((opt) =>
 						opt
+							.setName("label")
+							.setDescription(
+								'Unique name for this profile — used to edit/remove/refresh it later, e.g. "Skull - US".'
+							)
+							.setRequired(true)
+							.setMaxLength(80)
+					)
+					.addStringOption((opt) =>
+						opt
 							.setName("cookie")
 							.setDescription("Your HoYoLAB cookie string")
 							.setRequired(true)
 					)
-					.addStringOption((opt) =>
+					.addUserOption((opt) =>
 						opt
-							.setName("label")
-							.setDescription("Profile name (defaults to your username)")
+							.setName("mention")
+							.setDescription(
+								"Who to @mention in this profile's notifications (defaults to no one)."
+							)
 					)
 			)
 			.addSubcommand((sub) =>

@@ -5,14 +5,15 @@ const { summarize } = require("./summarize.js");
 const run = async (interaction) => {
 	await interaction.deferReply({ ephemeral: true });
 
-	const label = interaction.options.getString("label") ?? interaction.user.username;
+	const label = interaction.options.getString("label");
+	const discordUserId = interaction.options.getUser("mention")?.id ?? null;
 
 	try {
 		const { profile } = await linkProfile({
 			db: app.db,
 			guildId: interaction.guildId,
 			label,
-			discordUserId: interaction.user.id,
+			discordUserId,
 			cookie: interaction.options.getString("cookie")
 		});
 		scheduleReload();
