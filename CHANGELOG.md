@@ -6,6 +6,8 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-09
+
 ### Changed
 
 - `/link list` shows each profile as `label · @owner` with its games beneath, dropping the separate "Linked by" line; the owner mention now renders inline.
