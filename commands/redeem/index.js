@@ -1,5 +1,6 @@
 const { classifyRedeem } = require("../../hoyolab-modules/redeem-status.js");
-const { gameKeyFromEngineName } = require("../../config/games.js");
+const { GAMES, gameKeyFromEngineName } = require("../../config/games.js");
+const { buildRedeemSummaryEmbed } = require("../../core/notify.js");
 const { setTimeout: sleep } = require("node:timers/promises");
 
 module.exports = {
@@ -91,6 +92,7 @@ module.exports = {
 		const TERMINAL = new Set(["ok", "already", "invalid", "expired"]);
 		const targetGames = game ? [game].filter((g) => CACHE_KEYS[g]) : Object.keys(CACHE_KEYS);
 		const summary = [];
+		const embeds = [];
 
 		for (const engineGame of targetGames) {
 			const platform = app.HoyoLab.get(engineGame);
@@ -107,6 +109,7 @@ module.exports = {
 			if (uid) {
 				accounts = accounts.filter((account) => account.uid === uid);
 			}
+			const rows = [];
 
 			for (const account of accounts) {
 				const profiles = await app.db.findProfilesByGameUid(gameKey, account.uid);
@@ -171,10 +174,34 @@ module.exports = {
 				summary.push(
 					`**${gameKey}** (${account.uid}) ${account.nickname ?? ""}: ${redeemed} redeemed, ${skipped} skipped, ${failed} failed${stopped ? ", stopped: cookie expired" : ""}`
 				);
+				rows.push({
+					ign: account.nickname ?? account.uid,
+					uid: account.uid,
+					redeemed,
+					skipped,
+					failed,
+					stopped
+				});
+			}
+
+			if (rows.length > 0) {
+				embeds.push(
+					buildRedeemSummaryEmbed({
+						gameName: GAMES[gameKey]?.name ?? gameKey,
+						assets: accounts[0]?.assets ?? null,
+						codesChecked: codes.length,
+						rows
+					})
+				);
 			}
 		}
 
 		const reply = summary.length > 0 ? summary.join("\n") : "No codes available to redeem.";
-		return interaction ? interaction.editReply({ content: reply }) : { success: true, reply };
+		if (interaction) {
+			return embeds.length > 0
+				? interaction.editReply({ embeds: embeds.slice(0, 10) })
+				: interaction.editReply({ content: reply });
+		}
+		return { success: true, reply };
 	}
 };
