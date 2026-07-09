@@ -105,3 +105,47 @@ test("linkProfile validates, detects, and upserts; relink preserves settings", a
 
 	fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test("linkProfile refuses to overwrite a label held by a different account", async () => {
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hoyolink-"));
+	const db = new Database(dir);
+	await db.init();
+
+	const OTHER_COOKIE = "ltoken_v2=a; ltuid_v2=222; ltmid_v2=b";
+
+	await linkProfile({
+		db,
+		guildId: "g1",
+		label: "Skull - US",
+		discordUserId: "u1",
+		cookie: COOKIE,
+		detect: async () => DETECTED
+	});
+
+	// Same label, different ltuid -> refused.
+	await assert.rejects(
+		() =>
+			linkProfile({
+				db,
+				guildId: "g1",
+				label: "Skull - US",
+				discordUserId: "u1",
+				cookie: OTHER_COOKIE,
+				detect: async () => DETECTED
+			}),
+		/already linked to a different account/i
+	);
+
+	// Same label, same ltuid -> allowed (idempotent re-add).
+	const { profile } = await linkProfile({
+		db,
+		guildId: "g1",
+		label: "Skull - US",
+		discordUserId: "u1",
+		cookie: COOKIE,
+		detect: async () => DETECTED
+	});
+	assert.equal(profile.ltuid, "111");
+
+	fs.rmSync(dir, { recursive: true, force: true });
+});

@@ -33,6 +33,13 @@ const linkProfile = async ({ db, guildId, label, discordUserId, cookie, detect =
 	}
 
 	const existing = await db.getProfile(guildId, label);
+	if (existing && existing.ltuid !== parsed.ltuid) {
+		throw new Error(
+			`Label "${label}" is already linked to a different account ` +
+				`(uid ${existing.ltuid}). Choose a different label, or use ` +
+				`/link refresh to update that profile.`
+		);
+	}
 	const profile = await db.upsertProfile({
 		guildId,
 		label,
