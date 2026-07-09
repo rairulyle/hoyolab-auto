@@ -152,3 +152,13 @@ test("buildRedeemSummaryEmbed uses a red dot for failure-only rows and keeps cou
 		"🔴 **SlimReaper** (830039705) — 2 failed\n🔴 **Nova** (830000001) — 1 redeemed · 1 skipped · stopped: cookie expired"
 	);
 });
+
+test("buildRedeemSummaryEmbed keeps the skipped count on a skipped-only stopped row", () => {
+	const embed = buildRedeemSummaryEmbed({
+		gameName: "Genshin Impact",
+		assets: null,
+		codesChecked: 2,
+		rows: [{ ign: "X", uid: "1", redeemed: 0, skipped: 3, failed: 0, stopped: true }]
+	});
+	assert.equal(embed.description, "🔴 **X** (1) — 3 skipped · stopped: cookie expired");
+});

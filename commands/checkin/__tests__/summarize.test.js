@@ -43,6 +43,7 @@ test("groupCheckInResults splits games and falls back to uid when username is mi
 		[
 			{
 				platform: "tot",
+				username: "",
 				uid: "100",
 				award: { name: "Stellin", count: 30 },
 				total: 2,
@@ -63,6 +64,12 @@ test("groupCheckInResults splits games and falls back to uid when username is mi
 	);
 	assert.equal(groups.length, 2);
 	assert.equal(groups[0].name, "Tears of Themis");
+	assert.deepEqual(groups[0].assets, {
+		game: "Tears of Themis",
+		author: "MC",
+		logo: "l",
+		color: 0x1
+	});
 	assert.deepEqual(groups[0].rows, [{ level: "ok", ign: "100", text: "Stellin ×30 · Day 2" }]);
 });
 

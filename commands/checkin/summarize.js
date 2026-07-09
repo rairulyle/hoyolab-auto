@@ -12,7 +12,7 @@ const groupCheckInResults = (results, errors) => {
 		const signed = /already/i.test(r.result ?? "");
 		group.rows.push({
 			level: signed ? "info" : "ok",
-			ign: r.username ?? r.uid,
+			ign: r.username || r.uid,
 			text: signed
 				? `already claimed · Day ${r.total}`
 				: `${r.award.name} ×${r.award.count} · Day ${r.total}`

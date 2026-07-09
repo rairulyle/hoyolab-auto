@@ -170,7 +170,9 @@ const buildRedeemEmbed = (group) => {
 const redeemSummaryRow = (row) => {
 	const counts = [
 		row.redeemed > 0 ? `${row.redeemed} redeemed` : null,
-		row.skipped > 0 && (row.redeemed > 0 || row.failed > 0) ? `${row.skipped} skipped` : null,
+		row.skipped > 0 && (row.redeemed > 0 || row.failed > 0 || row.stopped)
+			? `${row.skipped} skipped`
+			: null,
 		row.failed > 0 ? `${row.failed} failed` : null
 	].filter(Boolean);
 	if (row.stopped) {
