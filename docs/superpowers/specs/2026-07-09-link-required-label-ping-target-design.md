@@ -1,7 +1,7 @@
 # Design: `/link add` & `/link edit` — required labels + editable ping target
 
 **Date:** 2026-07-09
-**Status:** Approved (pending spec review)
+**Status:** Approved (design reviewed via Lavish — "lgtm")
 
 ## Problem
 
@@ -38,8 +38,12 @@ separate track.
 - **Overwrite guard.** `/link add` with a label already used by a *different*
   account is refused. Re-adding the *same* account (matching `ltuid`) under its
   label is allowed and behaves like today (game merge).
-- **Ping target is editable in `/link edit`** via a native user-select
-  component (modals can't host a user picker), and can be cleared back to none.
+- **Ping target is editable in `/link edit`** via a `mention` slash option (same
+  native picker as `/link add`); cleared via a **"Remove mention"** button in the
+  editor panel (components can't host a clean user *picker*, but a plain button
+  works).
+- **Notifications ping once.** The mention lives only in the content line above
+  the embed; the redundant per-row `<@id>` is dropped. Rows keep the IGN only.
 
 ## Changes
 
@@ -77,23 +81,59 @@ if (existing && existing.ltuid !== parsed.ltuid) {
   (idempotent re-add / owner update).
 - No existing → normal create.
 
-### 4. `/link edit` ping target — `commands/link/editor.js`
+### 4. `/link edit` ping target — new `mention` slash option
 
-- Add a `UserSelectMenuBuilder` row to `buildGameSelect` (top-level profile
-  panel), customId `hle:ping:${profile._id}:-`, placeholder
-  *"Set who to @mention…"*, pre-filled with the current owner via
-  `setDefaultUsers([profile.discordUserId])` when set.
-- New handler branch `action === "ping"`:
-  `const userId = interaction.values[0] ?? null;`
-  `await app.db.setProfileOwner(profileId, userId);` then refresh the panel with
-  the updated mention shown.
-- Clearing: a user-select requires a pick, so allow clearing via
-  `setMinValues(0)` (deselect → `values` empty → `null`).
+Message components and modals can't offer a clean native user picker, so the
+ping target is set via a **slash option on `/link edit`**, mirroring `/link add`.
 
-### 5. Null-owner handling (display robustness)
+- **Slash option** (`commands/link/index.js`, the `edit` subcommand): add
+  `.addUserOption` `mention`, optional, description *"Set who to @mention in
+  this profile's notifications."* (`label` stays required + autocomplete.)
+- **Handler** (`commands/link/editor.js` `openEditor`): after loading the
+  profile, if `interaction.options.getUser("mention")` is present, call
+  `app.db.setProfileOwner(profile._id, user.id)` and `scheduleReload()` before
+  rendering the panel; surface the change in the panel (or reply). If omitted,
+  the current owner is unchanged and the editor panel opens as today.
+- **Editor panel additions** (`buildGameSelect`): show the current ping (e.g.
+  `🔔 Ping: <@id>` or `no ping set`) plus a hint line pointing to the command
+  option — *"To set or change the ping, run `/link edit label mention:@user`."*
+  This keeps a user who's hunting for a ping control from getting lost.
+- **Clearing to none — resolved:** a **"Remove mention" button** in the editor
+  panel (a plain button component, no picker). New handler branch
+  `action === "clearping"` → `app.db.setProfileOwner(profileId, null)` +
+  `scheduleReload()` + refresh the panel. So: *set/change* via the `mention`
+  command option; *clear* via the panel button. No `clear_mention` flag.
 
-- `core/notify.js`: never emit `<@null>` / `<@undefined>` — when
-  `discordUserId` is null, render the notification without a mention.
+**Copy consistency in the editor (user-facing wording = "label", not
+"profile"):**
+
+- `buildGameSelect` panel title: drop the `Edit profile: ` prefix — show just
+  the label value (e.g. `Skull - US`).
+- Rename control: button `Rename profile…` → **`Rename label`** (no ellipsis);
+  modal title `Rename profile` → `Rename label`; text input label
+  `New profile label` → `New label`; success reply `Renamed profile to …` →
+  `Renamed label to …`.
+- This is copy only — the underlying entity/collection stays `profile`
+  internally; only the words shown to users change.
+
+### 5. Notifications — single ping, null-owner safe (`core/notify.js`)
+
+The recipient is already pinged in the **content line above the embed**
+(`notify.js:140`, `[...pings].join(" ")`). Each embed row *also* renders the
+owner mention — `**${ign}** ${owner} — …` in `buildGroupedEmbed` (`:89`) and
+`buildRedeemEmbed` (`:162-163`) — which is a redundant second ping.
+
+- **Drop the `<@id>` owner token from embed rows** for all grouped
+  notifications (reminders + redeem). Rows keep the in-game name (`**${ign}**`)
+  for identification; the content line remains the single ping.
+- This also removes any `<@null>` risk in embeds. The top ping already only
+  includes profiles with a `discordUserId` (`:123-124`), so a null owner simply
+  contributes no ping — correct by construction.
+- **Resolved:** rows show **IGN only** (`**${ign}**`). The in-game name is
+  enough to identify each account; no plain-text owner label is added.
+
+### 5b. `/link list` null-owner display
+
 - `commands/link/list.js:14`: a null owner currently prints `_unknown_`; change
   to read as intentional (e.g. `no ping set`) rather than "unknown".
 
@@ -117,12 +157,16 @@ db.upsertProfile({ label, cookie, ltuid, discordUserId, games })
         ▼
 scheduleReload() → assemble (excludes tokenStatus="expired")
 
-/link edit (label*) → editor panel
-        │  UserSelect "ping" → setProfileOwner(profileId, userId|null)
+/link edit (label*, mention?) → editor panel
+        │  mention option → setProfileOwner(profileId, user.id)
+        │  "Remove mention" button → setProfileOwner(profileId, null)
         ▼
-scheduleReload() (mirrors rename; plan verifies if mention is read live at
-notify time vs baked into assembled config)
+scheduleReload() (mirrors rename)
 ```
+
+Note: `core/notify.js` reads `discordUserId` live from the DB per run
+(`findProfilesByGameUid` → profile), so an owner change takes effect without a
+reload; `scheduleReload()` is called only to stay consistent with `renameProfile`.
 
 ## Error handling
 
