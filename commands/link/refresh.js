@@ -17,7 +17,6 @@ const run = async (interaction) => {
 			db: app.db,
 			guildId: interaction.guildId,
 			label,
-			discordUserId: interaction.user.id,
 			cookie: interaction.options.getString("cookie")
 		});
 		scheduleReload();

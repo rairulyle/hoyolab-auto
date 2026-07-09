@@ -106,6 +106,42 @@ test("linkProfile validates, detects, and upserts; relink preserves settings", a
 	fs.rmSync(dir, { recursive: true, force: true });
 });
 
+test("linkProfile keeps the existing owner when discordUserId is omitted (refresh), clears on explicit null", async () => {
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hoyolink-"));
+	const db = new Database(dir);
+	await db.init();
+
+	await linkProfile({
+		db,
+		guildId: "g1",
+		label: "main",
+		discordUserId: "owner1",
+		cookie: COOKIE,
+		detect: async () => DETECTED
+	});
+
+	const { profile: refreshed } = await linkProfile({
+		db,
+		guildId: "g1",
+		label: "main",
+		cookie: COOKIE,
+		detect: async () => DETECTED
+	});
+	assert.equal(refreshed.discordUserId, "owner1");
+
+	const { profile: cleared } = await linkProfile({
+		db,
+		guildId: "g1",
+		label: "main",
+		discordUserId: null,
+		cookie: COOKIE,
+		detect: async () => DETECTED
+	});
+	assert.equal(cleared.discordUserId, null);
+
+	fs.rmSync(dir, { recursive: true, force: true });
+});
+
 test("linkProfile refuses to overwrite a label held by a different account", async () => {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hoyolink-"));
 	const db = new Database(dir);
@@ -122,7 +158,6 @@ test("linkProfile refuses to overwrite a label held by a different account", asy
 		detect: async () => DETECTED
 	});
 
-	// Same label, different ltuid -> refused.
 	await assert.rejects(
 		() =>
 			linkProfile({
@@ -136,7 +171,6 @@ test("linkProfile refuses to overwrite a label held by a different account", asy
 		/already linked to a different account/i
 	);
 
-	// Same label, same ltuid -> allowed (idempotent re-add).
 	const { profile } = await linkProfile({
 		db,
 		guildId: "g1",

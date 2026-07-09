@@ -268,9 +268,9 @@ const handleComponent = async (interaction) => {
 	}
 
 	if (action === "clearping") {
-		await app.db.setProfileOwner(profileId, null);
+		const updated = await app.db.setProfileOwner(profileId, null);
 		scheduleReload();
-		return await interaction.update(buildGameSelect(await getProfileById(profileId)));
+		return await interaction.update(buildGameSelect(updated));
 	}
 
 	if (action === "rename") {

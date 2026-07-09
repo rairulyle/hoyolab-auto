@@ -46,7 +46,8 @@ const linkProfile = async ({ db, guildId, label, discordUserId, cookie, detect =
 		cookie: parsed.cookie,
 		ltuid: parsed.ltuid,
 		tokenStatus: "active",
-		discordUserId,
+		discordUserId:
+			discordUserId === undefined ? (existing?.discordUserId ?? null) : discordUserId,
 		games: existing ? mergeGames(existing.games, games) : games
 	});
 
