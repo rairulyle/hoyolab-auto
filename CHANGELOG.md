@@ -6,6 +6,8 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-09
+
 ### Added
 
 - `/checkin` now posts its results publicly in the channel instead of only to the person who ran it.
