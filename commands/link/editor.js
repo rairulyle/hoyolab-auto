@@ -139,12 +139,15 @@ const buildGameSelect = (profile) => {
 		});
 	}
 
+	const ping = profile.discordUserId ? `<@${profile.discordUserId}>` : "no ping set";
 	return {
 		embeds: [
 			{
 				color: 0x9b59b6,
-				title: `Edit profile: ${profile.label}`,
-				description: "Pick a game to configure."
+				title: profile.label,
+				description:
+					`Pick a game to configure.\n\n🔔 Ping: ${ping} — to set or change, ` +
+					"run `/link edit` with the `mention` option."
 			}
 		],
 		components: [
@@ -157,8 +160,12 @@ const buildGameSelect = (profile) => {
 			new ActionRowBuilder().addComponents(
 				new ButtonBuilder()
 					.setCustomId(`hle:rename:${profile._id}:-`)
-					.setLabel("Rename profile…")
-					.setStyle(ButtonStyle.Secondary)
+					.setLabel("Rename label")
+					.setStyle(ButtonStyle.Secondary),
+				new ButtonBuilder()
+					.setCustomId(`hle:clearping:${profile._id}:-`)
+					.setLabel("Remove mention")
+					.setStyle(ButtonStyle.Danger)
 			)
 		]
 	};

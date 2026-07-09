@@ -60,3 +60,40 @@ test("game select offers a ToT enable option only when the profile lacks it", ()
 		"should not duplicate termis when already present"
 	);
 });
+
+const makeProfile = (over = {}) => ({
+	_id: "p1",
+	guildId: "g1",
+	label: "Skull - US",
+	discordUserId: "u1",
+	games: [{ key: "genshin", uid: "800", nickname: "Rairu", active: true, settings: {} }],
+	...over
+});
+
+const customIds = (panel) =>
+	panel.components
+		.flatMap((row) => row.toJSON().components)
+		.map((c) => ({ id: c.custom_id, label: c.label }));
+
+test("buildGameSelect titles the panel with just the label", () => {
+	const panel = buildGameSelect(makeProfile());
+	assert.equal(panel.embeds[0].title, "Skull - US");
+});
+
+test("buildGameSelect shows the current ping when set", () => {
+	const panel = buildGameSelect(makeProfile({ discordUserId: "u1" }));
+	assert.match(panel.embeds[0].description, /<@u1>/);
+});
+
+test("buildGameSelect shows 'no ping set' when owner is null", () => {
+	const panel = buildGameSelect(makeProfile({ discordUserId: null }));
+	assert.match(panel.embeds[0].description, /no ping set/);
+});
+
+test("buildGameSelect exposes Rename label and Remove mention buttons", () => {
+	const ids = customIds(buildGameSelect(makeProfile()));
+	const rename = ids.find((c) => c.id === "hle:rename:p1:-");
+	const clear = ids.find((c) => c.id === "hle:clearping:p1:-");
+	assert.equal(rename.label, "Rename label");
+	assert.equal(clear.label, "Remove mention");
+});
