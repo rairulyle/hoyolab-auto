@@ -12,11 +12,15 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 - `/link list` shows which Discord user linked each profile (`Linked by @user`).
 - `/link edit` can rename a profile's label via a "Rename profile…" button, rejecting a name already used in the server.
 - `/redeem` with no code bulk-redeems every available code for each eligible account: it skips codes already redeemed for that account, stops an account's run when its cookie is invalid/expired (marking the profile 🔴 expired), and — when you pick an account — scopes the run to just that account.
-- The auto check-in notification embed now shows the linking Discord user (mention) and the in-game name instead of the profile label and UID.
+
+### Changed
+
+- Notifications are now **grouped by subject** instead of one message per account: auto check-in sends one embed per game, reminders (stamina, dailies, weeklies, expeditions, realm currency, Howl's News Stand, shop status) one embed per game and type, and auto-redeem one embed per code. Each account is a compact row (owner mention + in-game name + its own values), so a cycle that used to fire four near-identical messages now fires one.
+- Notification embeds drop labels that repeated on every row and show the in-game name instead of the raw UID; each embed follows a shared casing convention.
 
 ### Fixed
 
-- Reminder notification embeds no longer repeat the reminder label in both the title and the footer.
+- Notification embeds no longer carry a redundant clock, and footers that only restated the bot or the title are gone (informative footers like `/link edit` hints are kept).
 
 ## [1.0.1] - 2026-07-08
 
