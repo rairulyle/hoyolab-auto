@@ -82,8 +82,6 @@ module.exports = class Command extends require("./template.js") {
 			.setDescription(this.description ?? "No description provided");
 
 		for (const param of this.params) {
-			let option;
-
 			/* eslint-disable implicit-arrow-linebreak */
 			switch (param.type) {
 				case "string":
@@ -101,7 +99,7 @@ module.exports = class Command extends require("./template.js") {
 							value: i.uid
 						}));
 
-						option = builder.addStringOption((opt) =>
+						builder.addStringOption((opt) =>
 							opt
 								.setName(param.name)
 								.setDescription(param.description)
@@ -109,7 +107,7 @@ module.exports = class Command extends require("./template.js") {
 								.setRequired(param.required ?? false)
 						);
 					} else {
-						option = builder.addStringOption((opt) =>
+						builder.addStringOption((opt) =>
 							opt
 								.setName(param.name)
 								.setDescription(param.description)
@@ -119,7 +117,7 @@ module.exports = class Command extends require("./template.js") {
 					}
 					break;
 				case "integer":
-					option = builder.addIntegerOption((opt) =>
+					builder.addIntegerOption((opt) =>
 						opt
 							.setName(param.name)
 							.setDescription(param.description)
@@ -127,7 +125,7 @@ module.exports = class Command extends require("./template.js") {
 					);
 					break;
 				case "boolean":
-					option = builder.addBooleanOption((opt) =>
+					builder.addBooleanOption((opt) =>
 						opt
 							.setName(param.name)
 							.setDescription(param.description)
