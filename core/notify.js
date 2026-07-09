@@ -167,6 +167,34 @@ const buildRedeemEmbed = (group) => {
 	};
 };
 
+const redeemSummaryRow = (row) => {
+	const counts = [
+		row.redeemed > 0 ? `${row.redeemed} redeemed` : null,
+		row.skipped > 0 && (row.redeemed > 0 || row.failed > 0) ? `${row.skipped} skipped` : null,
+		row.failed > 0 ? `${row.failed} failed` : null
+	].filter(Boolean);
+	if (row.stopped) {
+		counts.push("stopped: cookie expired");
+	}
+	const dot =
+		row.stopped || (row.redeemed === 0 && row.failed > 0)
+			? "🔴"
+			: row.redeemed > 0
+				? "🟢"
+				: "⚪";
+	const text =
+		counts.length > 0 ? counts.join(" · ") : `nothing new (${row.skipped} already redeemed)`;
+	return `${dot} **${row.ign}** (${row.uid}) — ${text}`;
+};
+
+const buildRedeemSummaryEmbed = (group) => ({
+	color: group.assets?.color ?? 0x5865f2,
+	...(group.assets ? { author: { name: group.assets.author, icon_url: group.assets.logo } } : {}),
+	title: `${group.gameName} · Redeem Summary`,
+	description: group.rows.map(redeemSummaryRow).join("\n"),
+	footer: { text: `${group.codesChecked} ${group.codesChecked === 1 ? "code" : "codes"} checked` }
+});
+
 // One embed per code (per guild) listing which accounts redeemed it.
 // entries: [{ account, code, rewards?, success, reason?, telegramText? }]
 const notifyGroupedRedeem = async ({ entries }) => {
@@ -223,5 +251,6 @@ module.exports = {
 	notifyGroupedReminder,
 	notifyGroupedRedeem,
 	buildGroupedEmbed,
-	buildRedeemEmbed
+	buildRedeemEmbed,
+	buildRedeemSummaryEmbed
 };

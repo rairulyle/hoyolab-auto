@@ -1,7 +1,12 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { resolveChannelId, buildGroupedEmbed, buildRedeemEmbed } = require("../notify.js");
+const {
+	resolveChannelId,
+	buildGroupedEmbed,
+	buildRedeemEmbed,
+	buildRedeemSummaryEmbed
+} = require("../notify.js");
 
 test("resolveChannelId returns the specific channel when set", () => {
 	assert.equal(
@@ -81,4 +86,69 @@ test("buildRedeemEmbed omits the reward suffix when there are none", () => {
 		rows: [{ success: true, ign: "Mosou", owner: "main" }]
 	});
 	assert.equal(embed.description, "`ZZZCODE`\n\n🟢 **Mosou** — redeemed");
+});
+
+test("buildRedeemSummaryEmbed renders one row per account with only non-zero counts", () => {
+	const embed = buildRedeemSummaryEmbed({
+		gameName: "Genshin Impact",
+		assets: { author: "Paimon", logo: "l", color: 0x123456 },
+		codesChecked: 4,
+		rows: [
+			{
+				ign: "KidClutch",
+				uid: "801604887",
+				redeemed: 3,
+				skipped: 0,
+				failed: 1,
+				stopped: false
+			},
+			{ ign: "Lumine", uid: "813474458", redeemed: 0, skipped: 0, failed: 0, stopped: true }
+		]
+	});
+	assert.equal(embed.title, "Genshin Impact · Redeem Summary");
+	assert.equal(embed.color, 0x123456);
+	assert.equal(embed.author.name, "Paimon");
+	assert.equal(
+		embed.description,
+		"🟢 **KidClutch** (801604887) — 3 redeemed · 1 failed\n🔴 **Lumine** (813474458) — stopped: cookie expired"
+	);
+	assert.deepEqual(embed.footer, { text: "4 codes checked" });
+});
+
+test("buildRedeemSummaryEmbed marks all-skipped accounts as nothing new", () => {
+	const embed = buildRedeemSummaryEmbed({
+		gameName: "Zenless Zone Zero",
+		assets: null,
+		codesChecked: 1,
+		rows: [
+			{ ign: "Mosou", uid: "1301652594", redeemed: 0, skipped: 5, failed: 0, stopped: false }
+		]
+	});
+	assert.equal(embed.author, undefined);
+	assert.equal(embed.color, 0x5865f2);
+	assert.equal(embed.description, "⚪ **Mosou** (1301652594) — nothing new (5 already redeemed)");
+	assert.deepEqual(embed.footer, { text: "1 code checked" });
+});
+
+test("buildRedeemSummaryEmbed uses a red dot for failure-only rows and keeps counts before a stop", () => {
+	const embed = buildRedeemSummaryEmbed({
+		gameName: "Honkai: Star Rail",
+		assets: null,
+		codesChecked: 3,
+		rows: [
+			{
+				ign: "SlimReaper",
+				uid: "830039705",
+				redeemed: 0,
+				skipped: 0,
+				failed: 2,
+				stopped: false
+			},
+			{ ign: "Nova", uid: "830000001", redeemed: 1, skipped: 1, failed: 0, stopped: true }
+		]
+	});
+	assert.equal(
+		embed.description,
+		"🔴 **SlimReaper** (830039705) — 2 failed\n🔴 **Nova** (830000001) — 1 redeemed · 1 skipped · stopped: cookie expired"
+	);
 });
