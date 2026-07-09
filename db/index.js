@@ -98,6 +98,15 @@ module.exports = class Database {
 		);
 	}
 
+	async setProfileOwner(profileId, discordUserId) {
+		await this.collections.profiles.updateAsync(
+			{ _id: profileId },
+			{ $set: { discordUserId } },
+			{}
+		);
+		return await this.collections.profiles.findOneAsync({ _id: profileId });
+	}
+
 	async updateGameEntry(profileId, gameKey, patch) {
 		const doc = await this.collections.profiles.findOneAsync({ _id: profileId });
 		if (!doc) {

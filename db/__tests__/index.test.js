@@ -142,6 +142,18 @@ test("setTokenStatus flips status", async () => {
 	assert.equal((await db.getProfile("g1", "main")).tokenStatus, "expired");
 });
 
+test("setProfileOwner sets and clears the discordUserId, returning the updated doc", async () => {
+	const created = await db.upsertProfile(profile({ discordUserId: "u1" }));
+
+	const set = await db.setProfileOwner(created._id, "u2");
+	assert.equal(set.discordUserId, "u2");
+	assert.equal((await db.getProfile("g1", "main")).discordUserId, "u2");
+
+	const cleared = await db.setProfileOwner(created._id, null);
+	assert.equal(cleared.discordUserId, null);
+	assert.equal((await db.getProfile("g1", "main")).discordUserId, null);
+});
+
 test("renameProfile re-keys label and key, preserving _id", async () => {
 	const inserted = await db.upsertProfile(profile({ label: "main" }));
 	const renamed = await db.renameProfile(inserted._id, "Alt");
