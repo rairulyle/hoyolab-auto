@@ -6,6 +6,14 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+### Changed
+
+- `/link list` shows each profile as `label · @owner` with its games beneath, dropping the separate "Linked by" line; the owner mention now renders inline.
+
+### Added
+
+- `/link list` shows a footer legend (`🔴 = cookie expired — re-link with /link refresh`) whenever a profile's cookie is expired.
+
 ## [1.1.0] - 2026-07-09
 
 ### Added
