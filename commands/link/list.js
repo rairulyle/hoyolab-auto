@@ -15,13 +15,18 @@ const run = async (interaction) => {
 		return `${dot} **${p.label}** · ${owner}\n${summarize(p) || "(no games)"}`;
 	});
 
+	const hasExpired = profiles.some((p) => p.tokenStatus === "expired");
+
 	return await interaction.reply({
 		ephemeral: true,
 		embeds: [
 			{
 				color: 0x3498db,
 				title: `Profiles in this server (${profiles.length})`,
-				description: blocks.join("\n\n")
+				description: blocks.join("\n\n"),
+				...(hasExpired
+					? { footer: { text: "🔴 = cookie expired — re-link with /link refresh" } }
+					: {})
 			}
 		]
 	});
