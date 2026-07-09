@@ -11,7 +11,7 @@ const run = async (interaction) => {
 
 	const blocks = profiles.map((p) => {
 		const dot = p.tokenStatus === "expired" ? "🔴" : "🟢";
-		const owner = p.discordUserId ? `<@${p.discordUserId}>` : "_unknown_";
+		const owner = p.discordUserId ? `<@${p.discordUserId}>` : "_no ping set_";
 		return `${dot} **${p.label}** · ${owner}\n${summarize(p) || "(no games)"}`;
 	});
 
