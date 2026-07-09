@@ -77,4 +77,87 @@ const notifyGuildsForGame = async (gameKey, { embeds, telegramText, kind }) => {
 	}
 };
 
-module.exports = { sendToGuildChannel, resolveChannelId, notifyAccount, notifyGuildsForGame };
+const LEVEL_DOT = { ok: "🟢", warn: "🟡", alert: "🔴", info: "⚪" };
+
+const buildGroupedEmbed = (group, { titleSuffix, description }) => ({
+	color: group.assets?.color ?? 0x5865f2,
+	...(group.assets ? { author: { name: group.assets.author, icon_url: group.assets.logo } } : {}),
+	title: `${group.name} · ${titleSuffix}`,
+	description: [
+		description,
+		group.rows
+			.map((r) => `${LEVEL_DOT[r.level] ?? "•"} **${r.ign}** ${r.owner} — ${r.text}`)
+			.join("\n")
+	]
+		.filter(Boolean)
+		.join("\n\n")
+});
+
+// One embed per guild+game for a reminder that applies to several accounts.
+// entries: [{ account, assets, gameName, level, text, ping?, telegramText? }]
+const notifyGroupedReminder = async ({ kind = "reminder", titleSuffix, description, entries }) => {
+	try {
+		const byGuild = new Map();
+		for (const { account, assets, gameName, level, text, ping } of entries) {
+			const gameKey = gameKeyFromEngineName(account.platform) ?? account.platform;
+			const profiles = await app.db.findProfilesByGameUid(gameKey, account.uid);
+			for (const profile of profiles) {
+				if (profile.tokenStatus === "expired") {
+					continue;
+				}
+				if (!byGuild.has(profile.guildId)) {
+					byGuild.set(profile.guildId, new Map());
+				}
+				const games = byGuild.get(profile.guildId);
+				if (!games.has(gameKey)) {
+					games.set(gameKey, {
+						name: gameName ?? assets?.game ?? gameKey,
+						assets: assets ?? null,
+						rows: [],
+						pings: new Set()
+					});
+				}
+				const group = games.get(gameKey);
+				const owner = profile.discordUserId ? `<@${profile.discordUserId}>` : profile.label;
+				group.rows.push({ level, ign: account.nickname ?? profile.label, owner, text });
+				if (ping && profile.discordUserId) {
+					group.pings.add(`<@${profile.discordUserId}>`);
+				}
+			}
+		}
+
+		for (const [guildId, groups] of byGuild) {
+			const embeds = [];
+			const pings = new Set();
+			for (const group of groups.values()) {
+				embeds.push(buildGroupedEmbed(group, { titleSuffix, description }));
+				for (const p of group.pings) {
+					pings.add(p);
+				}
+			}
+			for (let i = 0; i < embeds.length; i += 10) {
+				await sendToGuildChannel(guildId, kind, {
+					content: i === 0 && pings.size > 0 ? [...pings].join(" ") : undefined,
+					embeds: embeds.slice(i, i + 10)
+				});
+			}
+		}
+
+		for (const { account, telegramText } of entries) {
+			if (telegramText) {
+				await sendTelegram(app.Platform.getForAccount(account), { telegramText });
+			}
+		}
+	} catch (e) {
+		app.Logger.error("Notify", { message: "notifyGroupedReminder failed", error: e.message });
+	}
+};
+
+module.exports = {
+	sendToGuildChannel,
+	resolveChannelId,
+	notifyAccount,
+	notifyGuildsForGame,
+	notifyGroupedReminder,
+	buildGroupedEmbed
+};
