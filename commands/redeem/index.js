@@ -1,6 +1,6 @@
 const { classifyRedeem } = require("../../hoyolab-modules/redeem-status.js");
 const { GAMES, gameKeyFromEngineName } = require("../../config/games.js");
-const { buildRedeemSummaryEmbed } = require("../../core/notify.js");
+const { buildRedeemEmbed, buildRedeemSummaryEmbed } = require("../../core/notify.js");
 const { setTimeout: sleep } = require("node:timers/promises");
 
 module.exports = {
@@ -70,13 +70,31 @@ module.exports = {
 			if (interaction) {
 				await interaction.deferReply({ ephemeral: true });
 			}
+			const account = app.HoyoLab.getActiveAccounts({ whitelist: game }).find(
+				(a) => a.uid === uid
+			);
 			const res = await app.HoyoLab.redeemCode(game, uid, code);
 			const reply = res.success
 				? `Successfully redeemed code: ${code}`
 				: `Failed to redeem code: ${res.data.reason}`;
-			return interaction
-				? interaction.editReply({ content: reply })
-				: { success: res.success, reply };
+			if (interaction) {
+				const gameKey = gameKeyFromEngineName(game) ?? game;
+				const embed = buildRedeemEmbed({
+					gameName: account?.game?.name ?? GAMES[gameKey]?.name ?? gameKey,
+					assets: account?.assets ?? null,
+					code,
+					rewards: null,
+					rows: [
+						{
+							success: res.success,
+							ign: account?.nickname ?? uid,
+							reason: res.data?.reason
+						}
+					]
+				});
+				return interaction.editReply({ embeds: [embed] });
+			}
+			return { success: res.success, reply };
 		}
 
 		// Bulk mode: redeem every cached code for every eligible account.
