@@ -9,18 +9,19 @@ const run = async (interaction) => {
 		});
 	}
 
+	const blocks = profiles.map((p) => {
+		const dot = p.tokenStatus === "expired" ? "🔴" : "🟢";
+		const owner = p.discordUserId ? `<@${p.discordUserId}>` : "_unknown_";
+		return `${dot} **${p.label}** · ${owner}\n${summarize(p) || "(no games)"}`;
+	});
+
 	return await interaction.reply({
 		ephemeral: true,
 		embeds: [
 			{
 				color: 0x3498db,
 				title: `Profiles in this server (${profiles.length})`,
-				fields: profiles.map((p) => ({
-					name: `${p.tokenStatus === "expired" ? "🔴" : "🟢"} ${p.label}`,
-					value: `${summarize(p) || "(no games)"}\nLinked by ${
-						p.discordUserId ? `<@${p.discordUserId}>` : "_unknown_"
-					}`
-				}))
+				description: blocks.join("\n\n")
 			}
 		]
 	});
