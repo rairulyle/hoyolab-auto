@@ -1,5 +1,6 @@
 const defaults = require("../config/defaults.js");
 const { GAMES } = require("../config/games.js");
+const { parseGuildAllowlist } = require("../config/guild-allowlist.js");
 
 const botIdFromToken = (token) => {
 	try {
@@ -21,7 +22,12 @@ const assemble = async (db, env = process.env) => {
 		throw new Error("Could not derive bot ID from DISCORD_TOKEN; set DISCORD_BOT_ID in .env.");
 	}
 
-	const profiles = (await db.listAllProfiles()).filter((p) => p.tokenStatus !== "expired");
+	const allowlist = parseGuildAllowlist(env.GUILD_IDS);
+	const profiles = (await db.listAllProfiles()).filter(
+		(p) =>
+			p.tokenStatus !== "expired" &&
+			(allowlist.size === 0 || allowlist.has(String(p.guildId)))
+	);
 
 	const warnings = [];
 	const seen = new Set();

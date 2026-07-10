@@ -8,6 +8,8 @@ const {
 	Routes
 } = require("discord.js");
 
+const { isGuildAllowed, isRestricted } = require("../config/guild-allowlist.js");
+
 const ignoredChannels = [
 	ChannelType.AnnouncementThread,
 	ChannelType.GuildAnnouncement,
@@ -91,6 +93,25 @@ module.exports = class DiscordController extends require("./template.js") {
 		});
 
 		client.on("interactionCreate", async (interaction) => {
+			if (interaction.guildId && !isGuildAllowed(interaction.guildId)) {
+				try {
+					if (interaction.isAutocomplete()) {
+						await interaction.respond([]);
+					} else if (interaction.isRepliable()) {
+						await interaction.reply({
+							content: "This bot isn't enabled in this server.",
+							ephemeral: true
+						});
+					}
+				} catch (e) {
+					app.Logger.error("Discord", {
+						message: "Failed to refuse disallowed-guild interaction",
+						error: e.message
+					});
+				}
+				return;
+			}
+
 			const isComponent =
 				interaction.isButton() ||
 				interaction.isStringSelectMenu() ||
@@ -146,6 +167,34 @@ module.exports = class DiscordController extends require("./template.js") {
 				userData
 			});
 		});
+
+		if (isRestricted()) {
+			const leaveIfDisallowed = async (guild, reason) => {
+				if (isGuildAllowed(guild.id)) {
+					return;
+				}
+				try {
+					await guild.leave();
+					app.Logger.info(
+						"Discord",
+						`Left non-allowlisted guild ${guild.id} (${guild.name}) ${reason}`
+					);
+				} catch (e) {
+					app.Logger.error("Discord", {
+						message: "Failed to leave non-allowlisted guild",
+						guildId: guild.id,
+						error: e.message
+					});
+				}
+			};
+
+			client.once("ready", async () => {
+				for (const guild of client.guilds.cache.values()) {
+					await leaveIfDisallowed(guild, "on startup");
+				}
+			});
+			client.on("guildCreate", (guild) => leaveIfDisallowed(guild, "on join"));
+		}
 	}
 
 	async send(message, channel, options = {}) {

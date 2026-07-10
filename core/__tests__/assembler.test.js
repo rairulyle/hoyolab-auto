@@ -78,6 +78,26 @@ test("skips expired profiles, inactive games, and duplicate ltuid per game", asy
 	assert.match(cfg.warnings[0], /111/);
 });
 
+test("GUILD_IDS excludes profiles from non-allowlisted guilds", async () => {
+	const profiles = [
+		profile({ _id: "p1", guildId: "g1", ltuid: "111" }),
+		profile({
+			_id: "p2",
+			guildId: "g2",
+			label: "other",
+			ltuid: "222",
+			cookie: "ltoken_v2=x; ltuid_v2=222; ltmid_v2=y"
+		})
+	];
+
+	const unrestricted = await assemble(fakeDb(profiles), ENV);
+	assert.equal(unrestricted.accounts[0].data.length, 2);
+
+	const restricted = await assemble(fakeDb(profiles), { ...ENV, GUILD_IDS: "g1" });
+	assert.equal(restricted.accounts.length, 1);
+	assert.equal(restricted.accounts[0].data.length, 1);
+});
+
 test("builds discord platform from env", async () => {
 	const cfg = await assemble(fakeDb([]), ENV);
 	assert.deepEqual(cfg.platforms, [

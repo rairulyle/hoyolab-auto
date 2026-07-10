@@ -4,6 +4,7 @@ const { assemble } = require("./assembler.js");
 const { runGuildCheckIn } = require("./guild-jobs.js");
 const { isValidCron } = require("./time.js");
 const defaults = require("../config/defaults.js");
+const { isGuildAllowed } = require("../config/guild-allowlist.js");
 
 let globalCrons = [];
 let guildJobs = [];
@@ -68,8 +69,9 @@ const scheduleGuildJobs = async () => {
 		...(await app.db.listGuilds()).map((g) => g._id),
 		...(await app.db.listAllProfiles()).map((p) => p.guildId)
 	]);
+	const allowedGuildIds = [...guildIds].filter((guildId) => isGuildAllowed(guildId));
 
-	for (const guildId of guildIds) {
+	for (const guildId of allowedGuildIds) {
 		const guild = await app.db.getGuild(guildId);
 		const timezone = guild?.timezone ?? defaults.guild.timezone;
 		const checkinCron = isValidCron(guild?.checkinCron)
@@ -88,7 +90,7 @@ const scheduleGuildJobs = async () => {
 		);
 		guildJobs.push({ name: `guild-checkin:${guildId}`, job });
 	}
-	return guildIds.size;
+	return allowedGuildIds.length;
 };
 
 const reload = async () => {
