@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, Message } = require("discord.js");
+const { SlashCommandBuilder, Message, PermissionFlagsBits } = require("discord.js");
+const { requireGuildAdmin } = require("../core/admin.js");
 
 module.exports = class Command extends require("./template.js") {
 	name;
@@ -21,6 +22,7 @@ module.exports = class Command extends require("./template.js") {
 		this.buildSlashData =
 			typeof data.buildSlashData === "function" ? data.buildSlashData : null;
 		this.autocomplete = typeof data.autocomplete === "function" ? data.autocomplete : null;
+		this.guildAdminOnly = data.guildAdminOnly === true;
 
 		if (data.params !== null) {
 			let params = data.params;
@@ -71,15 +73,19 @@ module.exports = class Command extends require("./template.js") {
 			return this.buildSlashData();
 		}
 
-		if (!this.params || this.params.length === 0) {
-			return new SlashCommandBuilder()
-				.setName(this.name)
-				.setDescription(this.description ?? "No description provided");
-		}
-
 		const builder = new SlashCommandBuilder()
 			.setName(this.name)
 			.setDescription(this.description ?? "No description provided");
+
+		if (this.guildAdminOnly) {
+			builder
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+				.setDMPermission(false);
+		}
+
+		if (!this.params || this.params.length === 0) {
+			return builder;
+		}
 
 		for (const param of this.params) {
 			/* eslint-disable implicit-arrow-linebreak */
@@ -201,6 +207,19 @@ module.exports = class Command extends require("./template.js") {
 				success: false,
 				reply: "Command not found"
 			};
+		}
+
+		if (command.guildAdminOnly) {
+			const interaction = options.interaction;
+			if (!interaction) {
+				return {
+					success: false,
+					reply: "This command is only available in a Discord server."
+				};
+			}
+			if (!(await requireGuildAdmin(interaction))) {
+				return;
+			}
 		}
 
 		const appendOptions = { ...options };

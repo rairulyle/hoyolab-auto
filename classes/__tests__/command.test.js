@@ -17,3 +17,42 @@ test("normalizeArguments coerces non-string option values to strings", () => {
 test("normalizeArguments strips whitespace and filters empties (Telegram text args)", () => {
 	assert.deepEqual(Command.normalizeArguments(["", "  ", "link", "add"]), ["link", "add"]);
 });
+
+const { PermissionFlagsBits } = require("discord.js");
+
+test("guildAdminOnly sets Administrator default perms and disables DMs", () => {
+	const cmd = new Command({
+		name: "notes",
+		description: "d",
+		params: [{ name: "game", type: "string", description: "d", required: true }],
+		guildAdminOnly: true,
+		run: () => ({ reply: "ok" })
+	});
+	const json = cmd.getSlashCommandData().toJSON();
+	assert.equal(json.default_member_permissions, String(PermissionFlagsBits.Administrator));
+	assert.equal(json.dm_permission, false);
+});
+
+test("guildAdminOnly applies to commands with no params", () => {
+	const cmd = new Command({
+		name: "hilichurl",
+		description: "d",
+		params: [],
+		guildAdminOnly: true,
+		run: () => ({ reply: "ok" })
+	});
+	const json = cmd.getSlashCommandData().toJSON();
+	assert.equal(json.default_member_permissions, String(PermissionFlagsBits.Administrator));
+});
+
+test("commands without the flag keep default (null) perms", () => {
+	const cmd = new Command({
+		name: "open",
+		description: "d",
+		params: [],
+		run: () => ({ reply: "ok" })
+	});
+	const json = cmd.getSlashCommandData().toJSON();
+	assert.equal(json.default_member_permissions ?? null, null);
+	assert.notEqual(cmd.guildAdminOnly, true);
+});
