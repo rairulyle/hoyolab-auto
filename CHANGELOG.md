@@ -6,6 +6,12 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-07-10
+
+### Added
+
+- `GUILD_IDS` environment variable (comma-separated Discord server IDs) restricts the bot to a fixed set of servers. When set, the bot only serves those servers — it refuses commands from every other server, skips their scheduled check-ins, ignores their linked accounts, and automatically leaves any server not on the list (both on startup and when it is newly added to one). Leave it unset to keep serving every server the bot is invited to, exactly as before.
+
 ## [1.5.0] - 2026-07-10
 
 ### Security
