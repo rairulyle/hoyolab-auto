@@ -1,3 +1,5 @@
+const { accountsForGuild } = require("../../core/guild-accounts.js");
+
 const getStaminaData = async (accounts, game) => {
 	const data = [];
 	for (const account of accounts) {
@@ -55,6 +57,7 @@ const formatStaminaMessage = (data, discord = false) => {
 module.exports = {
 	name: "stamina",
 	description: "Check your specified game stamina",
+	guildAdminOnly: true,
 	params: [
 		{
 			name: "game",
@@ -98,7 +101,7 @@ module.exports = {
 				: { success: false, reply: message.replace(/nap/, "zenless") };
 		}
 
-		const accounts = app.HoyoLab.getActiveAccounts({ whitelist: game });
+		const accounts = await accountsForGuild(interaction.guildId, { whitelist: game });
 		if (accounts.length === 0) {
 			const message = "You don't have any accounts for that game.";
 			return interaction

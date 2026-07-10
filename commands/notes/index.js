@@ -1,3 +1,5 @@
+const { accountsForGuild } = require("../../core/guild-accounts.js");
+
 const getNotesEmbedData = async (accounts, game, platformId) => {
 	const embedData = [];
 	for (const account of accounts) {
@@ -203,6 +205,7 @@ const getNotesEmbedData = async (accounts, game, platformId) => {
 module.exports = {
 	name: "notes",
 	description: "Check your HoyoLab notes.",
+	guildAdminOnly: true,
 	params: [
 		{
 			name: "game",
@@ -255,7 +258,7 @@ module.exports = {
 				: { success: false, reply: message.replace(/nap/, "zenless") };
 		}
 
-		const accounts = app.HoyoLab.getActiveAccounts({ whitelist: game, uid });
+		const accounts = await accountsForGuild(interaction.guildId, { whitelist: game, uid });
 		if (accounts.length === 0) {
 			const message = "You don't have any accounts for that game.";
 			return interaction
