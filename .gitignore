@@ -195,3 +195,6 @@ diff.sh
 
 # superpowers SDD scratch (task briefs, reports, review packages, ledger)
 .superpowers/
+
+# superpowers specs & plans (local design docs, not tracked)
+docs/superpowers/
