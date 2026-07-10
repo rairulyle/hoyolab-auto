@@ -1,3 +1,5 @@
+const { accountByIdForGuild } = require("../../core/guild-accounts.js");
+
 const createEmbed = (type, diary, options = {}) => {
 	const account = options.account;
 
@@ -117,6 +119,7 @@ const createEmbed = (type, diary, options = {}) => {
 module.exports = {
 	name: "diary",
 	description: "Check your total amount of incoming monthly resources.",
+	guildAdminOnly: true,
 	params: [
 		{
 			name: "game",
@@ -139,7 +142,13 @@ module.exports = {
 	run: async function notes(context, game, uid) {
 		const { interaction } = context;
 
-		const account = app.HoyoLab.getAccountById(uid);
+		const account = await accountByIdForGuild(interaction.guildId, uid);
+		if (!account) {
+			return interaction.reply({
+				content: "No such account in this server.",
+				ephemeral: true
+			});
+		}
 		if (account.platform !== game) {
 			return interaction.reply({
 				content: "This account does not belong to the selected game.",

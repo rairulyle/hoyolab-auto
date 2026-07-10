@@ -1,3 +1,5 @@
+const { accountsForGuild } = require("../../core/guild-accounts.js");
+
 const createEmbed = (result) => {
 	const fields = [];
 
@@ -97,11 +99,12 @@ const createEmbed = (result) => {
 module.exports = {
 	name: "hilichurl",
 	description: "Manually run Hilichurl Machine Workshop automation for Genshin Impact.",
+	guildAdminOnly: true,
 	params: [],
 	run: async function hilichurl(context) {
 		const { interaction } = context;
 
-		const accounts = app.HoyoLab.getActiveAccounts({ whitelist: "genshin" });
+		const accounts = await accountsForGuild(interaction.guildId, { whitelist: "genshin" });
 		if (accounts.length === 0) {
 			const message = "No Genshin Impact accounts found.";
 			return interaction

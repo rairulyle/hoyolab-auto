@@ -1,3 +1,5 @@
+const { accountsForGuild } = require("../../core/guild-accounts.js");
+
 const createEmbed = (result) => {
 	const gameColors = {
 		starrail: 0xbb0bb5,
@@ -107,6 +109,7 @@ const createEmbed = (result) => {
 module.exports = {
 	name: "mimo",
 	description: "Manually run Traveling Mimo automation for all games or a specific game.",
+	guildAdminOnly: true,
 	params: [
 		{
 			name: "game",
@@ -154,7 +157,7 @@ module.exports = {
 		const errors = [];
 
 		for (const gameName of gamesToRun) {
-			const accounts = app.HoyoLab.getActiveAccounts({ whitelist: gameName });
+			const accounts = await accountsForGuild(interaction.guildId, { whitelist: gameName });
 			if (accounts.length === 0) {
 				continue;
 			}

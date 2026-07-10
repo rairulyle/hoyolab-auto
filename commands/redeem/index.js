@@ -2,10 +2,12 @@ const { classifyRedeem } = require("../../hoyolab-modules/redeem-status.js");
 const { GAMES, gameKeyFromEngineName } = require("../../config/games.js");
 const { buildRedeemEmbed, buildRedeemSummaryEmbed } = require("../../core/notify.js");
 const { setTimeout: sleep } = require("node:timers/promises");
+const { accountsForGuild } = require("../../core/guild-accounts.js");
 
 module.exports = {
 	name: "redeem",
 	description: "Redeem provided codes for the specified game.",
+	guildAdminOnly: true,
 	params: [
 		{
 			name: "game",
@@ -70,9 +72,12 @@ module.exports = {
 			if (interaction) {
 				await interaction.deferReply({ ephemeral: true });
 			}
-			const account = app.HoyoLab.getActiveAccounts({ whitelist: game }).find(
+			const account = (await accountsForGuild(interaction.guildId, { whitelist: game })).find(
 				(a) => a.uid === uid
 			);
+			if (!account) {
+				return interaction.editReply({ content: "No such account in this server." });
+			}
 			const res = await app.HoyoLab.redeemCode(game, uid, code);
 			const reply = res.success
 				? `Successfully redeemed code: ${code}`
@@ -123,14 +128,18 @@ module.exports = {
 				continue;
 			}
 			const gameKey = gameKeyFromEngineName(engineGame) ?? engineGame;
-			let accounts = app.HoyoLab.getActiveAccounts({ whitelist: engineGame });
+			let accounts = await accountsForGuild(interaction.guildId, { whitelist: engineGame });
 			if (uid) {
 				accounts = accounts.filter((account) => account.uid === uid);
 			}
 			const rows = [];
 
 			for (const account of accounts) {
-				const profiles = await app.db.findProfilesByGameUid(gameKey, account.uid);
+				const profiles = await app.db.findGuildProfilesByGameUid(
+					interaction.guildId,
+					gameKey,
+					account.uid
+				);
 				let redeemed = 0;
 				let skipped = 0;
 				let failed = 0;
