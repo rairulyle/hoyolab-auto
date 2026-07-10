@@ -184,12 +184,15 @@ const openEditor = async (interaction) => {
 		});
 	}
 	const mention = interaction.options.getUser("mention");
-	let current = profile;
 	if (mention) {
-		current = await app.db.setProfileOwner(profile._id, mention.id);
+		await app.db.setProfileOwner(profile._id, mention.id);
 		scheduleReload();
+		return await interaction.reply({
+			content: `🔔 Ping for **${profile.label}** set to <@${mention.id}>.`,
+			ephemeral: true
+		});
 	}
-	return await interaction.reply({ ...buildGameSelect(current), ephemeral: true });
+	return await interaction.reply({ ...buildGameSelect(profile), ephemeral: true });
 };
 
 const handleComponent = async (interaction) => {
