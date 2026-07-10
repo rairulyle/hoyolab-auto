@@ -85,3 +85,20 @@ test("filterByGuild keeps only accounts in the uid set", () => {
 test("filterByGuild returns empty for an empty set", () => {
 	assert.deepEqual(filterByGuild([{ platform: "genshin", uid: "800" }], new Set()), []);
 });
+
+test("a foreign-guild uid is excluded, so redeem's account lookup finds nothing", () => {
+	// Guild A only linked genshin:800; guild B's genshin:999 is active in the
+	// global pool. The redeem guard resolves accounts against guild A's set and
+	// then .find()s by uid — a foreign uid must not resolve to an account.
+	const guildAProfiles = [profile({ games: [{ key: "genshin", uid: "800", active: true }] })];
+	const pool = [
+		{ platform: "genshin", uid: "800", nickname: "mine" },
+		{ platform: "genshin", uid: "999", nickname: "someone-else" }
+	];
+	const scoped = filterByGuild(pool, guildUidSet(guildAProfiles));
+	assert.equal(
+		scoped.find((a) => a.uid === "999"),
+		undefined
+	);
+	assert.ok(scoped.find((a) => a.uid === "800"));
+});

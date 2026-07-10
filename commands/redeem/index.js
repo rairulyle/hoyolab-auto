@@ -75,6 +75,9 @@ module.exports = {
 			const account = (await accountsForGuild(interaction.guildId, { whitelist: game })).find(
 				(a) => a.uid === uid
 			);
+			if (!account) {
+				return interaction.editReply({ content: "No such account in this server." });
+			}
 			const res = await app.HoyoLab.redeemCode(game, uid, code);
 			const reply = res.success
 				? `Successfully redeemed code: ${code}`
