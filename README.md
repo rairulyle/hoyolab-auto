@@ -24,6 +24,14 @@ check-ins, stamina/expedition/realm reminders, automatic code redemption, and
 more — one **profile** per HoYoLAB cookie, many games per profile, configured per
 Discord server.
 
+<table>
+  <tr>
+    <td><img src="docs/images/preview-1.png" alt="Daily check-in result embed" /></td>
+    <td><img src="docs/images/preview-2.png" alt="Traveling Mimo event tasks embed" /></td>
+    <td><img src="docs/images/preview-3.png" alt="Expedition reminder embed" /></td>
+  </tr>
+</table>
+
 ## Table of Contents
 
 - [HoyoLab Auto](#hoyolab-auto)
@@ -37,7 +45,6 @@ Discord server.
     - [Migration](#migration)
     - [Usage](#usage)
     - [Notifications Setup](#notifications-setup)
-    - [Running with Docker](#running-with-docker)
     - [Contributing](#contributing)
     - [Credits](#credits)
 
@@ -91,28 +98,57 @@ If you don't have a server to run this bot and simply want daily check-ins, you 
 
 ## Prerequisites
 
-- [Git](https://git-scm.com/downloads)
-- [Node.js](https://nodejs.org/en/)
+- [Docker](https://www.docker.com/) and Docker Compose (the recommended way to run the bot).
 - A Discord bot application ([create one here](https://discord.com/developers/applications)), invited to your server with the `bot` and `applications.commands` scopes.
+- [Git](https://git-scm.com/downloads) and [Node.js ≥ 24](https://nodejs.org/en/) — only if you want to run from source instead of Docker.
 
 ## Installation
 
-1. Clone the repository.
-2. Run `npm install` to install the dependencies.
-3. Copy `.env.example` to `.env` and set `DISCORD_TOKEN` to your bot's token:
+The recommended way to run the bot is with **Docker Compose**, using the prebuilt
+image from GHCR — no Node.js or build step required.
+
+1. Grab [`docker-compose.yml`](docker-compose.yml) and [`.env.example`](.env.example)
+   (clone the repo, or just download those two files into an empty directory).
+2. Copy `.env.example` to `.env` and set `DISCORD_TOKEN` to your bot's token (and
+   `PUID`/`PGID` to your host user so files under `./data` are owned correctly):
     ```bash
     cp .env.example .env
     ```
-4. Run the application:
+3. Start the container — this pulls `ghcr.io/rairulyle/hoyolab-auto:latest`:
     ```bash
-    npm start
+    docker compose up -d
     ```
-5. Finish setup with slash commands in your Discord server:
+4. Finish setup with slash commands in your Discord server:
     - `/link add cookie:<your HoYoLAB cookie>` — link an account (see [Usage](#usage) below for how to grab your cookie).
     - `/config channel` — set the notification channel(s).
     - `/config timezone` — set your guild's timezone.
     - `/config schedule` — set check-in/redeem schedule times.
     - Coming from an old `config.json5`? Run `/migrate file:<config.json5>` to import your existing accounts instead of relinking them by hand.
+
+Common management commands:
+
+```bash
+docker compose logs -f instance             # follow logs
+docker compose pull && docker compose up -d # update to the latest image
+docker compose down                         # stop and remove the container
+```
+
+> [!NOTE]
+> The bot's entire state (profiles, guild settings, history, cache) lives in the
+> `./data` bind mount, so it survives restarts and image updates.
+> First time using Docker on this host? You may need to:
+>
+> - Add your user to the `docker` group: `sudo usermod -aG docker $USER`, then log out and back in.
+> - Grant ownership of the state folders so the container can write to them: `sudo chown -R $USER:$USER data logs && chmod -R 777 data logs`.
+
+### Running from source (alternative)
+
+If you'd rather run with Node.js directly instead of Docker:
+
+1. Clone the repository and run `npm install`.
+2. Copy `.env.example` to `.env` and set `DISCORD_TOKEN`.
+3. Start the application with `npm start`, then finish setup with the same slash
+   commands as above.
 
 ### Cache File Location
 
@@ -161,92 +197,6 @@ For a detailed guide on grabbing your HoYoLAB cookie, see [How to get your HoYoL
 ## Notifications Setup
 
 Notifications are sent to the Discord channel(s) configured with `/config channel` in your server — no separate webhook or Telegram setup is required.
-
-## Running with Docker
-
-This application can be easily managed and run using Docker. We provide a Makefile
-for convenience, but you can also use Docker commands directly.
-
-**1. Prerequisites**
-
-- **Docker:** Ensure Docker is installed and running. Download it from [https://www.docker.com/](https://www.docker.com/).
-- **Docker Compose:** Most Docker installations include Docker Compose. If not, install it from [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/).
-
-**2. Configuration**
-
-1. Copy `.env.example` to `.env` and set `DISCORD_TOKEN`:
-    ```bash
-    cp .env.example .env
-    ```
-2. Start the container (see below), then finish setup through Discord slash commands: `/link add`, `/config channel`, `/config timezone`, `/config schedule` (or `/migrate file:<config.json5>` if you're bringing accounts over from an old install).
-
-**Important for Docker Users:**
-
-> [!NOTE]
-> When running with Docker, the cache file will be created inside the container at `/app/data/cache.json`. To persist cache data between container restarts, ensure the `data` directory is properly mounted as a volume (this is already configured in the provided `docker-compose.yml`).
-> If this is your first time running docker:
->
-> - Make sure your user is listed in the docker group, you can do so by running `sudo usermod -aG docker $USER`, logging out and back in
-> - From the project root, grant yourself perms to not have errors while accessing certain folders such as `data`. We can fix this by running `sudo chown -R $USER:$USER data logs && chmod -R 777 data logs`
-
-**3. Building and Running with Docker Compose**
-
-**Using the Makefile (Recommended):**
-
-The provided Makefile simplifies common Docker tasks.
-
-- **Build the image:**
-    ```bash
-    make build
-    ```
-- **Start the application:**
-    ```bash
-    make up
-    ```
-- **Stop the application:**
-    ```bash
-    make down
-    ```
-- **View logs:**
-    ```bash
-    make logs
-    ```
-- **Rebuild and restart:**
-
-    ```bash
-    make update
-    ```
-
-    For a complete list of available Makefile targets, run:
-
-    ```bash
-    make help
-    ```
-
-**Using Docker Compose Directly:**
-
-If you prefer not to use the Makefile, you can use the following Docker Compose commands:
-
-- **Build the image:**
-    ```bash
-    docker-compose build
-    ```
-- **Start the application:**
-    ```bash
-    docker-compose up -d
-    ```
-- **Stop the application:**
-    ```bash
-    docker-compose down
-    ```
-- **View logs:**
-    ```bash
-    docker-compose logs -f instance
-    ```
-- **Rebuild and restart:**
-    ```bash
-    docker-compose down && docker-compose build && docker-compose up -d
-    ```
 
 ## Contributing
 
