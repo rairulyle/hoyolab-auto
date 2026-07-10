@@ -1,6 +1,9 @@
+const { accountsForGuild } = require("../../core/guild-accounts.js");
+
 module.exports = {
 	name: "checkin",
 	description: "Manually run check-in for all games or a specific game.",
+	guildAdminOnly: true,
 	params: [
 		{
 			name: "game",
@@ -32,17 +35,20 @@ module.exports = {
 			game = gameMapping[game.toLowerCase()] || game.toLowerCase();
 		}
 
-		const activeGameAccounts =
-			game && game !== "all"
-				? [game].filter((g) => app.HoyoLab.get(g))
-				: app.HoyoLab.getActivePlatform();
+		const guildAccounts = await accountsForGuild(
+			interaction.guildId,
+			game && game !== "all" ? { whitelist: game } : {}
+		);
 
-		if (activeGameAccounts.length === 0) {
+		if (guildAccounts.length === 0) {
 			const message = "No active game accounts found.";
-			return interaction
-				? interaction.reply({ content: message, ephemeral: true })
-				: { success: false, reply: message };
+			return interaction.reply({ content: message, ephemeral: true });
 		}
+
+		const accountsByGame = guildAccounts.reduce((map, account) => {
+			(map[account.platform] ??= []).push(account);
+			return map;
+		}, {});
 
 		if (interaction) {
 			await interaction.deferReply();
@@ -51,15 +57,15 @@ module.exports = {
 		const results = [];
 		const errors = [];
 
-		for (const name of activeGameAccounts) {
+		for (const [name, accounts] of Object.entries(accountsByGame)) {
 			const gamePlatform = app.HoyoLab.get(name);
 			if (!gamePlatform) {
 				continue;
 			}
 
 			try {
-				const execution = await gamePlatform.checkIn();
-				if (execution.length === 0) {
+				const execution = await gamePlatform.checkIn(accounts);
+				if (!execution || execution.length === 0) {
 					continue;
 				}
 
