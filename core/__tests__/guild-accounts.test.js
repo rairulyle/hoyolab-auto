@@ -13,6 +13,7 @@ const profile = (over = {}) => ({
 test("guildUidSet maps game keys to engine names", () => {
 	const set = guildUidSet([
 		profile({
+			ltuid: "111",
 			games: [
 				{ key: "genshin", uid: "800", active: true },
 				{ key: "zenless", uid: "900", active: true },
@@ -22,7 +23,27 @@ test("guildUidSet maps game keys to engine names", () => {
 	]);
 	assert.ok(set.has("genshin:800"));
 	assert.ok(set.has("nap:900"));
-	assert.ok(set.has("tot:700"));
+	assert.ok(set.has("tot:111"));
+});
+
+test("guildUidSet keys Tears of Themis by ltuid (no game-record uid)", () => {
+	const withLtuid = guildUidSet([
+		profile({
+			ltuid: "222",
+			games: [{ key: "termis", uid: null, active: true }]
+		})
+	]);
+	assert.ok(withLtuid.has("tot:222"));
+
+	const withoutLtuid = guildUidSet([
+		profile({
+			games: [{ key: "termis", uid: null, active: true }]
+		})
+	]);
+	assert.equal(
+		[...withoutLtuid].some((key) => key.startsWith("tot:")),
+		false
+	);
 });
 
 test("guildUidSet skips inactive entries and null uids", () => {

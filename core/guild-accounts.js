@@ -4,8 +4,15 @@ const guildUidSet = (profiles) =>
 	new Set(
 		(profiles ?? []).flatMap((profile) =>
 			(profile.games ?? [])
-				.filter((game) => game.active && game.uid && GAMES[game.key])
-				.map((game) => `${GAMES[game.key].engineName}:${game.uid}`)
+				.filter((game) => game.active && GAMES[game.key])
+				.flatMap((game) => {
+					const engineName = GAMES[game.key].engineName;
+					// Tears of Themis has no game-record uid; its engine account is keyed on ltuid
+					if (engineName === "tot") {
+						return profile.ltuid ? [`tot:${profile.ltuid}`] : [];
+					}
+					return game.uid ? [`${engineName}:${game.uid}`] : [];
+				})
 		)
 	);
 
