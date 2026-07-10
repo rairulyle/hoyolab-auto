@@ -1,5 +1,21 @@
 const { SlashCommandBuilder, Message, PermissionFlagsBits } = require("discord.js");
 const { requireGuildAdmin } = require("../core/admin.js");
+const { accountsForGuild } = require("../core/guild-accounts.js");
+
+const accountAutocomplete = async (interaction) => {
+	const focused = (interaction.options.getFocused() ?? "").toLowerCase();
+	const accounts = await accountsForGuild(interaction.guildId, {
+		blacklist: ["honkai", "tot"]
+	});
+	const choices = accounts
+		.map((i) => ({
+			name: `(${app.HoyoLab.getRegion(i.region)}) ${i.game.short} - (${i.uid}) ${i.nickname}`,
+			value: i.uid
+		}))
+		.filter((choice) => choice.name.toLowerCase().includes(focused))
+		.slice(0, 25);
+	await interaction.respond(choices);
+};
 
 module.exports = class Command extends require("./template.js") {
 	name;
@@ -42,6 +58,14 @@ module.exports = class Command extends require("./template.js") {
 			}
 
 			this.params = params;
+
+			if (
+				!this.autocomplete &&
+				Array.isArray(this.params) &&
+				this.params.some((p) => p?.accounts)
+			) {
+				this.autocomplete = accountAutocomplete;
+			}
 		}
 
 		if (typeof data.run === "function") {
@@ -92,24 +116,11 @@ module.exports = class Command extends require("./template.js") {
 			switch (param.type) {
 				case "string":
 					if (param.accounts) {
-						const accounts = app.HoyoLab.getActiveAccounts({
-							blacklist: ["honkai", "tot"]
-						});
-
-						if (accounts.length === 0) {
-							continue;
-						}
-
-						const choices = accounts.map((i) => ({
-							name: `(${app.HoyoLab.getRegion(i.region)}) ${i.game.short} - (${i.uid}) ${i.nickname}`,
-							value: i.uid
-						}));
-
 						builder.addStringOption((opt) =>
 							opt
 								.setName(param.name)
 								.setDescription(param.description)
-								.addChoices(choices)
+								.setAutocomplete(true)
 								.setRequired(param.required ?? false)
 						);
 					} else {
