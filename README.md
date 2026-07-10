@@ -156,7 +156,7 @@ This imports your existing accounts and settings as linked profiles. Once migrat
 
 ## Usage
 
-For a detailed guide on grabbing your HoYoLAB cookie, refer to this gist: [Cookie Guide](https://gist.github.com/torikushiii/59eff33fc8ea89dbc0b2e7652db9d3fd).
+For a detailed guide on grabbing your HoYoLAB cookie, see [How to get your HoYoLAB cookie string](docs/cookie-guide.md).
 
 ## Notifications Setup
 
