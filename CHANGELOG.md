@@ -6,6 +6,17 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-10
+
+### Security
+
+- The `/checkin`, `/redeem`, `/notes`, `/stamina`, `/diary`, `/expedition`, `/mimo`, and `/hilichurl` commands are now scoped to the server they are run in. Previously they operated on every linked account across all servers, so a member of one server could enumerate, check in, redeem codes for, or read notes/stamina/diary/expedition data belonging to accounts linked in other servers. Each command now only sees the invoking server's accounts, and the `account:` autocomplete on `/redeem`, `/notes`, and `/diary` only lists that server's accounts.
+- `/redeem` now records redemption history and marks cookies expired only for the invoking server's profiles, instead of every profile that shares the same game UID across all servers.
+
+### Changed
+
+- The eight game commands above now require the **Administrator** permission and only work inside a server — they are hidden from non-admins, refused in DMs, and no longer available on Telegram — matching the existing `/link` and `/config` commands.
+
 ## [1.4.1] - 2026-07-10
 
 ### Changed
