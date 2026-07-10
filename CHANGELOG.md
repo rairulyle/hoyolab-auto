@@ -6,6 +6,10 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+### Changed
+
+- `/checkin` reverted to one embed per account (the detailed per-account card with reward thumbnail), undoing the per-game grouping introduced in 1.4.0; the `/redeem` embeds from 1.4.0 are kept.
+
 ## [1.4.0] - 2026-07-10
 
 ### Changed

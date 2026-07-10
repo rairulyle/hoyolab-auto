@@ -1,7 +1,3 @@
-const { buildGroupedEmbed } = require("../../core/notify.js");
-const { GAMES, gameKeyFromEngineName } = require("../../config/games.js");
-const { groupCheckInResults } = require("./summarize.js");
-
 module.exports = {
 	name: "checkin",
 	description: "Manually run check-in for all games or a specific game.",
@@ -86,21 +82,46 @@ module.exports = {
 		}
 
 		if (platform.id === 1) {
-			const errorEntries = errors.map((e) => {
-				const gameKey = gameKeyFromEngineName(e.game) ?? e.game;
-				const accounts = app.HoyoLab.getActiveAccounts({ whitelist: e.game });
+			const embeds = results.map((message) => {
+				let fields = [
+					{ name: "UID", value: message.uid, inline: true },
+					{ name: "Username", value: message.username, inline: true },
+					{ name: "Region", value: message.region, inline: true },
+					{ name: "Rank", value: message.rank, inline: true },
+					{
+						name: "Today's Reward",
+						value: `${message.award.name} x${message.award.count}`,
+						inline: true
+					},
+					{ name: "Total Sign-ins", value: message.total, inline: true },
+					{ name: "Result", value: message.result, inline: true }
+				];
+
+				if (message.platform === "tot") {
+					fields = fields.filter((f) => f.name !== "Username" && f.name !== "Rank");
+				}
+
 				return {
-					game: e.game,
-					name: GAMES[gameKey]?.name ?? e.game,
-					assets: accounts[0]?.assets ?? null,
-					error: e.error
+					color: message.assets.color,
+					title: message.assets.game,
+					author: {
+						name: message.assets.author,
+						icon_url: message.assets.logo
+					},
+					thumbnail: {
+						url: message.award.icon
+					},
+					fields
 				};
 			});
 
-			const groups = groupCheckInResults(results, errorEntries);
-			const embeds = groups.map((group) =>
-				buildGroupedEmbed(group, { titleSuffix: "Daily Check-In" })
-			);
+			if (errors.length > 0) {
+				embeds.push({
+					color: 0xff0000,
+					title: "❌ Check-In Errors",
+					description: errors.map((e) => `**${e.game}**: ${e.error}`).join("\n")
+				});
+			}
 
 			if (interaction) {
 				await interaction.editReply({ embeds: embeds.slice(0, 10) });
