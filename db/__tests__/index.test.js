@@ -230,3 +230,17 @@ test("getRedeemStatuses returns statuses for a profile+game+code", async () => {
 	assert.deepEqual(statuses.sort(), ["error", "ok"]);
 	assert.deepEqual(await db.getRedeemStatuses("p1", "genshin", "NONE"), []);
 });
+
+test("findGuildProfilesByGameUid is guild-scoped", async () => {
+	await db.upsertProfile(profile()); // g1, genshin uid 800
+	await db.upsertProfile(
+		profile({ guildId: "g2", label: "main", ltuid: "222" }) // g2, genshin uid 800
+	);
+
+	const g1 = await db.findGuildProfilesByGameUid("g1", "genshin", "800");
+	assert.equal(g1.length, 1);
+	assert.equal(g1[0].guildId, "g1");
+
+	const none = await db.findGuildProfilesByGameUid("g1", "genshin", "999");
+	assert.equal(none.length, 0);
+});

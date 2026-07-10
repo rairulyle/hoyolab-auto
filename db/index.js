@@ -159,6 +159,13 @@ module.exports = class Database {
 		});
 	}
 
+	async findGuildProfilesByGameUid(guildId, gameKey, uid) {
+		return await this.collections.profiles.findAsync({
+			guildId,
+			games: { $elemMatch: { key: gameKey, uid } }
+		});
+	}
+
 	async findProfilesByLtuid(ltuid) {
 		return await this.collections.profiles.findAsync({ ltuid });
 	}
