@@ -6,6 +6,12 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-07-13
+
+### Changed
+
+- The scheduled daily check-in notification is back to one detailed embed per account — the per-account card with the reward image as its thumbnail plus Profile, IGN, Region, Today's Reward, Total Sign-ins, and Result fields — instead of the compact one-line-per-account list grouped by game. Failed check-ins still surface as their own red embed and ping the account's linker. The manual `/checkin` command is unaffected.
+
 ## [1.6.0] - 2026-07-10
 
 ### Added
