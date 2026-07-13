@@ -6,6 +6,8 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+## [Unreleased]
+
 ## [1.6.1] - 2026-07-13
 
 ### Changed
