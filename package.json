@@ -1,6 +1,6 @@
 {
 	"name": "hoyolab-auto",
-	"version": "1.6.1",
+	"version": "1.7.0",
 	"module": "index.js",
 	"type": "commonjs",
 	"scripts": {
