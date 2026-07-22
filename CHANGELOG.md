@@ -6,7 +6,9 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
-## [Unreleased]
+### Changed
+
+- The Zenless Howl's News Stand scratch-card reminder no longer sends its own embed. The card's status now appears at the end of each account's row in the dailies reminder as a `✅Check-in` / `❌Check-in` suffix (e.g. `0/400 dailies · 234/240 stamina · ❌Check-in`), and it now respects the account's Dailies Reminder toggle — accounts with dailies off get no scratch-card reminder either. An account with completed dailies but an unscratched card still gets a row.
 
 ## [1.6.1] - 2026-07-13
 

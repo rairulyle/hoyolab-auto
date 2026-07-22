@@ -5,7 +5,6 @@ const CodeRedeem = require("./code-redeem/index.js");
 const DailiesReminder = require("./dailies-reminder/index.js");
 const Expedition = require("./expedition/index.js");
 const Hilichurl = require("./hilichurl/index.js");
-const HowlScratchCard = require("./howl-scratch-card/index.js");
 const Mimo = require("./mimo/index.js");
 const MissedCheckIn = require("./missed-check-in/index.js");
 const RealmCurrency = require("./realm-currency/index.js");
@@ -20,7 +19,6 @@ const definitions = [
 	DailiesReminder,
 	Expedition,
 	Hilichurl,
-	HowlScratchCard,
 	Mimo,
 	MissedCheckIn,
 	RealmCurrency,
@@ -30,7 +28,7 @@ const definitions = [
 	WeekliesReminder
 ];
 
-const BlacklistedCrons = ["dailiesReminder", "howlScratchCard", "weekliesReminder"];
+const BlacklistedCrons = ["dailiesReminder", "weekliesReminder"];
 
 const initCrons = (cronConfig = {}) => {
 	const { blacklist = [], whitelist = [] } = cronConfig;
