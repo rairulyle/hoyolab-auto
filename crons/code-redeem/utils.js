@@ -1,8 +1,11 @@
 const { setTimeout } = require("node:timers/promises");
 
+const HOYO_CODES_URL = "https://hoyo-codes.seria.moe/codes";
+
 const GAME_CONFIG = [
 	{
 		key: "genshin",
+		apiGame: "genshin",
 		modulePath: "./genshin",
 		cacheKey: "genshin-code",
 		accountFilter: "genshin",
@@ -12,6 +15,7 @@ const GAME_CONFIG = [
 	},
 	{
 		key: "starrail",
+		apiGame: "hkrpg",
 		modulePath: "./starrail",
 		cacheKey: "starrail-code",
 		accountFilter: "starrail",
@@ -21,6 +25,7 @@ const GAME_CONFIG = [
 	},
 	{
 		key: "zenless",
+		apiGame: "nap",
 		modulePath: "./zenless",
 		cacheKey: "zenless-code",
 		accountFilter: "nap",
@@ -30,7 +35,7 @@ const GAME_CONFIG = [
 	},
 	{
 		key: "honkai",
-		modulePath: "./honkai",
+		apiGame: "honkai3rd",
 		cacheKey: "honkai-code",
 		accountFilter: "honkai",
 		platform: "honkai",
@@ -39,7 +44,7 @@ const GAME_CONFIG = [
 	},
 	{
 		key: "tot",
-		modulePath: "./tot",
+		apiGame: "tot",
 		cacheKey: "tot-code",
 		accountFilter: "tot",
 		platform: "tot",
@@ -116,13 +121,58 @@ const appendCodesToCache = async (game, codes) => {
 	});
 };
 
+let version;
+const getUserAgent = () => {
+	if (typeof version === "undefined") {
+		try {
+			const { execSync } = require("child_process");
+			const hash = execSync("git rev-parse --short HEAD").toString().trim();
+
+			version = `HoyoLabAuto@${hash}`;
+		} catch {
+			version = "HoyoLabAuto";
+		}
+	}
+
+	return version;
+};
+
+const fetchGameCodes = async (game) => {
+	const res = await app.Got("API", {
+		url: HOYO_CODES_URL,
+		searchParams: { game: game.apiGame },
+		responseType: "json",
+		throwHttpErrors: false,
+		headers: {
+			"User-Agent": getUserAgent()
+		}
+	});
+
+	if (res.statusCode !== 200) {
+		app.Logger.debug("HoyoCodes", {
+			game: game.key,
+			statusCode: res.statusCode
+		});
+
+		return [];
+	}
+
+	const codes = parseCodesPayload(res.body);
+	if (codes === null) {
+		app.Logger.debug("HoyoCodes", {
+			game: game.key,
+			message: "API returned malformed data",
+			body: res.body
+		});
+
+		return [];
+	}
+
+	return codes;
+};
+
 const fetchCodes = async () => {
-	const settled = await Promise.allSettled(
-		GAME_CONFIG.map(async (game) => {
-			const module = require(game.modulePath);
-			return await module.fetchData();
-		})
-	);
+	const settled = await Promise.allSettled(GAME_CONFIG.map((game) => fetchGameCodes(game)));
 
 	return settled.reduce((acc, result, index) => {
 		const game = GAME_CONFIG[index];
