@@ -4,12 +4,16 @@ All notable changes to this project are documented here. The format follows [Kee
 
 Entries are written **one line per paragraph and bullet** (no hard-wrapping) so that a section pasted into GitHub release notes reflows to full width instead of breaking at the source wrap points.
 
-## [Unreleased]
+## [1.8.0] - 2026-07-23
 
 ### Changed
 
 - Auto code-redeem now sources codes from the [hoyo-codes](https://github.com/seriaati/hoyo-codes) API (`hoyo-codes.seria.moe`) instead of `api.ennead.cc`, which was slow to pick up new codes. All five games share one fetcher; only codes the API marks active are attempted.
 - On a fresh install (empty code cache) the bot now attempts every currently-active code instead of silently skipping them. Codes an account already redeemed are recorded with status `already` and no longer produce a failure notification; invalid/expired codes are recorded as `invalid`/`expired` instead of a generic `error`.
+
+### Fixed
+
+- The code-redeem cron now skips a tick while the previous run is still in flight, so a long first run (many codes × accounts, 6s apart) can no longer overlap with the next minute's tick and double-attempt codes.
 
 ## [1.7.0] - 2026-07-22
 
