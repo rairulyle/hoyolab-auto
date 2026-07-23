@@ -1,7 +1,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { parseCodesPayload, filterNewCodes } = require("../utils.js");
+const { parseCodesPayload, filterNewCodes, redeemOutcome } = require("../utils.js");
 
 test("parseCodesPayload keeps only OK codes", () => {
 	const body = {
@@ -80,4 +80,38 @@ test("filterNewCodes skips entries without a usable code value", () => {
 	const result = filterNewCodes(incoming, []);
 	assert.equal(result.length, 1);
 	assert.equal(result[0].code, "OK1");
+});
+
+test("redeemOutcome maps success to the success bucket", () => {
+	assert.deepEqual(redeemOutcome({ success: true, retcode: 0 }), {
+		bucket: "success",
+		status: "ok"
+	});
+});
+
+test("redeemOutcome routes already-redeemed codes to the quiet bucket", () => {
+	assert.deepEqual(redeemOutcome({ success: false, retcode: -2017 }), {
+		bucket: "already",
+		status: "already"
+	});
+});
+
+test("redeemOutcome records invalid and expired with their own statuses", () => {
+	assert.deepEqual(redeemOutcome({ success: false, retcode: -2003 }), {
+		bucket: "failed",
+		status: "invalid"
+	});
+	assert.deepEqual(redeemOutcome({ success: false, retcode: -2001 }), {
+		bucket: "failed",
+		status: "expired"
+	});
+});
+
+test("redeemOutcome maps cooldown, auth, and unknown retcodes to error", () => {
+	for (const retcode of [-2016, -100, -9999, undefined]) {
+		assert.deepEqual(redeemOutcome({ success: false, retcode }), {
+			bucket: "failed",
+			status: "error"
+		});
+	}
 });

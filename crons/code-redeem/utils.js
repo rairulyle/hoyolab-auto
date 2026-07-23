@@ -1,4 +1,5 @@
 const { setTimeout } = require("node:timers/promises");
+const { classifyRedeem } = require("../../hoyolab-modules/redeem-status.js");
 
 const HOYO_CODES_URL = "https://hoyo-codes.seria.moe/codes";
 
@@ -86,6 +87,20 @@ const parseCodesPayload = (body) => {
 const getCachedCodes = async (cacheKey) => {
 	const cachedCodes = await app.Cache.get(cacheKey);
 	return Array.isArray(cachedCodes) ? cachedCodes.map(toUpperCase) : [];
+};
+
+const redeemOutcome = (result) => {
+	if (result.success) {
+		return { bucket: "success", status: "ok" };
+	}
+
+	const category = classifyRedeem(result.retcode);
+	if (category === "already") {
+		return { bucket: "already", status: "already" };
+	}
+
+	const status = category === "invalid" || category === "expired" ? category : "error";
+	return { bucket: "failed", status };
 };
 
 const filterNewCodes = (incomingCodes, cachedCodes) => {
@@ -206,6 +221,7 @@ const checkAndRedeem = async (codes) => {
 	const success = [];
 	const failed = [];
 	const manual = [];
+	const already = [];
 
 	for (const game of GAME_CONFIG) {
 		const pendingCodes = newCodes[game.key] ?? [];
@@ -262,13 +278,18 @@ const checkAndRedeem = async (codes) => {
 
 			for (const code of pendingCodes) {
 				const result = await redeemCodes(account, code);
-				if (result.success) {
+				const outcome = redeemOutcome(result);
+
+				if (outcome.bucket === "success") {
 					success.push({ account, code });
+				} else if (outcome.bucket === "already") {
+					already.push({ account, code, reason: result.reason });
 				} else {
 					failed.push({
 						account,
 						code,
-						reason: result.reason
+						reason: result.reason,
+						status: outcome.status
 					});
 				}
 
@@ -282,7 +303,8 @@ const checkAndRedeem = async (codes) => {
 	return {
 		success,
 		failed,
-		manual
+		manual,
+		already
 	};
 };
 
@@ -406,5 +428,6 @@ module.exports = {
 	checkAndRedeem,
 	buildMessage,
 	parseCodesPayload,
-	filterNewCodes
+	filterNewCodes,
+	redeemOutcome
 };

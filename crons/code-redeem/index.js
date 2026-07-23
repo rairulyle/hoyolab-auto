@@ -62,8 +62,13 @@ module.exports = {
 			return;
 		}
 
-		const { success, failed, manual } = result;
-		if (success.length === 0 && failed.length === 0 && manual.length === 0) {
+		const { success, failed, manual, already } = result;
+		if (
+			success.length === 0 &&
+			failed.length === 0 &&
+			manual.length === 0 &&
+			already.length === 0
+		) {
 			return;
 		}
 
@@ -72,8 +77,11 @@ module.exports = {
 			await recordRedeem(data, "ok");
 			entries.push(toEntry(data, true));
 		}
+		for (const data of already) {
+			await recordRedeem(data, "already");
+		}
 		for (const data of failed) {
-			await recordRedeem(data, "error");
+			await recordRedeem(data, data.status ?? "error");
 			entries.push(toEntry(data, false));
 		}
 		if (entries.length > 0) {

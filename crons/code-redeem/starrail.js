@@ -34,32 +34,23 @@ const redeemCodes = async (accountData, code) => {
 	}
 
 	const retcode = res.body.retcode;
-	if (retcode === -2001 || retcode === -2003) {
-		app.Logger.log(`CodeRedeem:StarRail:${accountData.uid}`, {
-			code: code.code,
-			message: "Expired or invalid code"
-		});
-
-		return {
-			success: false,
-			reason: "Expired or invalid code"
-		};
-	}
-
 	if (retcode !== 0) {
 		app.Logger.info(
 			`CodeRedeem:StarRail:${accountData.uid}`,
 			`${code.code} - ${res.body.message}`
 		);
+
 		return {
 			success: false,
-			reason: res.body.message
+			reason: res.body.message,
+			retcode
 		};
 	}
 
 	app.Logger.info(`CodeRedeem:StarRail:${accountData.uid}`, `${code.code} - Redeemed`);
 	return {
-		success: true
+		success: true,
+		retcode
 	};
 };
 
