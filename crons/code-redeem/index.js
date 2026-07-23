@@ -29,73 +29,86 @@ const toEntry = (data, success) => ({
 	)
 });
 
+let isRunning = false;
+
 module.exports = {
 	name: "code-redeem",
 	expression: "* * * * *",
 	description: "Check and redeem codes for supported games from HoyoLab.",
 	code: async function codeRedeem() {
-		const accountData = app.HoyoLab.getActiveAccounts();
-
-		if (accountData.length === 0) {
-			app.Logger.info("No active accounts found");
+		if (isRunning) {
+			app.Logger.debug("CodeRedeem", "Previous invocation still running, skipping");
 			return;
 		}
 
-		const redeemDisabled = accountData.every((i) => i.redeemCode === false);
-		if (redeemDisabled) {
-			app.Logger.info("CodeRedeem", "All accounts have redeem disabled");
+		isRunning = true;
 
-			return;
-		}
+		try {
+			const accountData = app.HoyoLab.getActiveAccounts();
 
-		const codes = await fetchCodes();
-		if (Object.values(codes).every((i) => i.length === 0)) {
-			app.Logger.debug("CodeRedeem", {
-				message: "No codes found"
-			});
+			if (accountData.length === 0) {
+				app.Logger.info("No active accounts found");
+				return;
+			}
 
-			return;
-		}
+			const redeemDisabled = accountData.every((i) => i.redeemCode === false);
+			if (redeemDisabled) {
+				app.Logger.info("CodeRedeem", "All accounts have redeem disabled");
 
-		const result = await checkAndRedeem(codes);
-		if (typeof result === "undefined") {
-			return;
-		}
+				return;
+			}
 
-		const { success, failed, manual, already } = result;
-		if (
-			success.length === 0 &&
-			failed.length === 0 &&
-			manual.length === 0 &&
-			already.length === 0
-		) {
-			return;
-		}
+			const codes = await fetchCodes();
+			if (Object.values(codes).every((i) => i.length === 0)) {
+				app.Logger.debug("CodeRedeem", {
+					message: "No codes found"
+				});
 
-		const entries = [];
-		for (const data of success) {
-			await recordRedeem(data, "ok");
-			entries.push(toEntry(data, true));
-		}
-		for (const data of already) {
-			await recordRedeem(data, "already");
-		}
-		for (const data of failed) {
-			await recordRedeem(data, data.status ?? "error");
-			entries.push(toEntry(data, false));
-		}
-		if (entries.length > 0) {
-			await notifyGroupedRedeem({ entries });
-		}
+				return;
+			}
 
-		for (const data of manual) {
-			const message = buildMessage("manual", data);
-			const gameKey = gameKeyFromEngineName(data.gameKey) ?? data.gameKey;
-			await notifyGuildsForGame(gameKey, {
-				embeds: [message.embed],
-				telegramText: app.Utils.escapeCharacters(message.telegram),
-				kind: "redeem"
-			});
+			const result = await checkAndRedeem(codes);
+			if (typeof result === "undefined") {
+				return;
+			}
+
+			const { success, failed, manual, already } = result;
+			if (
+				success.length === 0 &&
+				failed.length === 0 &&
+				manual.length === 0 &&
+				already.length === 0
+			) {
+				return;
+			}
+
+			const entries = [];
+			for (const data of success) {
+				await recordRedeem(data, "ok");
+				entries.push(toEntry(data, true));
+			}
+			for (const data of already) {
+				await recordRedeem(data, "already");
+			}
+			for (const data of failed) {
+				await recordRedeem(data, data.status ?? "error");
+				entries.push(toEntry(data, false));
+			}
+			if (entries.length > 0) {
+				await notifyGroupedRedeem({ entries });
+			}
+
+			for (const data of manual) {
+				const message = buildMessage("manual", data);
+				const gameKey = gameKeyFromEngineName(data.gameKey) ?? data.gameKey;
+				await notifyGuildsForGame(gameKey, {
+					embeds: [message.embed],
+					telegramText: app.Utils.escapeCharacters(message.telegram),
+					kind: "redeem"
+				});
+			}
+		} finally {
+			isRunning = false;
 		}
 	}
 };

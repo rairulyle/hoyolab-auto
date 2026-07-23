@@ -63,6 +63,14 @@ test("parseCodesPayload returns null for malformed payloads", () => {
 	assert.equal(parseCodesPayload({ codes: "nope" }), null);
 });
 
+test("parseCodesPayload returns an empty array when no codes are active", () => {
+	assert.deepEqual(parseCodesPayload({ codes: [] }), []);
+	assert.deepEqual(
+		parseCodesPayload({ codes: [{ code: "X", status: "NOT_OK", rewards: "" }] }),
+		[]
+	);
+});
+
 test("filterNewCodes returns all codes when the cache is empty (no first-run seeding)", () => {
 	const incoming = [{ code: "abc123" }, { code: "DEF456" }];
 	assert.deepEqual(filterNewCodes(incoming, []), incoming);
