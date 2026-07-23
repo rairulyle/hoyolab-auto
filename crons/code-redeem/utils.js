@@ -60,6 +60,24 @@ const DEFAULT_MANUAL_REASON = "Redeem this code from within the game client.";
 const toUpperCase = (value) => String(value).toUpperCase();
 const formatCodeValue = (code) => String(code?.code ?? "").toUpperCase();
 
+const parseCodesPayload = (body) => {
+	const codes = body?.codes;
+	if (!Array.isArray(codes)) {
+		return null;
+	}
+
+	return codes
+		.filter((i) => i?.status === "OK" && i.code)
+		.map((i) => ({
+			code: i.code,
+			rewards: String(i.rewards ?? "")
+				.split(";")
+				.map((part) => part.trim())
+				.filter(Boolean),
+			source: "hoyo-codes"
+		}));
+};
+
 const getCachedCodes = async (cacheKey) => {
 	const cachedCodes = await app.Cache.get(cacheKey);
 	return Array.isArray(cachedCodes) ? cachedCodes.map(toUpperCase) : [];
@@ -341,5 +359,6 @@ const checkCachedCodes = async (codes) => {
 module.exports = {
 	fetchCodes,
 	checkAndRedeem,
-	buildMessage
+	buildMessage,
+	parseCodesPayload
 };
