@@ -88,6 +88,15 @@ const getCachedCodes = async (cacheKey) => {
 	return Array.isArray(cachedCodes) ? cachedCodes.map(toUpperCase) : [];
 };
 
+const filterNewCodes = (incomingCodes, cachedCodes) => {
+	const cached = new Set(cachedCodes);
+
+	return incomingCodes.filter((code) => {
+		const normalized = formatCodeValue(code);
+		return normalized && !cached.has(normalized);
+	});
+};
+
 const appendCodesToCache = async (game, codes) => {
 	if (!Array.isArray(codes) || codes.length === 0) {
 		return;
@@ -386,21 +395,7 @@ const checkCachedCodes = async (codes) => {
 		}
 
 		const cachedCodes = await getCachedCodes(game.cacheKey);
-		if (cachedCodes.length === 0) {
-			const cachedValues = incomingCodes.map(formatCodeValue).filter(Boolean);
-
-			await app.Cache.set({
-				key: game.cacheKey,
-				value: cachedValues
-			});
-			newCodes[game.key] = [];
-			continue;
-		}
-
-		newCodes[game.key] = incomingCodes.filter((code) => {
-			const normalized = formatCodeValue(code);
-			return normalized && !cachedCodes.includes(normalized);
-		});
+		newCodes[game.key] = filterNewCodes(incomingCodes, cachedCodes);
 	}
 
 	return newCodes;
@@ -410,5 +405,6 @@ module.exports = {
 	fetchCodes,
 	checkAndRedeem,
 	buildMessage,
-	parseCodesPayload
+	parseCodesPayload,
+	filterNewCodes
 };

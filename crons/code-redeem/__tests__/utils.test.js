@@ -1,7 +1,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { parseCodesPayload } = require("../utils.js");
+const { parseCodesPayload, filterNewCodes } = require("../utils.js");
 
 test("parseCodesPayload keeps only OK codes", () => {
 	const body = {
@@ -61,4 +61,23 @@ test("parseCodesPayload returns null for malformed payloads", () => {
 	assert.equal(parseCodesPayload(null), null);
 	assert.equal(parseCodesPayload({}), null);
 	assert.equal(parseCodesPayload({ codes: "nope" }), null);
+});
+
+test("filterNewCodes returns all codes when the cache is empty (no first-run seeding)", () => {
+	const incoming = [{ code: "abc123" }, { code: "DEF456" }];
+	assert.deepEqual(filterNewCodes(incoming, []), incoming);
+});
+
+test("filterNewCodes drops codes already in the cache, case-insensitively", () => {
+	const incoming = [{ code: "abc123" }, { code: "NEWCODE" }];
+	const result = filterNewCodes(incoming, ["ABC123"]);
+	assert.equal(result.length, 1);
+	assert.equal(result[0].code, "NEWCODE");
+});
+
+test("filterNewCodes skips entries without a usable code value", () => {
+	const incoming = [{ code: "" }, {}, { code: "OK1" }];
+	const result = filterNewCodes(incoming, []);
+	assert.equal(result.length, 1);
+	assert.equal(result[0].code, "OK1");
 });
