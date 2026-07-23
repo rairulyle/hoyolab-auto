@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 Entries are written **one line per paragraph and bullet** (no hard-wrapping) so that a section pasted into GitHub release notes reflows to full width instead of breaking at the source wrap points.
 
+## [Unreleased]
+
 ## [1.8.0] - 2026-07-23
 
 ### Changed
