@@ -6,6 +6,11 @@ Entries are written **one line per paragraph and bullet** (no hard-wrapping) so 
 
 ## [Unreleased]
 
+### Changed
+
+- Auto code-redeem now sources codes from the [hoyo-codes](https://github.com/seriaati/hoyo-codes) API (`hoyo-codes.seria.moe`) instead of `api.ennead.cc`, which was slow to pick up new codes. All five games share one fetcher; only codes the API marks active are attempted.
+- On a fresh install (empty code cache) the bot now attempts every currently-active code instead of silently skipping them. Codes an account already redeemed are recorded with status `already` and no longer produce a failure notification; invalid/expired codes are recorded as `invalid`/`expired` instead of a generic `error`.
+
 ## [1.7.0] - 2026-07-22
 
 ### Changed
